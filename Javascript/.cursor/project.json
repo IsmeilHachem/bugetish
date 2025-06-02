@@ -1,0 +1,63 @@
+{
+    "name": "budgetish",
+    "description": "A web-based budget tracking application",
+    "expertise": [
+        "javascript",
+        "vue.js",
+        "microsoft-azure",
+        "web-development",
+        "data-visualization",
+        "local-storage",
+        "responsive-design",
+        "content-writing",
+        "technical-documentation",
+        "user-guides",
+        "api-documentation"
+    ],
+    "rules": {
+        "code_style": {
+            "indent_size": 2,
+            "max_line_length": 100,
+            "quote_style": "single"
+        },
+        "file_patterns": {
+            "components": "src/components/**/*.vue",
+            "views": "src/views/**/*.vue",
+            "stores": "src/stores/**/*.js",
+            "utils": "src/utils/**/*.js",
+            "docs": "docs/**/*.md"
+        },
+        "naming_conventions": {
+            "components": "PascalCase",
+            "variables": "camelCase",
+            "constants": "UPPER_SNAKE_CASE"
+        },
+        "documentation": {
+            "required_sections": [
+                "overview",
+                "installation",
+                "usage",
+                "api",
+                "examples"
+            ],
+            "style": "markdown",
+            "include_code_examples": true
+        }
+    },
+    "dependencies": {
+        "required": [
+            "vue",
+            "vue-router",
+            "pinia",
+            "chart.js",
+            "tailwindcss",
+            "axios"
+        ],
+        "dev": [
+            "vite",
+            "@vitejs/plugin-vue",
+            "eslint",
+            "prettier"
+        ]
+    }
+} 

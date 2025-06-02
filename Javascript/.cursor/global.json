@@ -1,0 +1,54 @@
+{
+    "expertise": [
+        "javascript",
+        "microsoft-azure",
+        "web-development",
+        "data-visualization",
+        "local-storage",
+        "responsive-design",
+        "vue.js",
+        "node.js",
+        "rest-apis",
+        "cloud-computing",
+        "content-writing",
+        "blog-writing",
+        "content-editing",
+        "seo-writing",
+        "technical-writing",
+        "content-strategy",
+        "content-review",
+        "grammar-and-style",
+        "content-optimization",
+        "audience-engagement"
+    ],
+    "preferences": {
+        "editor": {
+            "format_on_save": true,
+            "tab_size": 2,
+            "word_wrap": true
+        },
+        "git": {
+            "commit_message_format": "conventional",
+            "branch_naming": "feature/fix/chore"
+        },
+        "content": {
+            "tone": "professional-yet-friendly",
+            "style_guide": "AP",
+            "readability_target": "grade-8",
+            "seo_focus": true
+        }
+    },
+    "linting": {
+        "eslint": {
+            "extends": [
+                "eslint:recommended",
+                "plugin:vue/vue3-recommended"
+            ]
+        },
+        "prettier": {
+            "semi": false,
+            "singleQuote": true,
+            "trailingComma": "es5"
+        }
+    }
+} 
