@@ -1,0 +1,48 @@
+The flow would be:
+User types budgetish.com
+DNS resolves to the VM's public IP
+Request hits Azure Firewall
+Firewall checks rules and forwards to VM's NSG
+NSG checks rules and allows traffic to VM
+Nginx receives request and:
+Serves static files (Vue.js frontend) directly
+Proxies API requests to Node.js
+Node.js handles API requests and interacts with PostgreSQL
+Response flows back through the same path
+
+[User Layer]
+└── User
+    └── Accessing budgetish.com
+
+[Network Layer]
+└── DNS Resolution
+    └── budgetish.com -> Azure DNS Zone
+        └── Points to Public IP of VM
+
+[Security Layer]
+└── Azure Firewall
+    ├── Inbound Rules
+    │   ├── HTTP (80)
+    │   └── HTTPS (443)
+    └── Outbound Rules
+        └── Allow necessary outbound traffic
+
+[Network Security]
+└── Network Security Group (NSG)
+    ├── Inbound Rules
+    │   ├── HTTP (80) from Firewall
+    │   └── HTTPS (443) from Firewall
+    └── Outbound Rules
+        └── Allow necessary outbound traffic
+
+[Compute Layer]
+└── Azure VM
+    ├── Nginx (Web Server)
+    │   └── Serves Vue.js Frontend
+    ├── Node.js (Application Server)
+    │   └── Serves API
+    └── PostgreSQL (Database)
+        └── Local to VM (initially)
+
+[Data Flow]
+User -> DNS -> Firewall -> NSG -> VM (Nginx -> Node.js -> PostgreSQL)

@@ -330,7 +330,10 @@ const upcomingBills = computed(() => {
   const { lastFriday, nextFriday } = getWeekRange()
   return (billsForDashboardMonth.value || []).filter(bill => {
     const dueDate = parseLocalDate(bill.dueDate)
-    return dueDate >= lastFriday && dueDate <= nextFriday && !bill.paid
+    return dueDate >= lastFriday && 
+           dueDate <= nextFriday && 
+           !bill.paid && 
+           !bill.deletedAfter // Filter out deleted bills
   }).sort((a, b) => parseLocalDate(a.dueDate) - parseLocalDate(b.dueDate))
 })
 const upcomingBillsTotal = computed(() => {

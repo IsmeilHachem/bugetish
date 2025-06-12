@@ -30,7 +30,10 @@ export const useBillsStore = defineStore('bills', {
     // Get bills by status
     getPaidBills: (state) => state.bills.filter(bill => bill.status === PAID_STATUS),
     getUnpaidBills: (state) => state.bills.filter(bill => bill.status === UNPAID_STATUS),
-    getUpcomingBills: (state) => state.bills.filter(bill => bill.status === UPCOMING_STATUS),
+    getUpcomingBills: (state) => state.bills.filter(bill => 
+      bill.status === UPCOMING_STATUS && 
+      !bill.deletedAfter // Filter out deleted bills
+    ),
     
     // Get bills by category
     getBillsByCategory: (state) => (category) => 
