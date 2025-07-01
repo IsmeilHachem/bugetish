@@ -4,10 +4,12 @@
       <p class="text-gray-500">No data available for the selected period</p>
     </div>
     <div v-else>
-      <div style="height: 300px">
+      <div style="display: flex; align-items: center; justify-content: center;">
         <Doughnut
           :data="chartData"
           :options="chartOptions"
+          :width="420"
+          :height="420"
           @click="handleChartClick"
         />
       </div>

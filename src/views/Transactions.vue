@@ -1,178 +1,217 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Transactions</h1>
-        <p class="text-gray-600 mt-2">Manage your transactions</p>
-      </div>
-      <div class="flex gap-2">
-        <button
-          v-if="selectedTransactions.length > 0"
-          @click="deleteSelectedTransactions"
-          class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-        >
-          Delete Selected
-        </button>
-        <button
-          @click="openAddTransactionModal"
-          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Add Transaction
-        </button>
-      </div>
-    </div>
-
-    <!-- Filters Section -->
-    <div class="bg-white rounded-lg shadow mb-6 p-4">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Date Range Filter -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-          <div class="flex gap-2">
-            <input
-              type="month"
-              v-model="dateRange.start"
-              class="border rounded px-2 py-1 w-full"
-            />
-            <input
-              type="month"
-              v-model="dateRange.end"
-              class="border rounded px-2 py-1 w-full"
-            />
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div class="container mx-auto px-4 py-8">
+      <!-- Header Section -->
+      <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div>
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              Transaction Management
+            </h1>
+            <p class="text-gray-600 mt-2 text-lg">Track and manage your financial transactions</p>
           </div>
-        </div>
-
-        <!-- Search Filter -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
-          <input
-            type="text"
-            v-model="searchTerm"
-            placeholder="Search by description, category, or amount"
-            class="border rounded px-2 py-1 w-full"
-          />
-        </div>
-
-        <!-- Sort Filter -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
-          <div class="flex gap-2">
-            <select
-              v-model="sortBy"
-              class="border rounded px-2 py-1 w-full"
-            >
-              <option value="date">Date</option>
-              <option value="amount">Amount</option>
-              <option value="description">Description</option>
-              <option value="category">Category</option>
-            </select>
+          <div class="flex gap-3">
             <button
-              @click="toggleSortOrder"
-              class="px-2 py-1 border rounded"
+              v-if="selectedTransactions.length > 0"
+              @click="deleteSelectedTransactions"
+              class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg"
             >
-              {{ sortOrder === 'desc' ? '↓' : '↑' }}
+              <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Delete Selected ({{ selectedTransactions.length }})
+            </button>
+            <button
+              @click="openAddTransactionModal"
+              class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg"
+            >
+              <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add Transaction
             </button>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="flex justify-between items-center p-4 border-b">
-        <h2 class="text-lg font-medium text-gray-900">Transactions</h2>
-        <button
-          @click="selectAll"
-          class="text-blue-600 hover:text-blue-800"
-        >
-          Select All
-        </button>
+      <!-- Filters Section -->
+      <div class="bg-white rounded-2xl shadow-xl mb-8 p-6 border border-gray-100">
+        <div class="flex items-center space-x-3 mb-6">
+          <div class="w-8 h-8 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
+            </svg>
+          </div>
+          <h2 class="text-xl font-bold text-gray-900">Filters & Search</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <!-- Date Range Filter -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Date Range</label>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <input
+                type="month"
+                v-model="dateRange.start"
+                class="flex-1 min-w-0 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:shadow-md"
+              />
+              <input
+                type="month"
+                v-model="dateRange.end"
+                class="flex-1 min-w-0 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:shadow-md"
+              />
+            </div>
+          </div>
+
+          <!-- Search Filter -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Search</label>
+            <input
+              type="text"
+              v-model="searchTerm"
+              placeholder="Search by description, category, or amount"
+              class="w-full min-w-0 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:shadow-md"
+            />
+          </div>
+
+          <!-- Sort Filter -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Sort By</label>
+            <div class="flex gap-3">
+              <select
+                v-model="sortBy"
+                class="flex-1 min-w-0 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:shadow-md"
+              >
+                <option value="date">Date</option>
+                <option value="amount">Amount</option>
+                <option value="description">Description</option>
+                <option value="category">Category</option>
+              </select>
+              <button
+                @click="toggleSortOrder"
+                class="px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path v-if="sortOrder === 'desc'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8V4m0 0l-4 4m4-4l4 4M7 20v-4m0 0l4-4m-4 4l-4-4" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="w-12 px-4 py-3">
-              <input
-                type="checkbox"
-                v-model="allSelected"
-                @change="toggleAll"
-                class="rounded border-gray-300 text-blue-600"
-              >
-            </th>
-            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Date
-            </th>
-            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Description
-            </th>
-            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Category
-            </th>
-            <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Amount
-            </th>
-            <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Total
-            </th>
-            <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="transaction in filteredAndSortedTransactions" :key="transaction.id">
-            <td class="px-4 py-3">
-              <input
-                type="checkbox"
-                v-model="selectedTransactions"
-                :value="transaction.id"
-                class="rounded border-gray-300 text-blue-600"
-              >
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-900">
-              {{ formatDate(transaction.date) }}
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-900">
-              {{ transaction.description || '-' }}
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-900">
-              {{ transaction.category }}
-            </td>
-            <td class="px-4 py-3 text-sm text-right tabular-nums"
-              :class="{
-                'text-green-600': transaction.amount > 0,
-                'text-red-600': transaction.amount < 0
-              }"
-            >
-              {{ formatCurrency(transaction.amount) }}
-            </td>
-            <td class="px-4 py-3 text-sm text-right tabular-nums font-medium"
-              :class="{
-                'text-blue-600': transaction.runningTotal >= 0,
-                'text-red-600': transaction.runningTotal < 0
-              }"
-            >
-              {{ formatCurrency(transaction.runningTotal) }}
-            </td>
-            <td class="px-4 py-3 text-right text-sm">
-              <div class="flex justify-end gap-2">
-                <button
-                  @click="editTransaction(transaction)"
-                  class="text-blue-600 hover:text-blue-800"
+      <!-- Transactions Table -->
+      <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div class="flex justify-between items-center p-6 border-b border-gray-100">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900">Transactions</h2>
+            <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+              {{ filteredAndSortedTransactions.length }} transactions
+            </span>
+          </div>
+          <button
+            @click="selectAll"
+            class="text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors duration-200"
+          >
+            {{ allSelected ? 'Deselect All' : 'Select All' }}
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-100">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="w-12 px-6 py-4">
+                  <input
+                    type="checkbox"
+                    v-model="allSelected"
+                    @change="toggleAll"
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  >
+                </th>
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Description
+                </th>
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Category
+                </th>
+                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Running Total
+                </th>
+                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+              <tr v-for="transaction in filteredAndSortedTransactions" :key="transaction.id" class="hover:bg-gray-50 transition-colors duration-200">
+                <td class="px-6 py-4">
+                  <input
+                    type="checkbox"
+                    v-model="selectedTransactions"
+                    :value="transaction.id"
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  >
+                </td>
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                  {{ formatDate(transaction.date) }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ transaction.description || '-' }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium">
+                    {{ transaction.category }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-sm text-right tabular-nums font-semibold"
+                  :class="{
+                    'text-green-600': transaction.amount > 0,
+                    'text-red-600': transaction.amount < 0
+                  }"
                 >
-                  Edit
-                </button>
-                <button
-                  @click="deleteTransaction(transaction.id)"
-                  class="text-red-600 hover:text-red-800"
+                  {{ formatCurrency(transaction.amount) }}
+                </td>
+                <td class="px-6 py-4 text-sm text-right tabular-nums font-bold"
+                  :class="{
+                    'text-blue-600': transaction.runningTotal >= 0,
+                    'text-red-600': transaction.runningTotal < 0
+                  }"
                 >
-                  Delete
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                  {{ formatCurrency(transaction.runningTotal) }}
+                </td>
+                <td class="px-6 py-4 text-right text-sm">
+                  <div class="flex justify-end gap-2">
+                    <button
+                      @click="editTransaction(transaction)"
+                      class="px-3 py-1 text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all duration-200"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      @click="deleteTransaction(transaction.id)"
+                      class="px-3 py-1 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-all duration-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
   
