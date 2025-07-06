@@ -102,11 +102,8 @@
           <p class="text-3xl font-bold text-orange-600 mb-2">{{ formatCurrency(upcomingBillsTotal) }}</p>
           <p class="text-sm text-gray-500 mb-3">{{ upcomingBillsText }}</p>
           <div v-if="upcomingBills.length" class="flex flex-wrap gap-1">
-            <span v-for="bill in upcomingBills.slice(0, 3)" :key="bill.id" class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+            <span v-for="bill in upcomingBills" :key="bill.id" class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
               {{ bill.name }}
-            </span>
-            <span v-if="upcomingBills.length > 3" class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
-              +{{ upcomingBills.length - 3 }} more
             </span>
           </div>
         </div>
@@ -274,8 +271,9 @@ const refreshKey = ref(0)
 function getMonthTransactions(transactions, monthStr) {
   const [year, month] = monthStr.split('-').map(Number)
   return transactions.filter(t => {
-    const d = new Date(t.date)
-    return d.getFullYear() === year && d.getMonth() + 1 === month
+    const [y, m, d] = t.date.split('-').map(Number)
+    const dateObj = new Date(y, m - 1, d)
+    return dateObj.getFullYear() === year && dateObj.getMonth() + 1 === month
   })
 }
 
@@ -325,8 +323,8 @@ const getCurrentMonthTransactions = (transactions, filterFn = () => true) => {
   const currentMonth = now.getMonth()
   const currentYear = now.getFullYear()
   return transactions?.filter(t => {
-    const transDate = new Date(t.date)
-    transDate.setMinutes(transDate.getMinutes() + transDate.getTimezoneOffset())
+    const [y, m, d] = t.date.split('-').map(Number)
+    const transDate = new Date(y, m - 1, d)
     return transDate.getMonth() === currentMonth && 
            transDate.getFullYear() === currentYear &&
            filterFn(t)
