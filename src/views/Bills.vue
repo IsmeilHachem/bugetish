@@ -275,7 +275,14 @@ function isBillPaid(bill) {
 
 // Helper: Get per-month amount
 function getBillAmount(bill) {
-  return billsStore.billMonthStatus?.[bill.id]?.[selectedMonth.value]?.amount ?? bill.amount
+  const perMonth = billsStore.billMonthStatus?.[bill.id]?.[selectedMonth.value]?.amount;
+  if (perMonth === null || perMonth === undefined || perMonth === '') {
+    return bill.amount;
+  }
+  if (perMonth === 0 && bill.amount !== 0) {
+    return bill.amount;
+  }
+  return perMonth;
 }
 
 // Helper: Get due date for bill in selected month

@@ -213,7 +213,7 @@ onMounted(() => {
     form.value = {
       name: props.bill.name || '',
       dueDate: props.bill.dueDate || new Date().toISOString().split('T')[0],
-      amount: props.bill.amount ?? null,
+      amount: (props.bill.amount !== null && props.bill.amount !== undefined && props.bill.amount !== '') ? props.bill.amount : 0,
       mainCategory,
       subcategory,
       notes: props.bill.notes || ''
@@ -245,7 +245,7 @@ const handleSubmit = () => {
   const billData = {
     name: form.value.name.trim().toLowerCase(),
     dueDate: form.value.dueDate,
-    amount: form.value.amount ? parseFloat(form.value.amount) : null,
+    amount: form.value.amount !== null && form.value.amount !== '' ? parseFloat(form.value.amount) : null,
     category: `${form.value.mainCategory.trim()} - ${form.value.subcategory.trim()}`,
     notes: form.value.notes ? form.value.notes.trim() : ''
   }
