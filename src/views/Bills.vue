@@ -228,8 +228,8 @@ function getYYYYMM(date) {
 }
 
 // Initialize bills and categories
-onMounted(() => {
-  billsStore.initialize()
+onMounted(async () => {
+  await billsStore.initialize()
   billCategoriesStore.initialize()
   billsStore.updateBillStatuses()
 })

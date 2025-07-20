@@ -72,57 +72,46 @@ export const useBillsStore = defineStore('bills', {
     },
 
     // Initialize bills
-    initialize() {
+    async initialize() {
       if (this.initialized) return
-      
-      // Try to load from localStorage first
-      const stored = localStorage.getItem('budgetish-bills')
-      if (stored) {
-        const data = JSON.parse(stored)
-        this.bills = data.bills || []
-        this.billMonthStatus = data.billMonthStatus || {}
-      }
-      
-      // Migration: for every month in transactions, aggregate by bill and set status/amount/count
+
       try {
-        const transactionsRaw = localStorage.getItem('budgetish-transactions')
-        const transactions = transactionsRaw ? JSON.parse(transactionsRaw).transactions || [] : []
-        // Get all months present in transactions and add current/future months
-        const now = new Date()
-        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-        const months = new Set([...transactions.map(t => t.date.slice(0,7)), currentMonth])
-        // Add 12 future months
-        for (let i = 1; i <= 12; i++) {
-          const future = new Date(now.getFullYear(), now.getMonth() + i, 1)
-          const yyyyMM = `${future.getFullYear()}-${String(future.getMonth() + 1).padStart(2, '0')}`
-          months.add(yyyyMM)
+        // Fetch bills from API
+        const response = await fetch('http://20.62.40.66:5000/api/bills')
+        if (response.ok) {
+          const data = await response.json()
+          this.bills = data.bills || []
+          
+          // Load bill month status from localStorage for now
+          const stored = localStorage.getItem('budgetish-bills')
+          if (stored) {
+            const storedData = JSON.parse(stored)
+            this.billMonthStatus = storedData.billMonthStatus || {}
+          }
+        } else {
+          console.error('Failed to load bills from API')
+          // Fallback to localStorage
+          const stored = localStorage.getItem('budgetish-bills')
+          if (stored) {
+            const data = JSON.parse(stored)
+            this.bills = data.bills || []
+            this.billMonthStatus = data.billMonthStatus || {}
+          }
         }
-        this.bills.forEach(bill => {
-          months.forEach(month => {
-            if (!this.billMonthStatus[bill.id]) this.billMonthStatus[bill.id] = {}
-            // Find all matching transactions for this bill in this month
-            const matches = transactions.filter(t => {
-              const tMonth = t.date.slice(0,7)
-              const descMatch = t.description && bill.name && t.description.toLowerCase().includes(bill.name.toLowerCase())
-              return tMonth === month && descMatch
-            })
-            if (matches.length > 0) {
-              this.billMonthStatus[bill.id][month] = {
-                paid: true,
-                amount: matches.reduce((sum, t) => sum + Math.abs(t.amount), 0),
-                paymentCount: matches.length
-              }
-            } else if (!this.billMonthStatus[bill.id][month]) {
-              this.billMonthStatus[bill.id][month] = { paid: false, amount: 0, paymentCount: 0 }
-            }
-          })
-        })
-      } catch (e) { /* fail silently */ }
+      } catch (error) {
+        console.error('Error loading bills:', error)
+        // Fallback to localStorage
+        const stored = localStorage.getItem('budgetish-bills')
+        if (stored) {
+          const data = JSON.parse(stored)
+          this.bills = data.bills || []
+          this.billMonthStatus = data.billMonthStatus || {}
+        }
+      }
       
       // Always use the default categories from CATEGORY_MAPPING
       this.categories = DEFAULT_CATEGORIES
       this.initialized = true
-      this.saveToLocalStorage()
     },
 
     // Force refresh categories
