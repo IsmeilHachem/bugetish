@@ -27,5 +27,5 @@ export default defineConfig({
     sourcemap: true,
   },
   // Add base URL for production
-  base: process.env.NODE_ENV === 'production' ? 'https://mybudgetish.com/' : '/',
+  base: '/',
 })

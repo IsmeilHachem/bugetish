@@ -14,27 +14,13 @@ export const DEFAULT_BILL_CATEGORIES = {
 }
 
 export const useBillCategoriesStore = defineStore('billCategories', {
-  state: () => {
-    // Try to load from localStorage first
-    const stored = localStorage.getItem('budgetish-categories-bills')
-    if (stored) {
-      const data = JSON.parse(stored)
-      return {
-        categories: data.categories && Object.keys(data.categories).length > 0 ? data.categories : DEFAULT_BILL_CATEGORIES,
-        amounts: data.amounts || {},
-        initialized: data.initialized || false,
-        undoStack: data.undoStack || [],
-        redoStack: data.redoStack || []
-      }
-    }
-    return {
-      categories: DEFAULT_BILL_CATEGORIES,
-      amounts: {},
-      initialized: false,
-      undoStack: [],
-      redoStack: []
-    }
-  },
+  state: () => ({
+  categories: DEFAULT_BILL_CATEGORIES,
+  amounts: {},
+  initialized: false,
+  undoStack: [],
+  redoStack: []
+}),
 
   getters: {
     // Get all categories
@@ -129,29 +115,33 @@ export const useBillCategoriesStore = defineStore('billCategories', {
     },
 
     // Initialize categories with default structure
-    initialize() {
-      if (this.initialized) return
-      
-      // Try to load from localStorage first
-      const stored = localStorage.getItem('budgetish-categories-bills')
-      if (stored) {
-        const data = JSON.parse(stored)
-        this.categories = data.categories && Object.keys(data.categories).length > 0 ? data.categories : DEFAULT_BILL_CATEGORIES
-        this.amounts = data.amounts || {}
-        this.initialized = data.initialized || false
-        this.undoStack = data.undoStack || []
-        this.redoStack = data.redoStack || []
-      }
-      
-      // If no stored data or initialization failed, use defaults
-      if (!this.initialized) {
-        this.categories = { ...DEFAULT_BILL_CATEGORIES }
-        this.resetAmounts()
-        this.initialized = true
-      }
-      
-      this.saveToLocalStorage()
-    },
+ async initialize() {
+  if (this.initialized) return;
+
+  try {
+    const response = await fetch('/api/bills');
+    if (response.ok) {
+      const data = await response.json();
+      // Adjust this line if your API response structure is different
+      this.categories = data.bills || {};
+      this.initialized = true;
+      // If you need to set amounts or other properties, do it here
+      // this.amounts = data.amounts || {};
+    } else {
+      console.error('Failed to load bills from API');
+      // Optionally, set defaults if API fails
+      this.categories = { ...DEFAULT_BILL_CATEGORIES };
+      this.resetAmounts && this.resetAmounts();
+      this.initialized = true;
+    }
+  } catch (error) {
+    console.error('Error loading bills:', error);
+    // Optionally, set defaults if API fails
+    this.categories = { ...DEFAULT_BILL_CATEGORIES };
+    this.resetAmounts && this.resetAmounts();
+    this.initialized = true;
+  }
+},
 
     // Reset all amounts to zero
     resetAmounts() {

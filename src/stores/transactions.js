@@ -10,21 +10,10 @@ function parseESTDate(dateStr) {
 }
 
 export const useTransactionsStore = defineStore('transactions', {
-  state: () => {
-    // Try to load from localStorage first
-    const stored = localStorage.getItem('budgetish-transactions')
-    if (stored) {
-      const data = JSON.parse(stored)
-      return {
-        transactions: data.transactions || [],
-        initialized: data.initialized || false
-      }
-    }
-    return {
-      transactions: [],
-      initialized: false
-    }
-  },
+     state: () => ({
+     transactions: [],
+     initialized: false
+   }),
 
   getters: {
     getTransactions: (state) => state.transactions,
@@ -57,20 +46,43 @@ export const useTransactionsStore = defineStore('transactions', {
 
   actions: {
     // Initialize transactions
-    initialize() {
-      if (this.initialized) return
-      
-      // Try to load from localStorage first
+    // Initialize transactions from API
+async initialize() {
+console.log('Transactions store initialize called');
+  if (this.initialized) return
+  
+console.log('About to fetch /api/transactions');
+  try {
+    const response = await fetch('/api/transactions')
+    if (response.ok) {
+      const data = await response.json()
+      this.transactions = data.transactions || []
+      this.initialized = true
+    } else {
+      console.error('Failed to load transactions from API')
+      // Fallback to localStorage if API fails
       const stored = localStorage.getItem('budgetish-transactions')
       if (stored) {
         const data = JSON.parse(stored)
         this.transactions = data.transactions || []
         this.initialized = data.initialized || false
       }
-      
       this.initialized = true
-      this.saveToLocalStorage()
-    },
+    }
+  } catch (error) {
+    console.error('Error loading transactions:', error)
+    // Fallback to localStorage if API fails
+    const stored = localStorage.getItem('budgetish-transactions')
+    if (stored) {
+      const data = JSON.parse(stored)
+      this.transactions = data.transactions || []
+      this.initialized = data.initialized || false
+    }
+    this.initialized = true
+  }
+  
+  this.saveToLocalStorage()
+},
 
     // Save to localStorage
     saveToLocalStorage() {

@@ -26,35 +26,35 @@ export const useBillsStore = defineStore('bills', {
   getters: {
     getBills: (state) => state.bills,
     getCategories: (state) => state.categories,
-    
+
     // Get bills by status
     getPaidBills: (state) => state.bills.filter(bill => bill.status === PAID_STATUS),
     getUnpaidBills: (state) => state.bills.filter(bill => bill.status === UNPAID_STATUS),
-    getUpcomingBills: (state) => state.bills.filter(bill => 
-      bill.status === UPCOMING_STATUS && 
+    getUpcomingBills: (state) => state.bills.filter(bill =>
+      bill.status === UPCOMING_STATUS &&
       !bill.deletedAfter // Filter out deleted bills
     ),
-    
+
     // Get bills by category
-    getBillsByCategory: (state) => (category) => 
+    getBillsByCategory: (state) => (category) =>
       state.bills.filter(bill => bill.category === category),
-    
+
     // Get bill by ID
     getBillById: (state) => (id) => state.bills.find(b => b.id === id),
-    
+
     // Get total amount of bills
     getTotalBillAmount: (state) => state.bills.reduce((total, bill) => total + (bill.amount || 0), 0),
-    
+
     // Get total amount by category
-    getTotalByCategory: (state) => (category) => 
+    getTotalByCategory: (state) => (category) =>
       state.bills.filter(bill => bill.category === category)
         .reduce((total, bill) => total + (bill.amount || 0), 0),
-    
+
     // Get total paid amount
     getTotalPaidAmount: (state) => state.bills
       .filter(bill => bill.status === PAID_STATUS)
       .reduce((total, bill) => total + (bill.amount || 0), 0),
-    
+
     // Get total unpaid amount
     getTotalUnpaidAmount: (state) => state.bills
       .filter(bill => bill.status === UNPAID_STATUS)
@@ -307,7 +307,7 @@ export const useBillsStore = defineStore('bills', {
       return false
     },
 
-    // Add this new method after initialize()
+    // Get main category for subcategory
     getMainCategoryForSubcategory(subcategory) {
       for (const [mainCategory, subcategories] of Object.entries(CATEGORY_MAPPING)) {
         if (subcategories.includes(subcategory)) {
@@ -317,10 +317,10 @@ export const useBillsStore = defineStore('bills', {
       return 'Miscellaneous'
     }
   }
-}) 
+})
 
 // Helper for EST date (UTC-5, no DST)
 function getESTDate(dateString) {
   const [year, month, day] = dateString.split('-').map(Number)
   return new Date(Date.UTC(year, month - 1, day, 5, 0, 0))
-} 
+}

@@ -10,4 +10,9 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 
-app.mount('#app') 
+// ADD THIS BLOCK:
+import { useTransactionsStore } from './stores/transactions'
+const transactionsStore = useTransactionsStore()
+transactionsStore.initialize()
+
+app.mount('#app')
