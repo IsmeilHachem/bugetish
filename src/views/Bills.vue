@@ -244,22 +244,16 @@ const upcomingBills = computed(() => billsStore.getUpcomingBills || [])
 const unpaidBills = computed(() => billsStore.getUnpaidBills || [])
 const paidBills = computed(() => billsStore.getPaidBills || [])
 
-// Update computed properties to use billCategoriesStore
+// Get categories from bills data
 const categories = computed(() => {
-  billCategoriesStore.initialize() // Ensure categories are initialized
-  return billCategoriesStore.getMainCategories
+  if (!billsStore.getBills) return []
+  const uniqueCategories = [...new Set(billsStore.getBills.map(bill => bill.category).filter(Boolean))]
+  return uniqueCategories.sort()
 })
 
 // Only show categories that have bills
 const categoriesWithBills = computed(() => {
-  if (!billsStore.getBills || !categories.value) return []
-  return categories.value.filter(category => 
-    billsStore.getBills.some(bill => {
-      if (!bill || !bill.category) return false
-      const [mainCat] = bill.category.split(' - ')
-      return mainCat === category
-    })
-  ).sort()
+  return categories.value
 })
 
 // Update filtered categories based on selection
@@ -315,8 +309,7 @@ const getTotalForCategory = (category) => {
   return billsForMonth.value
     .filter(bill => {
       if (!bill || !bill.category || bill.amount === undefined) return false
-      const [mainCat] = bill.category.split(' - ')
-      return mainCat === category
+      return bill.category === category
     })
     .reduce((total, bill) => total + (bill.amount || 0), 0)
 }
@@ -326,8 +319,7 @@ const getBillCountForCategory = (category) => {
   if (!billsForMonth.value) return 0
   return billsForMonth.value.filter(bill => {
     if (!bill || !bill.category) return false
-    const [mainCat] = bill.category.split(' - ')
-    return mainCat === category
+    return bill.category === category
   }).length
 }
 
@@ -347,22 +339,19 @@ function isUpcoming(bill) {
 const getPaidBillsForCategory = (category) => {
   return billsForMonth.value.filter(bill => {
     if (!bill || !bill.category) return false
-    const [mainCat] = bill.category.split(' - ')
-    return mainCat === category && isBillPaid(bill)
+    return bill.category === category && isBillPaid(bill)
   })
 }
 const getUpcomingBillsForCategory = (category) => {
   return billsForMonth.value.filter(bill => {
     if (!bill || !bill.category) return false
-    const [mainCat] = bill.category.split(' - ')
-    return mainCat === category && isUpcoming(bill)
+    return bill.category === category && isUpcoming(bill)
   })
 }
 const getUnpaidBillsForCategory = (category) => {
   return billsForMonth.value.filter(bill => {
     if (!bill || !bill.category) return false
-    const [mainCat] = bill.category.split(' - ')
-    return mainCat === category && isOverdue(bill)
+    return bill.category === category && isOverdue(bill)
   })
 }
 
