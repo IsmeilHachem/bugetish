@@ -77,7 +77,7 @@ export const useBillsStore = defineStore('bills', {
 
       try {
         // Fetch bills from API
-        const response = await fetch('http://20.62.40.66:5000/api/bills')
+        const response = await fetch('/api/bills')
         if (response.ok) {
           const data = await response.json()
           this.bills = data.bills || []
