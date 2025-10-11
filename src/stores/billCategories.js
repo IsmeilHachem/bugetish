@@ -115,33 +115,32 @@ export const useBillCategoriesStore = defineStore('billCategories', {
     },
 
     // Initialize categories with default structure
- async initialize() {
-  if (this.initialized) return;
+    async initialize() {
+      if (this.initialized) return;
 
-  try {
-    const response = await fetch('/api/bills');
-    if (response.ok) {
-      const data = await response.json();
-      // Adjust this line if your API response structure is different
-      this.categories = data.bills || {};
-      this.initialized = true;
-      // If you need to set amounts or other properties, do it here
-      // this.amounts = data.amounts || {};
-    } else {
-      console.error('Failed to load bills from API');
-      // Optionally, set defaults if API fails
-      this.categories = { ...DEFAULT_BILL_CATEGORIES };
-      this.resetAmounts && this.resetAmounts();
-      this.initialized = true;
-    }
-  } catch (error) {
-    console.error('Error loading bills:', error);
-    // Optionally, set defaults if API fails
-    this.categories = { ...DEFAULT_BILL_CATEGORIES };
-    this.resetAmounts && this.resetAmounts();
-    this.initialized = true;
-  }
-},
+      try {
+        // Load from localStorage if available
+        const stored = localStorage.getItem('budgetish-categories-bills')
+        if (stored) {
+          const data = JSON.parse(stored)
+          this.categories = data.categories || { ...DEFAULT_BILL_CATEGORIES }
+          this.amounts = data.amounts || {}
+          this.undoStack = data.undoStack || []
+          this.redoStack = data.redoStack || []
+        } else {
+          // Use default categories
+          this.categories = { ...DEFAULT_BILL_CATEGORIES }
+          this.resetAmounts()
+        }
+        this.initialized = true
+      } catch (error) {
+        console.error('Error loading bill categories:', error)
+        // Fallback to defaults
+        this.categories = { ...DEFAULT_BILL_CATEGORIES }
+        this.resetAmounts()
+        this.initialized = true
+      }
+    },
 
     // Reset all amounts to zero
     resetAmounts() {

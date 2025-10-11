@@ -45,44 +45,31 @@ export const useTransactionsStore = defineStore('transactions', {
   },
 
   actions: {
-    // Initialize transactions
-    // Initialize transactions from API
-async initialize() {
-console.log('Transactions store initialize called');
-  if (this.initialized) return
-  
-console.log('About to fetch /api/transactions');
-  try {
-    const response = await fetch('/api/transactions')
-    if (response.ok) {
-      const data = await response.json()
-      this.transactions = data.transactions || []
-      this.initialized = true
-    } else {
-      console.error('Failed to load transactions from API')
-      // Fallback to localStorage if API fails
-      const stored = localStorage.getItem('budgetish-transactions')
-      if (stored) {
-        const data = JSON.parse(stored)
-        this.transactions = data.transactions || []
-        this.initialized = data.initialized || false
+    // Initialize transactions from localStorage
+    async initialize() {
+      if (this.initialized) return
+      
+      try {
+        // Load from localStorage if available
+        const stored = localStorage.getItem('budgetish-transactions')
+        if (stored) {
+          const data = JSON.parse(stored)
+          this.transactions = data.transactions || []
+          this.initialized = data.initialized || false
+        } else {
+          // Start with empty transactions
+          this.transactions = []
+          this.initialized = true
+        }
+        this.saveToLocalStorage()
+      } catch (error) {
+        console.error('Error loading transactions:', error)
+        // Fallback to empty state
+        this.transactions = []
+        this.initialized = true
+        this.saveToLocalStorage()
       }
-      this.initialized = true
-    }
-  } catch (error) {
-    console.error('Error loading transactions:', error)
-    // Fallback to localStorage if API fails
-    const stored = localStorage.getItem('budgetish-transactions')
-    if (stored) {
-      const data = JSON.parse(stored)
-      this.transactions = data.transactions || []
-      this.initialized = data.initialized || false
-    }
-    this.initialized = true
-  }
-  
-  this.saveToLocalStorage()
-},
+    },
 
     // Save to localStorage
     saveToLocalStorage() {
@@ -128,7 +115,7 @@ console.log('About to fetch /api/transactions');
       
       // Check if this transaction matches any unpaid bills
       if (!transaction.isIncome) {
-        billsStore.checkAndMarkPayment(transaction.description, transaction.amount, transaction.category)
+        billsStore.checkAndMarkPayment(transaction.description, transaction.amount, transaction.category, transaction.date)
       }
       
       this.saveToLocalStorage()
@@ -229,7 +216,7 @@ console.log('About to fetch /api/transactions');
       // If this is an expense (or changed to expense) and any relevant fields changed,
       // check if it matches any bills
       if (!transaction.isIncome && (typeChanged || amountChanged || categoryChanged || descriptionChanged)) {
-        billsStore.checkAndMarkPayment(transaction.description, transaction.amount, transaction.category)
+        billsStore.checkAndMarkPayment(transaction.description, transaction.amount, transaction.category, transaction.date)
       }
 
       this.saveToLocalStorage()

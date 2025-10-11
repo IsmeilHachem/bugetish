@@ -149,7 +149,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useBillsStore } from '@/stores/bills'
-import { useBillCategoriesStore } from '@/stores/billCategories'
+import { useCategoriesStore } from '@/stores/categories'
 
 const props = defineProps({
   bill: {
@@ -161,7 +161,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'saved'])
 
 const billsStore = useBillsStore()
-const billCategoriesStore = useBillCategoriesStore()
+const categoriesStore = useCategoriesStore()
 const isEditing = computed(() => !!props.bill)
 
 // Form state
@@ -176,18 +176,18 @@ const form = ref({
 
 // Update computed properties
 const categories = computed(() => {
-  billCategoriesStore.initialize()
-  return billCategoriesStore.getMainCategories
+  categoriesStore.initialize()
+  return categoriesStore.getMainCategories
 })
 
 const subcategories = computed(() => {
   if (!form.value.mainCategory) return []
-  return billCategoriesStore.getSubcategories(form.value.mainCategory)
+  return categoriesStore.getSubcategories(form.value.mainCategory)
 })
 
 // Initialize form if editing
 onMounted(() => {
-  billCategoriesStore.initialize()
+  categoriesStore.initialize()
   billsStore.initialize()
   
   // Set default values

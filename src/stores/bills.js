@@ -1,26 +1,21 @@
 import { defineStore } from 'pinia'
+import { DEFAULT_CATEGORIES as MAIN_DEFAULT_CATEGORIES } from './categories.js'
 
 const PAID_STATUS = 'PAID'
 const UNPAID_STATUS = 'UNPAID'
 const UPCOMING_STATUS = 'UPCOMING'
 
-// Categories mapped from categories.py
-const CATEGORY_MAPPING = {
-  'Transportation': ['Gas', 'Car Payment', 'Car Insurance', 'Car Maintenance', 'Public Transit'],
-  'Housing': ['Rent/Mortgage', 'Utilities', 'Internet', 'Phone', 'Insurance', 'Maintenance'],
-  'Personal': ['Entertainment', 'Shopping', 'Health', 'Fitness', 'Education', 'Hair/Beard'],
-  'Debt': ['Credit Cards', 'Student Loans', 'Personal Loans', 'Subscriptions']
-}
-
-// Default categories are the main categories
-const DEFAULT_CATEGORIES = Object.keys(CATEGORY_MAPPING)
+// Use the main categories as the default
+const DEFAULT_CATEGORIES = Object.keys(MAIN_DEFAULT_CATEGORIES)
 
 export const useBillsStore = defineStore('bills', {
   state: () => ({
     bills: [],
     categories: DEFAULT_CATEGORIES,
     initialized: false,
-    billMonthStatus: {} // { [billId]: { [YYYY-MM]: { paid: true/false, amount: number } } }
+    billMonthStatus: {}, // { [billId]: { [YYYY-MM]: { paid: true/false, amount: number } } }
+    undoStack: [], // Stack to store previous states for undo functionality
+    redoStack: [] // Stack to store states for redo functionality
   }),
 
   getters: {
@@ -58,7 +53,13 @@ export const useBillsStore = defineStore('bills', {
     // Get total unpaid amount
     getTotalUnpaidAmount: (state) => state.bills
       .filter(bill => bill.status === UNPAID_STATUS)
-      .reduce((total, bill) => total + (bill.amount || 0), 0)
+      .reduce((total, bill) => total + (bill.amount || 0), 0),
+
+    // Check if undo is available
+    canUndo: (state) => state.undoStack.length > 0,
+
+    // Check if redo is available
+    canRedo: (state) => state.redoStack.length > 0
   },
 
   actions: {
@@ -71,47 +72,40 @@ export const useBillsStore = defineStore('bills', {
       return true
     },
 
-    // Initialize bills
+    // Initialize bills from localStorage
     async initialize() {
       if (this.initialized) return
 
       try {
-        // Fetch bills from API
-        const response = await fetch('/api/bills')
-        if (response.ok) {
-          const data = await response.json()
-          this.bills = data.bills || []
-          
-          // Load bill month status from localStorage for now
-          const stored = localStorage.getItem('budgetish-bills')
-          if (stored) {
-            const storedData = JSON.parse(stored)
-            this.billMonthStatus = storedData.billMonthStatus || {}
-          }
-        } else {
-          console.error('Failed to load bills from API')
-          // Fallback to localStorage
-          const stored = localStorage.getItem('budgetish-bills')
-          if (stored) {
-            const data = JSON.parse(stored)
-            this.bills = data.bills || []
-            this.billMonthStatus = data.billMonthStatus || {}
-          }
-        }
-      } catch (error) {
-        console.error('Error loading bills:', error)
-        // Fallback to localStorage
+        // Load bills from localStorage if available
         const stored = localStorage.getItem('budgetish-bills')
         if (stored) {
           const data = JSON.parse(stored)
           this.bills = data.bills || []
           this.billMonthStatus = data.billMonthStatus || {}
+          this.undoStack = data.undoStack || []
+          this.redoStack = data.redoStack || []
+        } else {
+          // Start with empty bills
+          this.bills = []
+          this.billMonthStatus = {}
+          this.undoStack = []
+          this.redoStack = []
         }
+        
+        // Always use the default categories from CATEGORY_MAPPING
+        this.categories = DEFAULT_CATEGORIES
+        this.initialized = true
+        this.saveToLocalStorage()
+      } catch (error) {
+        console.error('Error loading bills:', error)
+        // Fallback to empty state
+        this.bills = []
+        this.billMonthStatus = {}
+        this.categories = DEFAULT_CATEGORIES
+        this.initialized = true
+        this.saveToLocalStorage()
       }
-      
-      // Always use the default categories from CATEGORY_MAPPING
-      this.categories = DEFAULT_CATEGORIES
-      this.initialized = true
     },
 
     // Force refresh categories
@@ -127,11 +121,71 @@ export const useBillsStore = defineStore('bills', {
           bills: this.bills,
           categories: this.categories,
           initialized: this.initialized,
-          billMonthStatus: this.billMonthStatus
+          billMonthStatus: this.billMonthStatus,
+          undoStack: this.undoStack,
+          redoStack: this.redoStack
         }))
       } catch (error) {
         console.error('Error saving bills to localStorage:', error)
       }
+    },
+
+    // Save current state to undo stack
+    saveState() {
+      this.undoStack.push({
+        bills: JSON.parse(JSON.stringify(this.bills)),
+        categories: JSON.parse(JSON.stringify(this.categories)),
+        billMonthStatus: JSON.parse(JSON.stringify(this.billMonthStatus))
+      })
+      // Clear redo stack when new action is performed
+      this.redoStack = []
+      // Limit undo stack size to prevent memory issues
+      if (this.undoStack.length > 10) {
+        this.undoStack.shift()
+      }
+      this.saveToLocalStorage()
+    },
+
+    // Undo last action
+    undo() {
+      if (this.undoStack.length > 0) {
+        const currentState = {
+          bills: JSON.parse(JSON.stringify(this.bills)),
+          categories: JSON.parse(JSON.stringify(this.categories)),
+          billMonthStatus: JSON.parse(JSON.stringify(this.billMonthStatus))
+        }
+        this.redoStack.push(currentState)
+        
+        const previousState = this.undoStack.pop()
+        this.bills = previousState.bills
+        this.categories = previousState.categories
+        this.billMonthStatus = previousState.billMonthStatus
+        this.saveToLocalStorage()
+        console.log('Undo performed - restored previous state')
+        return true
+      }
+      return false
+    },
+
+    // Redo last undone action
+    redo() {
+      if (this.redoStack.length > 0) {
+        const currentState = {
+          bills: JSON.parse(JSON.stringify(this.bills)),
+          categories: JSON.parse(JSON.stringify(this.categories)),
+          billMonthStatus: JSON.parse(JSON.stringify(this.billMonthStatus))
+        }
+        this.undoStack.push(currentState)
+        
+        const nextState = this.redoStack.pop()
+        this.bills = nextState.bills
+        this.categories = nextState.categories
+        this.billMonthStatus = nextState.billMonthStatus
+        this.saveToLocalStorage()
+        console.log('Redo performed - restored next state')
+        return true
+      }
+      return false
     },
 
     // Add a new bill
@@ -219,12 +273,32 @@ export const useBillsStore = defineStore('bills', {
       return true
     },
 
-    // Delete a bill (soft delete: set deletedAfter)
+    // Delete a bill from current month onwards (preserves historical data)
     deleteBill(id, month) {
       const bill = this.bills.find(b => b.id === id)
-      if (!bill) return false
+      if (!bill) {
+        console.error('Bill not found with id:', id)
+        return false
+      }
+      
+      // Set deletedAfter to the current month - this will hide it from current month onwards
       bill.deletedAfter = month
       this.saveToLocalStorage()
+      console.log('Bill deleted from month onwards:', bill.name, 'starting from:', month)
+      return true
+    },
+
+    // Completely delete a bill (permanent removal)
+    deleteBillCompletely(id) {
+      const billIndex = this.bills.findIndex(b => b.id === id)
+      if (billIndex === -1) {
+        console.error('Bill not found with id:', id)
+        return false
+      }
+      const bill = this.bills[billIndex]
+      this.bills.splice(billIndex, 1)
+      this.saveToLocalStorage()
+      console.log('Bill completely removed:', bill.name)
       return true
     },
 
@@ -283,25 +357,45 @@ export const useBillsStore = defineStore('bills', {
       const matchedBill = this.bills.find(bill => {
         const normalizedBillName = bill.name.toLowerCase().trim()
         const normalizedTransDesc = description.toLowerCase().trim()
-        const isUnpaid = !this.billMonthStatus[bill.id]?.[date?.slice(0,7)]?.paid
-        const descriptionMatches =
-          normalizedBillName === normalizedTransDesc ||
-          normalizedTransDesc.includes(normalizedBillName) ||
-          normalizedBillName.includes(normalizedTransDesc)
-        const amountMatches = !bill.amount ||
-          bill.amount === null ||
-          bill.amount === '' ||
-          Math.abs(Math.abs(bill.amount) - Math.abs(amount)) < 0.01
-        return isUnpaid && descriptionMatches && amountMatches
-      })
-      if (matchedBill) {
-        let mainCategory = category
-        if (category && category.includes(' - ')) {
-          mainCategory = category.split(' - ')[0]
+        
+        // Determine the month for this transaction
+        let transactionMonth
+        if (date) {
+          // Use the transaction's date to determine the month
+          const transactionDate = new Date(date)
+          transactionMonth = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`
+        } else {
+          // Fallback to current month if no date provided
+          const now = new Date()
+          transactionMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
         }
-        const yyyyMM = date ? date.slice(0,7) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
-        this.editBill(matchedBill.id, { amount: Math.abs(amount), category: mainCategory })
-        this.markAsPaid(matchedBill.id, Math.abs(amount), yyyyMM)
+        
+        // Check if the bill is unpaid for the transaction's month
+        const isUnpaid = !this.billMonthStatus[bill.id]?.[transactionMonth]?.paid
+        
+        const descriptionMatches = normalizedBillName === normalizedTransDesc
+        
+        // Only match by description, not amount - amount will be updated to match transaction
+        return isUnpaid && descriptionMatches
+      })
+      
+      if (matchedBill) {
+        // Determine the month for this transaction
+        let transactionMonth
+        if (date) {
+          // Use the transaction's date to determine the month
+          const transactionDate = new Date(date)
+          transactionMonth = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`
+        } else {
+          // Fallback to current month if no date provided
+          const now = new Date()
+          transactionMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+        }
+        
+        // Always update the bill amount to match the transaction amount
+        // Use Math.abs to ensure we store positive amounts for bills
+        this.editBill(matchedBill.id, { amount: Math.abs(amount) })
+        this.markAsPaid(matchedBill.id, Math.abs(amount), transactionMonth)
         return true
       }
       return false
@@ -309,13 +403,81 @@ export const useBillsStore = defineStore('bills', {
 
     // Get main category for subcategory
     getMainCategoryForSubcategory(subcategory) {
-      for (const [mainCategory, subcategories] of Object.entries(CATEGORY_MAPPING)) {
+      for (const [mainCategory, subcategories] of Object.entries(MAIN_DEFAULT_CATEGORIES)) {
         if (subcategories.includes(subcategory)) {
           return mainCategory
         }
       }
       return 'Miscellaneous'
-    }
+    },
+
+    // Delete category from current month onwards (preserves historical data)
+    deleteCategoryFromCurrentMonth(categoryName, currentMonth) {
+      // Only match exact category names, not subcategories
+      const billsInCategory = this.bills.filter(bill => {
+        // Exact match for the category name
+        if (bill.category === categoryName) return true
+        
+        // For subcategories, only match if the category name is the main category part
+        // e.g., "Debt - Personal Loans" should only match if categoryName is "Debt - Personal Loans"
+        // not if categoryName is just "Debt"
+        return false
+      })
+      
+      // Set deletedAfter to current month for all bills in this category
+      billsInCategory.forEach(bill => {
+        bill.deletedAfter = currentMonth
+      })
+      
+      this.saveToLocalStorage()
+      console.log(`Deleted ${billsInCategory.length} bills from category "${categoryName}" starting from month ${currentMonth}`)
+      return billsInCategory.length
+    },
+
+    // Restore hidden category (remove deletedAfter flag)
+    restoreHiddenCategory(categoryName) {
+      // Only match exact category names, not subcategories
+      const billsInCategory = this.bills.filter(bill => bill.category === categoryName)
+      
+      // Remove deletedAfter flag for all bills in this category
+      billsInCategory.forEach(bill => {
+        delete bill.deletedAfter
+      })
+      
+      this.saveToLocalStorage()
+      console.log(`Restored ${billsInCategory.length} bills from category "${categoryName}"`)
+      return billsInCategory.length
+    },
+
+    // Completely remove all bills in a category (use with caution - deletes historical data)
+    deleteCategoryCompletely(categoryName) {
+      const initialLength = this.bills.length
+      this.bills = this.bills.filter(bill => !bill.category.startsWith(categoryName))
+      const removedCount = initialLength - this.bills.length
+      this.saveToLocalStorage()
+      console.log(`Completely removed ${removedCount} bills from category "${categoryName}"`)
+      return removedCount
+    },
+
+    // Restore historical data by clearing all deletedAfter flags
+    restoreAllHistoricalData() {
+      let restoredCount = 0
+      this.bills.forEach(bill => {
+        if (bill.deletedAfter) {
+          delete bill.deletedAfter
+          restoredCount++
+        }
+      })
+      this.saveToLocalStorage()
+      console.log(`Restored ${restoredCount} bills from historical data`)
+      return restoredCount
+    },
+
+    // Get list of hidden bills (bills with deletedAfter set)
+    getHiddenBills() {
+      return this.bills.filter(bill => bill.deletedAfter)
+    },
+
   }
 })
 

@@ -392,30 +392,25 @@ function getBillAmountDashboard(bill) {
 function getBillPaymentCountDashboard(bill) {
   return billsStore.billMonthStatus?.[bill.id]?.[selectedMonth.value]?.paymentCount ?? 0
 }
-// Update upcomingBills to use per-month logic and match Bills page
-const billsForDashboardMonth = computed(() => (billsStore.getBills || []).map(bill => {
-  const [year, month] = selectedMonth.value.split('-').map(Number)
-  const day = bill.dueDate.split('-')[2]
-  return {
-    ...bill,
-    dueDate: `${year}-${String(month).padStart(2, '0')}-${day}`,
-    amount: getBillAmountDashboard(bill),
-    paid: isBillPaidDashboard(bill),
-    paymentCount: getBillPaymentCountDashboard(bill)
-  }
-}))
+// Update upcomingBills to use original bill dates, not modified month dates
 const upcomingBills = computed(() => {
   const { lastFriday, nextFriday } = getWeekRange()
-  return (billsForDashboardMonth.value || []).filter(bill => {
+  return (billsStore.getBills || []).filter(bill => {
+    // Use original bill due date, not modified month date
     const dueDate = parseLocalDate(bill.dueDate)
+    const isPaid = billsStore.billMonthStatus?.[bill.id]?.[selectedMonth.value]?.paid || false
+    
     return dueDate >= lastFriday && 
            dueDate <= nextFriday && 
-           !bill.paid && 
+           !isPaid && 
            !bill.deletedAfter // Filter out deleted bills
   }).sort((a, b) => parseLocalDate(a.dueDate) - parseLocalDate(b.dueDate))
 })
 const upcomingBillsTotal = computed(() => {
-  return upcomingBills.value.reduce((sum, bill) => sum + (bill.paid ? 0 : bill.amount), 0)
+  return upcomingBills.value.reduce((sum, bill) => {
+    const amount = billsStore.billMonthStatus?.[bill.id]?.[selectedMonth.value]?.amount ?? bill.amount
+    return sum + amount
+  }, 0)
 })
 const upcomingBillsCount = computed(() => upcomingBills.value.length)
 
