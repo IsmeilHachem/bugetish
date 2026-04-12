@@ -72,6 +72,9 @@ describe('Categories Store', () => {
     const store = useCategoriesStore()
     store.initialize()
     
+    // Save initial state before making changes
+    store.saveState()
+    
     // Make a change
     store.addSubcategory('Food', 'Snacks')
     expect(store.categories['Food']).toContain('Snacks')
@@ -83,5 +86,21 @@ describe('Categories Store', () => {
     // Redo the change
     store.redo()
     expect(store.categories['Food']).toContain('Snacks')
+  })
+
+  it('validateCategory accepts trimmed main/sub and extra spaces around separator', () => {
+    const store = useCategoriesStore()
+    store.initialize()
+    expect(store.validateCategory('Transportation - Car Payment')).toBe(true)
+    expect(store.validateCategory('  Transportation  -  Car Payment  ')).toBe(true)
+  })
+
+  it('updateCategoryAmount does not push category undo snapshots (avoids localStorage bloat)', () => {
+    const store = useCategoriesStore()
+    store.initialize()
+    const depth = store.undoStack.length
+    store.updateCategoryAmount('Food', 'Groceries', 99)
+    expect(store.undoStack.length).toBe(depth)
+    expect(store.getCategoryAmount('Food', 'Groceries')).toBe(99)
   })
 }) 

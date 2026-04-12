@@ -106,7 +106,10 @@ const close = () => {
 const confirm = () => {
   if (!isValid.value) return
   
-  emit('category-selected', `${selectedMainCategory.value} - ${selectedSubcategory.value}`)
+  emit(
+    'category-selected',
+    `${String(selectedMainCategory.value).trim()} - ${String(selectedSubcategory.value).trim()}`
+  )
   close()
 }
 

@@ -10,8 +10,12 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 
-// ADD THIS BLOCK:
+import { useCategoriesStore } from './stores/categories'
 import { useTransactionsStore } from './stores/transactions'
+
+const categoriesStore = useCategoriesStore()
+categoriesStore.initialize()
+
 const transactionsStore = useTransactionsStore()
 transactionsStore.initialize()
 

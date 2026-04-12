@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateMonthlyTrends } from './dashboard.js'
+import { calculateMonthlyTrends } from '../src/stores/dashboard.js'
 
 describe('calculateMonthlyTrends', () => {
   const transactions = [

@@ -67,6 +67,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useReflectionsStore } from '@/stores/reflections'
 import { useTransactionsStore } from '@/stores/transactions'
 import { useRoute, useRouter } from 'vue-router'
+import { createESTDate } from '@/utils/dateUtils'
 
 const reflectionsStore = useReflectionsStore()
 const transactionsStore = useTransactionsStore()
@@ -217,8 +218,8 @@ function formatCurrency(amount) {
 // Helper: Get week ranges for the selected month (EST)
 function getWeekRanges(monthStr) {
   const [year, month] = monthStr.split('-').map(Number)
-  const start = new Date(Date.UTC(year, month - 1, 1, 5, 0, 0)) // EST
-  const end = new Date(Date.UTC(year, month, 0, 5, 0, 0)) // EST
+  const start = createESTDate(year, month, 1) // EST
+  const end = createESTDate(year, month + 1, 0) // EST
   const weeks = []
   let current = new Date(start)
   let week = 1
@@ -233,7 +234,7 @@ function getWeekRanges(monthStr) {
       start: weekStart.toISOString().slice(0, 10),
       end: weekEnd.toISOString().slice(0, 10)
     })
-    current.setUTCDate(current.getUTCDate() + 7)
+    current.setDate(current.getDate() + 7)
     week++
   }
   return weeks

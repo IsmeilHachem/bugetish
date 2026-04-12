@@ -107,6 +107,7 @@
 import { ref, computed } from 'vue'
 import { useTransactionsStore } from '../stores/transactions'
 import CategorySelectModal from './CategorySelectModal.vue'
+import { getTodayEST } from '@/utils/dateUtils'
 
 const props = defineProps({
   isOpen: {
@@ -117,10 +118,19 @@ const props = defineProps({
 
 const emit = defineEmits(['update:isOpen', 'transaction-added'])
 
+// Helper function to get today's date in EST
+function getTodayDateString() {
+  const todayEST = getTodayEST()
+  const year = todayEST.getFullYear()
+  const month = String(todayEST.getMonth() + 1).padStart(2, '0')
+  const day = String(todayEST.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const transactionsStore = useTransactionsStore()
 
 const form = ref({
-  date: new Date().toISOString().split('T')[0],
+  date: getTodayDateString(),
   description: '',
   category: '',
   amount: '',
@@ -156,17 +166,23 @@ const handleSubmit = () => {
     isIncome: form.value.isIncome
   }
 
-  if (transactionsStore.addTransaction(transaction)) {
-    emit('transaction-added')
-    closeModal()
+  const saved = transactionsStore.addTransaction(transaction)
+  if (!saved) {
+    alert(
+      'Transaction was not saved. The most common cause is browser storage being full or blocked (this app saves to localStorage). Try exporting transactions, removing old data, or clearing other site data for this origin. Invalid categories can also block saves—confirm the category still exists under Categories.'
+    )
+    return
   }
+
+  emit('transaction-added')
+  closeModal()
 }
 
 const closeModal = () => {
   emit('update:isOpen', false)
   // Reset form
   form.value = {
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayDateString(),
     description: '',
     amount: '',
     isIncome: false

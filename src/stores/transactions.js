@@ -1,13 +1,11 @@
 import { defineStore } from 'pinia'
 import { useCategoriesStore } from './categories'
 import { useBillsStore } from './bills'
-
-// Helper function to parse EST date
-function parseESTDate(dateStr) {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  // Create date in EST (UTC-5)
-  return new Date(Date.UTC(year, month - 1, day, 5, 0, 0))
-}
+import { parseESTDate, generateTimestamp } from '@/utils/dateUtils'
+import {
+  parseTransactionsFromStorage,
+  serializeTransactionsForStorage
+} from '@/utils/transactionStorage'
 
 export const useTransactionsStore = defineStore('transactions', {
      state: () => ({
@@ -53,44 +51,71 @@ export const useTransactionsStore = defineStore('transactions', {
         // Load from localStorage if available
         const stored = localStorage.getItem('budgetish-transactions')
         if (stored) {
-          const data = JSON.parse(stored)
-          this.transactions = data.transactions || []
-          this.initialized = data.initialized || false
+          let data = null
+          try {
+            data = parseTransactionsFromStorage(stored)
+          } catch (e) {
+            // Don't clobber potentially recoverable user data.
+            // Preserve the corrupt payload for debugging/recovery, then start fresh in-memory.
+            try {
+              localStorage.setItem(`budgetish-transactions-corrupt-${Date.now()}`, stored)
+            } catch {
+              // ignore secondary failure (quota/blocked storage)
+            }
+            console.error('Corrupt transactions in localStorage; preserved backup key.', e)
+            data = null
+          }
+
+          if (data) {
+            this.transactions = data.transactions || []
+            // Once we successfully load anything, consider the store initialized.
+            this.initialized = true
+          } else {
+            this.transactions = []
+            this.initialized = true
+          }
         } else {
           // Start with empty transactions
           this.transactions = []
           this.initialized = true
         }
+        // Persist only if storage is available.
         this.saveToLocalStorage()
       } catch (error) {
         console.error('Error loading transactions:', error)
-        // Fallback to empty state
-        this.transactions = []
+        // Storage may be blocked/unavailable. Keep in-memory state, but do not overwrite storage.
+        this.transactions = this.transactions || []
         this.initialized = true
-        this.saveToLocalStorage()
       }
     },
 
     // Save to localStorage
     saveToLocalStorage() {
-      localStorage.setItem('budgetish-transactions', JSON.stringify({
-        transactions: this.transactions,
-        initialized: this.initialized
-      }))
+      try {
+        const payload = serializeTransactionsForStorage({
+          transactions: this.transactions,
+          initialized: this.initialized
+        })
+        localStorage.setItem('budgetish-transactions', payload)
+        return true
+      } catch (error) {
+        console.error('Error saving transactions to localStorage:', error)
+        return false
+      }
     },
 
     // Add helper method to calculate category total
     calculateCategoryTotal(mainCategory, subcategory) {
       return this.transactions
         .filter(t => t.category === `${mainCategory} - ${subcategory}`)
-        .reduce((total, t) => total + Math.abs(t.amount), 0)
+        .reduce((total, t) => total + t.amount, 0)
     },
 
     // Add a new transaction
     addTransaction(transaction) {
       const categoriesStore = useCategoriesStore()
       const billsStore = useBillsStore()
-      
+
       // Validate category
       if (!categoriesStore.validateCategory(transaction.category)) {
         return false
@@ -98,7 +123,7 @@ export const useTransactionsStore = defineStore('transactions', {
 
       // Add transaction
       const newTransaction = {
-        id: Date.now().toString(),
+        id: generateTimestamp(),
         date: transaction.date,
         description: transaction.description,
         category: transaction.category,
@@ -107,18 +132,62 @@ export const useTransactionsStore = defineStore('transactions', {
       }
 
       this.transactions.push(newTransaction)
-      
+
+      const sep = ' - '
+      const splitIdx = transaction.category.indexOf(sep)
+      const mainCategory =
+        splitIdx === -1 ? '' : transaction.category.slice(0, splitIdx).trim()
+      const subcategory =
+        splitIdx === -1 ? '' : transaction.category.slice(splitIdx + sep.length).trim()
+
       // Update category amount by recalculating total
-      const [mainCategory, subcategory] = transaction.category.split(' - ')
       const categoryTotal = this.calculateCategoryTotal(mainCategory, subcategory)
       categoriesStore.updateCategoryAmount(mainCategory, subcategory, categoryTotal)
-      
+
       // Check if this transaction matches any unpaid bills
       if (!transaction.isIncome) {
-        billsStore.checkAndMarkPayment(transaction.description, transaction.amount, transaction.category, transaction.date)
+        billsStore.checkAndMarkPayment(
+          transaction.description,
+          Math.abs(transaction.amount),
+          transaction.category,
+          transaction.date
+        )
       }
-      
-      this.saveToLocalStorage()
+
+      const rollbackFailedPersist = () => {
+        const idx = this.transactions.findIndex((t) => t.id === newTransaction.id)
+        if (idx !== -1) this.transactions.splice(idx, 1)
+        if (mainCategory && subcategory) {
+          const total = this.calculateCategoryTotal(mainCategory, subcategory)
+          categoriesStore.updateCategoryAmount(mainCategory, subcategory, total)
+        }
+      }
+
+      const saved = this.saveToLocalStorage()
+      if (!saved) {
+        rollbackFailedPersist()
+        return false
+      }
+
+      // Verify the transaction actually persisted (guards against silent storage failures)
+      try {
+        const stored = localStorage.getItem('budgetish-transactions')
+        if (stored) {
+          const data = parseTransactionsFromStorage(stored)
+          const exists = (data?.transactions || []).some((t) => t.id === newTransaction.id)
+          if (!exists) {
+            rollbackFailedPersist()
+            return false
+          }
+        } else {
+          rollbackFailedPersist()
+          return false
+        }
+      } catch (e) {
+        rollbackFailedPersist()
+        return false
+      }
+
       return true
     },
 
@@ -130,15 +199,15 @@ export const useTransactionsStore = defineStore('transactions', {
       const transaction = this.transactions[index]
       const categoriesStore = useCategoriesStore()
       
-      // Update category amount - remove the absolute value
-      const [mainCategory, subcategory] = transaction.category.split(' - ')
-      categoriesStore.updateCategoryAmount(mainCategory, subcategory, -Math.abs(transaction.amount))
-
-      // Remove transaction
+      // Remove transaction first
       this.transactions.splice(index, 1)
       
-      this.saveToLocalStorage()
-      return true
+      // Recalculate category total after removal
+      const [mainCategory, subcategory] = transaction.category.split(' - ')
+      const categoryTotal = this.calculateCategoryTotal(mainCategory, subcategory)
+      categoriesStore.updateCategoryAmount(mainCategory, subcategory, categoryTotal)
+      
+      return this.saveToLocalStorage()
     },
 
     // Update a transaction
@@ -159,8 +228,7 @@ export const useTransactionsStore = defineStore('transactions', {
       // Update transaction
       this.transactions[index] = transaction
       
-      this.saveToLocalStorage()
-      return true
+      return this.saveToLocalStorage()
     },
 
     // Edit an existing transaction
@@ -216,11 +284,11 @@ export const useTransactionsStore = defineStore('transactions', {
       // If this is an expense (or changed to expense) and any relevant fields changed,
       // check if it matches any bills
       if (!transaction.isIncome && (typeChanged || amountChanged || categoryChanged || descriptionChanged)) {
-        billsStore.checkAndMarkPayment(transaction.description, transaction.amount, transaction.category, transaction.date)
+        // Pass absolute value since bills store positive amounts
+        billsStore.checkAndMarkPayment(transaction.description, Math.abs(transaction.amount), transaction.category, transaction.date)
       }
 
-      this.saveToLocalStorage()
-      return true
+      return this.saveToLocalStorage()
     },
 
     // Export transactions to CSV

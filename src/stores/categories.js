@@ -128,8 +128,10 @@ export const useCategoriesStore = defineStore('categories', {
         this.categories = data.categories && Object.keys(data.categories).length > 0 ? data.categories : DEFAULT_CATEGORIES
         this.amounts = data.amounts || {}
         this.initialized = data.initialized || false
-        this.undoStack = data.undoStack || []
-        this.redoStack = data.redoStack || []
+        // Do not restore undo/redo from disk — those stacks grew huge and exhausted localStorage.
+        // Undo/redo for category edits remains available until the next full page load.
+        this.undoStack = []
+        this.redoStack = []
       }
       
       // If no stored data or initialization failed, use defaults
@@ -137,9 +139,10 @@ export const useCategoriesStore = defineStore('categories', {
         this.categories = { ...DEFAULT_CATEGORIES }
         this.resetAmounts()
         this.initialized = true
+        this.saveToLocalStorage()
+      } else {
+        this.saveToLocalStorage()
       }
-      
-      this.saveToLocalStorage()
     },
 
     // Reset all amounts to zero
@@ -160,8 +163,10 @@ export const useCategoriesStore = defineStore('categories', {
       if (typeof this.amounts[key] === 'undefined') {
         this.amounts[key] = 0
       }
-      this.amounts[key] = Math.abs(amount)
-      this.saveState()
+      this.amounts[key] = amount
+      // Do not push undo snapshots here — every transaction recalculates totals and was
+      // filling undoStack thousands of times, blowing the origin localStorage quota.
+      this.saveToLocalStorage()
     },
 
     // Add a new subcategory to a main category
@@ -170,6 +175,9 @@ export const useCategoriesStore = defineStore('categories', {
         return false
       }
 
+      // Save state BEFORE making changes
+      this.saveState()
+
       // Add to categories array
       this.categories[mainCategory].push(subcategory)
 
@@ -177,7 +185,7 @@ export const useCategoriesStore = defineStore('categories', {
       const key = `${mainCategory} - ${subcategory}`
       this.amounts[key] = 0
 
-      this.saveState()
+      this.saveToLocalStorage()
       return true
     },
 
@@ -309,15 +317,24 @@ export const useCategoriesStore = defineStore('categories', {
       }
     },
 
-    // Validate if a category string is valid
+    // Validate if a category string is valid (main - sub).
+    // Split only on the first " - " so subcategories can contain that sequence if ever needed.
+    // Trim parts so extra spaces (e.g. "Transportation  -  Car Payment") still match stored names.
     validateCategory(categoryString) {
-      const [mainCategory, subcategory] = categoryString.split(' - ')
-      return (
-        mainCategory &&
-        subcategory &&
-        this.categories[mainCategory] &&
-        this.categories[mainCategory].includes(subcategory)
-      )
+      if (!categoryString || typeof categoryString !== 'string') return false
+      const normalized = categoryString.trim()
+      const sep = ' - '
+      const idx = normalized.indexOf(sep)
+      if (idx === -1) return false
+      const mainPart = normalized.slice(0, idx).trim()
+      const subPart = normalized.slice(idx + sep.length).trim()
+      if (!mainPart || !subPart) return false
+
+      const cats = this.categories || {}
+      const mainKey = Object.keys(cats).find((k) => (k || '').trim() === mainPart)
+      if (!mainKey) return false
+      const subs = cats[mainKey] || []
+      return subs.some((s) => (s || '').trim() === subPart)
     },
 
     // Load data from localStorage
@@ -329,8 +346,8 @@ export const useCategoriesStore = defineStore('categories', {
           this.categories = data.categories && Object.keys(data.categories).length > 0 ? data.categories : DEFAULT_CATEGORIES
           this.amounts = data.amounts
           this.initialized = data.initialized
-          this.undoStack = data.undoStack || []
-          this.redoStack = data.redoStack || []
+          this.undoStack = []
+          this.redoStack = []
         } else {
           this.initialize()
         }

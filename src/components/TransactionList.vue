@@ -41,7 +41,11 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="transaction in sortedTransactions" :key="transaction.id" class="hover:bg-gray-50">
+          <tr v-for="transaction in sortedTransactions" :key="transaction.id" 
+              :class="[
+                'hover:bg-gray-50',
+                isFutureTransaction(transaction.date) ? 'bg-green-50 hover:bg-green-100' : ''
+              ]">
             <td class="px-4 py-3">
               <input
                 type="checkbox"
@@ -162,6 +166,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useTransactionsStore } from '@/stores/transactions'
+import { parseESTDate, getTodayEST } from '@/utils/dateUtils'
 
 const transactionsStore = useTransactionsStore()
 const selectedTransactions = ref([])
@@ -229,6 +234,14 @@ function formatCurrency(value) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(value)
+}
+
+// Helper function to check if a transaction is in the future (EST timezone)
+function isFutureTransaction(dateStr) {
+  const transactionDate = parseESTDate(dateStr)
+  const todayEST = getTodayEST()
+  
+  return transactionDate > todayEST
 }
 
 function editTransaction(transaction) {

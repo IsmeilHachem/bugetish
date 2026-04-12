@@ -155,7 +155,11 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-100">
-              <tr v-for="transaction in filteredAndSortedTransactions" :key="transaction.id" class="hover:bg-gray-50 transition-colors duration-200">
+              <tr v-for="transaction in filteredAndSortedTransactions" :key="transaction.id" 
+                  :class="[
+                    'hover:bg-gray-50 transition-colors duration-200',
+                    isFutureTransaction(transaction.date) ? 'bg-green-50 hover:bg-green-100' : ''
+                  ]">
                 <td class="px-6 py-4">
                   <input
                     type="checkbox"
@@ -232,6 +236,7 @@ import { ref, computed } from 'vue'
 import { useTransactionsStore } from '@/stores/transactions'
 import AddTransactionModal from '@/components/AddTransactionModal.vue'
 import EditTransactionModal from '@/components/EditTransactionModal.vue'
+import { parseESTDate, getTodayEST } from '@/utils/dateUtils'
 
 const transactionsStore = useTransactionsStore()
 const selectedTransactions = ref([])
@@ -248,13 +253,6 @@ const dateRange = ref({
 const searchTerm = ref('')
 const sortBy = ref('date')
 const sortOrder = ref('desc')
-
-// Helper function to parse EST date
-function parseESTDate(dateStr) {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  // Create date in EST (UTC-5)
-  return new Date(Date.UTC(year, month - 1, day, 5, 0, 0))
-}
 
 // Helper function to filter transactions by date range
 function filterTransactionsByDateRange(transactions, range) {
@@ -414,6 +412,14 @@ const formatCurrency = (value) => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(value)
+}
+
+// Helper function to check if a transaction is in the future (EST timezone)
+const isFutureTransaction = (dateStr) => {
+  const transactionDate = parseESTDate(dateStr)
+  const todayEST = getTodayEST()
+  
+  return transactionDate > todayEST
 }
 
 const toggleSortOrder = () => {

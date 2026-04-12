@@ -113,6 +113,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useTransactionsStore } from '@/stores/transactions'
 import { useCategoriesStore } from '@/stores/categories'
+import { getTodayEST } from '@/utils/dateUtils'
 
 const transactionsStore = useTransactionsStore()
 const categoriesStore = useCategoriesStore()
@@ -125,12 +126,12 @@ const newTransaction = ref({
   amount: ''
 })
 
-// Add helper function to get today's date in YYYY-MM-DD format using UTC
+// Add helper function to get today's date in YYYY-MM-DD format using EST
 function getTodayDateString() {
-  const today = new Date()
-  const year = today.getUTCFullYear()
-  const month = String(today.getUTCMonth() + 1).padStart(2, '0')
-  const day = String(today.getUTCDate()).padStart(2, '0')
+  const todayEST = getTodayEST()
+  const year = todayEST.getFullYear()
+  const month = String(todayEST.getMonth() + 1).padStart(2, '0')
+  const day = String(todayEST.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
 
@@ -176,10 +177,9 @@ function addTransaction() {
     amount = -amount
   }
 
-  // Create a UTC date string to prevent timezone issues
-  const [year, month, day] = newTransaction.value.date.split('-')
-  const utcDate = new Date(Date.UTC(year, month - 1, day))
-  const dateString = utcDate.toISOString().split('T')[0]
+  // Use the date as-is since it's already in YYYY-MM-DD format
+  // The date input provides the date in the user's local timezone, which we want to preserve
+  const dateString = newTransaction.value.date
 
   const transaction = {
     ...newTransaction.value,
@@ -188,7 +188,13 @@ function addTransaction() {
     type: amount >= 0 ? 'Income' : 'Expense'
   }
 
-  transactionsStore.addTransaction(transaction)
+  const saved = transactionsStore.addTransaction(transaction)
+  if (!saved) {
+    alert(
+      'Transaction was not saved. If storage is full or blocked, free space or export data (this app uses localStorage). Otherwise pick a valid category from Categories and try again.'
+    )
+    return
+  }
   
   // Reset form
   newTransaction.value = {

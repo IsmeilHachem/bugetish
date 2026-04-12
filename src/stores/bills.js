@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { DEFAULT_CATEGORIES as MAIN_DEFAULT_CATEGORIES } from './categories.js'
+import { parseESTDate, generateTimestamp } from '@/utils/dateUtils'
 
 const PAID_STATUS = 'PAID'
 const UNPAID_STATUS = 'UNPAID'
@@ -191,7 +192,7 @@ export const useBillsStore = defineStore('bills', {
     // Add a new bill
     addBill(bill) {
       const newBill = {
-        id: Date.now().toString(),
+        id: generateTimestamp(),
         dueDate: bill.dueDate,
         name: bill.name.toLowerCase(),
         amount: bill.amount || null,
@@ -483,6 +484,5 @@ export const useBillsStore = defineStore('bills', {
 
 // Helper for EST date (UTC-5, no DST)
 function getESTDate(dateString) {
-  const [year, month, day] = dateString.split('-').map(Number)
-  return new Date(Date.UTC(year, month - 1, day, 5, 0, 0))
+  return parseESTDate(dateString)
 }

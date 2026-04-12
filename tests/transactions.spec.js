@@ -1,11 +1,5 @@
 import { describe, it, expect } from 'vitest'
-
-// Helper function to parse EST date
-function parseESTDate(dateStr) {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  // Create date in EST (UTC-5)
-  return new Date(Date.UTC(year, month - 1, day, 5, 0, 0))
-}
+import { parseESTDate } from '@/utils/dateUtils'
 
 // Helper function to filter transactions by date range in EST
 function filterTransactionsByDateRange(transactions, range) {

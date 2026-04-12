@@ -1,7 +1,22 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useReflectionsStore } from '@/stores/reflections'
-import { addDays, startOfMonth, endOfMonth } from 'date-fns'
+import { createESTDate } from '@/utils/dateUtils'
+
+// Helper functions to replace date-fns
+function addDays(date, days) {
+  const result = new Date(date)
+  result.setDate(result.getDate() + days)
+  return result
+}
+
+function startOfMonth(date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1)
+}
+
+function endOfMonth(date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0)
+}
 
 function makeReflection(month, notes = '') {
   return {
@@ -104,8 +119,8 @@ describe('Weekly Reflections', () => {
 
   function getWeekRanges(year, month) {
     // month: 1-based (e.g., 4 for April)
-    const start = new Date(Date.UTC(year, month - 1, 1, 5, 0, 0)) // EST
-    const end = new Date(Date.UTC(year, month, 0, 5, 0, 0)) // EST
+    const start = createESTDate(year, month, 1) // EST
+    const end = createESTDate(year, month + 1, 0) // EST
     const weeks = []
     let current = new Date(start)
     let week = 1

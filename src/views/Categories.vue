@@ -228,6 +228,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useCategoriesStore } from '../stores/categories'
 import CategoryActions from '../components/CategoryActions.vue'
 import { useTransactionsStore } from '../stores/transactions'
+import { parseESTDate } from '@/utils/dateUtils'
 
 const categoriesStore = useCategoriesStore()
 const transactionsStore = useTransactionsStore()
@@ -235,13 +236,6 @@ const transactionsStore = useTransactionsStore()
 // Month picker state
 const now = new Date()
 const selectedMonth = ref(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`)
-
-// Helper: Parse date in EST timezone
-function parseESTDate(dateStr) {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  // Create date in EST (UTC-5)
-  return new Date(Date.UTC(year, month - 1, day, 5, 0, 0))
-}
 
 // Helper: Filter transactions for the selected month
 function getMonthTransactions(transactions, monthStr) {

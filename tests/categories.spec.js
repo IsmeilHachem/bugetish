@@ -1,11 +1,5 @@
 import { describe, it, expect } from 'vitest'
-
-// Helper: Parse date in EST timezone
-function parseESTDate(dateStr) {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  // Create date in EST (UTC-5)
-  return new Date(Date.UTC(year, month - 1, day, 5, 0, 0))
-}
+import { parseESTDate } from '@/utils/dateUtils'
 
 // Replicate the helper functions from Categories.vue
 function getMonthTransactions(transactions, monthStr) {

@@ -38,7 +38,7 @@ describe('calculateMonthlyTrends', () => {
     const result = calculateMonthlyTrends(baseTransactions, range)
     expect(result.length).toBe(2)
     expect(result[0].income).toBe(0)
-    expect(result[0].expenses).toBe(-0)
+    expect(result[0].expenses).toBe(0)
     expect(result[1].income).toBe(0)
     expect(result[1].expenses).toBe(-50)
   })

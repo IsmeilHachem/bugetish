@@ -95,8 +95,8 @@ describe('Transactions Store', () => {
       date: '2024-01-15'
     })
     
-    const startDate = new Date('2024-03-01')
-    const endDate = new Date('2024-03-31')
+    const startDate = '2024-03-01'
+    const endDate = '2024-03-31'
     const filteredTransactions = store.getTransactionsByDate(startDate, endDate)
     
     expect(filteredTransactions).toHaveLength(1)

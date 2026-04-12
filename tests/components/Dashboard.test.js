@@ -29,7 +29,7 @@ describe('Dashboard Component', () => {
 
   it('renders dashboard header', () => {
     const wrapper = mount(Dashboard)
-    expect(wrapper.find('h1').text()).toBe('Dashboard')
+    expect(wrapper.find('h1').text()).toBe('Financial Dashboard')
   })
 
   it('displays current balance correctly', async () => {

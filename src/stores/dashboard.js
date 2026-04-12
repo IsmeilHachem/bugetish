@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useTransactionsStore } from './transactions'
 import { useBillsStore } from './bills'
+import { parseESTDate } from '@/utils/dateUtils'
 
 export const useDashboardStore = defineStore('dashboard', {
   state: () => {
@@ -52,12 +53,11 @@ export const useDashboardStore = defineStore('dashboard', {
         ])
       )
 
-      // Process transactions more efficiently
+      // Process transactions more efficiently using EST parsing
       transactions.forEach(transaction => {
         if (transaction.description && transaction.description.toLowerCase() === 'starting balance') return;
-        const transDate = new Date(transaction.date)
-        transDate.setMinutes(transDate.getMinutes() + transDate.getTimezoneOffset())
-        const monthKey = `${transDate.getFullYear()}-${transDate.getMonth()}`
+        const transDate = parseESTDate(transaction.date)
+        const monthKey = `${transDate.getUTCFullYear()}-${transDate.getUTCMonth()}`
         const monthData = monthMap.get(monthKey)
         if (monthData) {
           if (transaction.amount > 0) {
@@ -121,7 +121,29 @@ export function calculateMonthlyTrends(transactions, range) {
   // 1. Parse range start/end as local dates
   let [sy, sm] = (range && range.start ? range.start : '').split('-').map(Number)
   let [ey, em] = (range && range.end ? range.end : '').split('-').map(Number)
-  if (!sy || !sm || !ey || !em) return []
+  
+  // If no range provided, determine range from transaction dates
+  if (!sy || !sm || !ey || !em) {
+    // If range was explicitly provided but is invalid (empty strings), return empty array
+    if (range && (range.start === '' || range.end === '')) {
+      return []
+    }
+    
+    if (!transactions || transactions.length === 0) return []
+    
+    // Find min and max dates from transactions
+    const dates = transactions.map(t => {
+      const [ty, tm] = t.date.split('-').map(Number)
+      return new Date(ty, tm - 1, 1)
+    })
+    const minDate = new Date(Math.min(...dates))
+    const maxDate = new Date(Math.max(...dates))
+    
+    sy = minDate.getFullYear()
+    sm = minDate.getMonth() + 1
+    ey = maxDate.getFullYear()
+    em = maxDate.getMonth() + 1
+  }
   let start = new Date(sy, sm - 1, 1)
   let end = new Date(ey, em - 1, 1)
 
