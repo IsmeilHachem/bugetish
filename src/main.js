@@ -10,13 +10,13 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 
+import { useAuthStore } from './stores/auth'
 import { useCategoriesStore } from './stores/categories'
-import { useTransactionsStore } from './stores/transactions'
+
+const authStore = useAuthStore()
+authStore.init()
 
 const categoriesStore = useCategoriesStore()
 categoriesStore.initialize()
-
-const transactionsStore = useTransactionsStore()
-transactionsStore.initialize()
 
 app.mount('#app')

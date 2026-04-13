@@ -232,24 +232,49 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useTransactionsStore } from '@/stores/transactions'
+import { useAuthStore } from '@/stores/auth'
 import AddTransactionModal from '@/components/AddTransactionModal.vue'
 import EditTransactionModal from '@/components/EditTransactionModal.vue'
 import { parseESTDate, getTodayEST } from '@/utils/dateUtils'
 
 const transactionsStore = useTransactionsStore()
+const authStore = useAuthStore()
+
+// Load as soon as auth is confirmed — handles both instant and delayed login states
+watch(
+  () => authStore.isLoggedIn,
+  async (loggedIn) => {
+    if (loggedIn) await transactionsStore.loadFromSupabase()
+  },
+  { immediate: true }
+)
 const selectedTransactions = ref([])
 const allSelected = ref(false)
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const selectedTransaction = ref(null)
 
-// Filter and sort state
+// Filter and sort state — default wide range so all loaded data is visible
+const now = new Date()
+const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 const dateRange = ref({
-  start: new Date().toISOString().slice(0, 7), // Current month
-  end: new Date().toISOString().slice(0, 7)
+  start: '2024-01',
+  end: currentMonth
 })
+
+// Once transactions load, tighten start to the earliest transaction's month
+watch(
+  () => transactionsStore.getTransactions,
+  (txs) => {
+    if (!txs || txs.length === 0) return
+    const earliest = txs.reduce((min, t) => t.date < min ? t.date : min, txs[0].date)
+    const [y, m] = earliest.split('-')
+    dateRange.value.start = `${y}-${m}`
+  },
+  { immediate: true }
+)
 const searchTerm = ref('')
 const sortBy = ref('date')
 const sortOrder = ref('desc')

@@ -26,6 +26,15 @@
               </router-link>
             </div>
           </div>
+          <!-- Sign out -->
+          <div v-if="authStore.isLoggedIn" class="flex items-center">
+            <button
+              @click="signOut"
+              class="text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </nav>
     </header>
@@ -53,6 +62,12 @@
 </template>
 
 <script setup>
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+
+const authStore = useAuthStore()
+const router = useRouter()
+
 const routes = [
   { path: '/', name: 'Dashboard' },
   { path: '/categories', name: 'Categories' },
@@ -60,4 +75,9 @@ const routes = [
   { path: '/bills', name: 'Bills' },
   { path: '/reflections', name: 'Reflections' }
 ]
+
+async function signOut() {
+  await authStore.signOut()
+  router.push('/login')
+}
 </script> 

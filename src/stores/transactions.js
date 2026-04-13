@@ -2,16 +2,18 @@ import { defineStore } from 'pinia'
 import { useCategoriesStore } from './categories'
 import { useBillsStore } from './bills'
 import { parseESTDate, generateTimestamp } from '@/utils/dateUtils'
+import { supabase } from '@/utils/supabase'
+import { useAuthStore } from './auth'
 import {
   parseTransactionsFromStorage,
   serializeTransactionsForStorage
 } from '@/utils/transactionStorage'
 
 export const useTransactionsStore = defineStore('transactions', {
-     state: () => ({
-     transactions: [],
-     initialized: false
-   }),
+  state: () => ({
+    transactions: [],
+    initialized: false
+  }),
 
   getters: {
     getTransactions: (state) => state.transactions,
@@ -43,53 +45,63 @@ export const useTransactionsStore = defineStore('transactions', {
   },
 
   actions: {
-    // Initialize transactions from localStorage
     async initialize() {
-      if (this.initialized) return
-      
-      try {
-        // Load from localStorage if available
-        const stored = localStorage.getItem('budgetish-transactions')
-        if (stored) {
-          let data = null
-          try {
-            data = parseTransactionsFromStorage(stored)
-          } catch (e) {
-            // Don't clobber potentially recoverable user data.
-            // Preserve the corrupt payload for debugging/recovery, then start fresh in-memory.
-            try {
-              localStorage.setItem(`budgetish-transactions-corrupt-${Date.now()}`, stored)
-            } catch {
-              // ignore secondary failure (quota/blocked storage)
-            }
-            console.error('Corrupt transactions in localStorage; preserved backup key.', e)
-            data = null
-          }
-
-          if (data) {
-            this.transactions = data.transactions || []
-            // Once we successfully load anything, consider the store initialized.
-            this.initialized = true
-          } else {
-            this.transactions = []
-            this.initialized = true
-          }
-        } else {
-          // Start with empty transactions
-          this.transactions = []
-          this.initialized = true
-        }
-        // Persist only if storage is available.
-        this.saveToLocalStorage()
-      } catch (error) {
-        console.error('Error loading transactions:', error)
-        // Storage may be blocked/unavailable. Keep in-memory state, but do not overwrite storage.
-        this.transactions = this.transactions || []
-        this.initialized = true
-      }
+      await this.loadFromSupabase()
     },
 
-    // Save to localStorage
+    async loadFromSupabase() {
+      const authStore = useAuthStore()
+
+      // Wait for auth to finish initializing before checking login state
+      if (authStore.loading) {
+        await authStore.init()
+      }
+
+      if (!authStore.isLoggedIn) return
+
+      // Paginate to bypass Supabase's default 1000-row server cap
+      const PAGE_SIZE = 1000
+      let allData = []
+      let offset = 0
+      let fetchError = null
+
+      while (true) {
+        const { data: page, error: pageError } = await supabase
+          .from('transactions')
+          .select('*')
+          .order('date', { ascending: true })
+          .range(offset, offset + PAGE_SIZE - 1)
+
+        if (pageError) { fetchError = pageError; break }
+        if (!page || page.length === 0) break
+
+        allData = allData.concat(page)
+        if (page.length < PAGE_SIZE) break
+        offset += PAGE_SIZE
+      }
+
+      const error = fetchError
+      const data = allData
+
+      if (error) {
+        console.error('Error loading transactions from Supabase:', error)
+        return
+      }
+
+      this.transactions = (data || []).map(row => ({
+        id: row.id,
+        date: row.date,
+        description: row.description,
+        category: row.category,
+        amount: Number(row.amount),
+        isIncome: row.is_income
+      }))
+
+      this.initialized = true
+      this.saveToLocalStorage()
+    },
+
+    // Still save to localStorage as a local cache/fallback
     saveToLocalStorage() {
       try {
         const payload = serializeTransactionsForStorage({
@@ -104,24 +116,21 @@ export const useTransactionsStore = defineStore('transactions', {
       }
     },
 
-    // Add helper method to calculate category total
     calculateCategoryTotal(mainCategory, subcategory) {
       return this.transactions
         .filter(t => t.category === `${mainCategory} - ${subcategory}`)
         .reduce((total, t) => total + t.amount, 0)
     },
 
-    // Add a new transaction
-    addTransaction(transaction) {
+    async addTransaction(transaction) {
       const categoriesStore = useCategoriesStore()
       const billsStore = useBillsStore()
+      const authStore = useAuthStore()
 
-      // Validate category
       if (!categoriesStore.validateCategory(transaction.category)) {
         return false
       }
 
-      // Add transaction
       const newTransaction = {
         id: generateTimestamp(),
         date: transaction.date,
@@ -131,20 +140,33 @@ export const useTransactionsStore = defineStore('transactions', {
         isIncome: transaction.isIncome
       }
 
+      // Save to Supabase
+      const { error } = await supabase.from('transactions').insert({
+        id: newTransaction.id,
+        user_id: authStore.userId,
+        date: newTransaction.date,
+        description: newTransaction.description,
+        category: newTransaction.category,
+        amount: newTransaction.amount,
+        is_income: newTransaction.isIncome
+      })
+
+      if (error) {
+        console.error('Error saving transaction to Supabase:', error)
+        return false
+      }
+
       this.transactions.push(newTransaction)
+      this.saveToLocalStorage()
 
       const sep = ' - '
       const splitIdx = transaction.category.indexOf(sep)
-      const mainCategory =
-        splitIdx === -1 ? '' : transaction.category.slice(0, splitIdx).trim()
-      const subcategory =
-        splitIdx === -1 ? '' : transaction.category.slice(splitIdx + sep.length).trim()
+      const mainCategory = splitIdx === -1 ? '' : transaction.category.slice(0, splitIdx).trim()
+      const subcategory = splitIdx === -1 ? '' : transaction.category.slice(splitIdx + sep.length).trim()
 
-      // Update category amount by recalculating total
       const categoryTotal = this.calculateCategoryTotal(mainCategory, subcategory)
       categoriesStore.updateCategoryAmount(mainCategory, subcategory, categoryTotal)
 
-      // Check if this transaction matches any unpaid bills
       if (!transaction.isIncome) {
         billsStore.checkAndMarkPayment(
           transaction.description,
@@ -154,144 +176,172 @@ export const useTransactionsStore = defineStore('transactions', {
         )
       }
 
-      const rollbackFailedPersist = () => {
-        const idx = this.transactions.findIndex((t) => t.id === newTransaction.id)
-        if (idx !== -1) this.transactions.splice(idx, 1)
-        if (mainCategory && subcategory) {
-          const total = this.calculateCategoryTotal(mainCategory, subcategory)
-          categoriesStore.updateCategoryAmount(mainCategory, subcategory, total)
-        }
-      }
-
-      const saved = this.saveToLocalStorage()
-      if (!saved) {
-        rollbackFailedPersist()
-        return false
-      }
-
-      // Verify the transaction actually persisted (guards against silent storage failures)
-      try {
-        const stored = localStorage.getItem('budgetish-transactions')
-        if (stored) {
-          const data = parseTransactionsFromStorage(stored)
-          const exists = (data?.transactions || []).some((t) => t.id === newTransaction.id)
-          if (!exists) {
-            rollbackFailedPersist()
-            return false
-          }
-        } else {
-          rollbackFailedPersist()
-          return false
-        }
-      } catch (e) {
-        rollbackFailedPersist()
-        return false
-      }
-
       return true
     },
 
-    // Delete a transaction
-    deleteTransaction(id) {
+    async deleteTransaction(id) {
       const index = this.transactions.findIndex(t => t.id === id)
       if (index === -1) return false
 
       const transaction = this.transactions[index]
-      const categoriesStore = useCategoriesStore()
-      
-      // Remove transaction first
+
+      const { error } = await supabase.from('transactions').delete().eq('id', id)
+      if (error) {
+        console.error('Error deleting transaction from Supabase:', error)
+        return false
+      }
+
       this.transactions.splice(index, 1)
-      
-      // Recalculate category total after removal
+
+      const categoriesStore = useCategoriesStore()
       const [mainCategory, subcategory] = transaction.category.split(' - ')
       const categoryTotal = this.calculateCategoryTotal(mainCategory, subcategory)
       categoriesStore.updateCategoryAmount(mainCategory, subcategory, categoryTotal)
-      
-      return this.saveToLocalStorage()
+
+      this.saveToLocalStorage()
+      return true
     },
 
-    // Update a transaction
-    updateTransaction(transaction) {
+    async updateTransaction(transaction) {
       const index = this.transactions.findIndex(t => t.id === transaction.id)
       if (index === -1) return false
 
+      const { error } = await supabase.from('transactions').update({
+        date: transaction.date,
+        description: transaction.description,
+        category: transaction.category,
+        amount: transaction.amount,
+        is_income: transaction.isIncome
+      }).eq('id', transaction.id)
+
+      if (error) {
+        console.error('Error updating transaction in Supabase:', error)
+        return false
+      }
+
       const oldTransaction = this.transactions[index]
       const categoriesStore = useCategoriesStore()
-      
-      // Update category amount - remove old amount and add new amount
+
       const [oldMainCategory, oldSubcategory] = oldTransaction.category.split(' - ')
       categoriesStore.updateCategoryAmount(oldMainCategory, oldSubcategory, -Math.abs(oldTransaction.amount))
-      
+
       const [newMainCategory, newSubcategory] = transaction.category.split(' - ')
       categoriesStore.updateCategoryAmount(newMainCategory, newSubcategory, Math.abs(transaction.amount))
 
-      // Update transaction
       this.transactions[index] = transaction
-      
-      return this.saveToLocalStorage()
+      this.saveToLocalStorage()
+      return true
     },
 
-    // Edit an existing transaction
-    editTransaction(id, updates) {
+    async editTransaction(id, updates) {
       const transaction = this.transactions.find(t => t.id === id)
       if (!transaction) return false
 
       const categoriesStore = useCategoriesStore()
       const billsStore = useBillsStore()
-      
-      // Validate new category if it's being updated
+
       if (updates.category && !categoriesStore.validateCategory(updates.category)) {
         return false
       }
 
-      // Store old category for comparison
       const oldCategory = transaction.category
       const oldIsIncome = transaction.isIncome
       const oldDescription = transaction.description
 
-      // Update transaction
-      Object.assign(transaction, {
-        ...updates,
-        amount: updates.isIncome ? Math.abs(updates.amount) : -Math.abs(updates.amount)
-      })
+      const updatedAmount = updates.isIncome ? Math.abs(updates.amount) : -Math.abs(updates.amount)
 
-      // Update category amounts
-      if (oldCategory !== transaction.category) {
-        // Category changed, need to update both old and new category totals
-        const [oldMainCategory, oldSubcategory] = oldCategory.split(' - ')
-        const [newMainCategory, newSubcategory] = transaction.category.split(' - ')
-        
-        // Update old category total
-        const oldCategoryTotal = this.calculateCategoryTotal(oldMainCategory, oldSubcategory)
-        categoriesStore.updateCategoryAmount(oldMainCategory, oldSubcategory, oldCategoryTotal)
-        
-        // Update new category total
-        const newCategoryTotal = this.calculateCategoryTotal(newMainCategory, newSubcategory)
-        categoriesStore.updateCategoryAmount(newMainCategory, newSubcategory, newCategoryTotal)
-      } else {
-        // Same category, just update its total
-        const [mainCategory, subcategory] = transaction.category.split(' - ')
-        const categoryTotal = this.calculateCategoryTotal(mainCategory, subcategory)
-        categoriesStore.updateCategoryAmount(mainCategory, subcategory, categoryTotal)
+      const { error } = await supabase.from('transactions').update({
+        date: updates.date ?? transaction.date,
+        description: updates.description ?? transaction.description,
+        category: updates.category ?? transaction.category,
+        amount: updatedAmount,
+        is_income: updates.isIncome ?? transaction.isIncome
+      }).eq('id', id)
+
+      if (error) {
+        console.error('Error editing transaction in Supabase:', error)
+        return false
       }
 
-      // Check if we need to update bill status
+      Object.assign(transaction, { ...updates, amount: updatedAmount })
+
+      if (oldCategory !== transaction.category) {
+        const [oldMainCategory, oldSubcategory] = oldCategory.split(' - ')
+        const [newMainCategory, newSubcategory] = transaction.category.split(' - ')
+        categoriesStore.updateCategoryAmount(oldMainCategory, oldSubcategory, this.calculateCategoryTotal(oldMainCategory, oldSubcategory))
+        categoriesStore.updateCategoryAmount(newMainCategory, newSubcategory, this.calculateCategoryTotal(newMainCategory, newSubcategory))
+      } else {
+        const [mainCategory, subcategory] = transaction.category.split(' - ')
+        categoriesStore.updateCategoryAmount(mainCategory, subcategory, this.calculateCategoryTotal(mainCategory, subcategory))
+      }
+
       const descriptionChanged = oldDescription !== transaction.description
-      const amountChanged = transaction.amount !== updates.amount
+      const amountChanged = transaction.amount !== updatedAmount
       const categoryChanged = oldCategory !== transaction.category
       const typeChanged = oldIsIncome !== transaction.isIncome
 
-      // If this is an expense (or changed to expense) and any relevant fields changed,
-      // check if it matches any bills
       if (!transaction.isIncome && (typeChanged || amountChanged || categoryChanged || descriptionChanged)) {
-        // Pass absolute value since bills store positive amounts
         billsStore.checkAndMarkPayment(transaction.description, Math.abs(transaction.amount), transaction.category, transaction.date)
       }
 
-      return this.saveToLocalStorage()
+      this.saveToLocalStorage()
+      return true
     },
 
-    // Export transactions to CSV
+    // One-time migration: move existing localStorage transactions into Supabase
+    async migrateFromLocalStorage() {
+      const authStore = useAuthStore()
+      if (!authStore.isLoggedIn) return { migrated: 0, error: 'Not logged in' }
+
+      const stored = localStorage.getItem('budgetish-transactions')
+      if (!stored) return { migrated: 0, error: 'No local data found' }
+
+      let localData = null
+      try {
+        localData = parseTransactionsFromStorage(stored)
+      } catch (e) {
+        return { migrated: 0, error: 'Could not parse local data' }
+      }
+
+      const localTransactions = localData?.transactions || []
+      if (localTransactions.length === 0) return { migrated: 0, error: 'No transactions to migrate' }
+
+      // Check which IDs already exist in Supabase to avoid duplicates
+      const { data: existing } = await supabase.from('transactions').select('id')
+      const existingIds = new Set((existing || []).map(r => r.id))
+
+      const toInsert = localTransactions
+        .filter(t => !existingIds.has(t.id))
+        .map(t => ({
+          id: t.id,
+          user_id: authStore.userId,
+          date: t.date,
+          description: t.description || '',
+          category: t.category,
+          amount: t.amount,
+          is_income: t.isIncome ?? (t.amount > 0)
+        }))
+
+      if (toInsert.length === 0) return { migrated: 0, error: 'All transactions already in Supabase' }
+
+      // Insert in batches of 200
+      let migrated = 0
+      for (let i = 0; i < toInsert.length; i += 200) {
+        const batch = toInsert.slice(i, i + 200)
+        const { error } = await supabase.from('transactions').insert(batch)
+        if (error) {
+          console.error('Migration batch error:', error)
+          return { migrated, error: error.message }
+        }
+        migrated += batch.length
+      }
+
+      // Reload from Supabase after migration
+      await this.loadFromSupabase()
+
+      return { migrated, error: null }
+    },
+
     exportTransactionsToCSV() {
       try {
         const headers = ['Date', 'Description', 'Category', 'Amount', 'Type']
@@ -320,4 +370,4 @@ export const useTransactionsStore = defineStore('transactions', {
       }
     }
   }
-}) 
+})
