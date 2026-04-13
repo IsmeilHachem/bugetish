@@ -4,12 +4,10 @@
       <p class="text-gray-500">No data available for the selected period</p>
     </div>
     <div v-else>
-      <div style="display: flex; align-items: center; justify-content: center;">
+      <div class="w-full">
         <Doughnut
           :data="chartData"
           :options="chartOptions"
-          :width="420"
-          :height="420"
           @click="handleChartClick"
         />
       </div>
@@ -93,7 +91,7 @@ const chartOptions = {
   },
   plugins: {
     legend: {
-      position: 'right',
+      position: 'bottom',
       onClick: (e, legendItem) => {
         selectedCategory.value = legendItem.text
         dashboardStore.setSelectedCategory(legendItem.text)

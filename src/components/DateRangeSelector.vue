@@ -1,6 +1,6 @@
 <template>
-  <div class="flex items-center space-x-4">
-    <div class="flex items-center space-x-2">
+  <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+    <div class="flex items-center gap-2 flex-wrap">
       <button
         v-for="(option, index) in presetOptions"
         :key="index"
@@ -15,24 +15,23 @@
         {{ option.label }}
       </button>
     </div>
-    <div class="flex items-center space-x-2">
+    <div class="flex items-center gap-2 flex-wrap">
       <input
         type="month"
         v-model="startDate"
-        class="px-3 py-1.5 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        class="px-3 py-1.5 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-0"
         :max="endDate"
       />
       <span class="text-gray-500">to</span>
       <input
         type="month"
         v-model="endDate"
-        class="px-3 py-1.5 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        class="px-3 py-1.5 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-0"
         :min="startDate"
         :max="currentMonth"
       />
     </div>
   </div>
-  <button @click="emit('test', 'hello')">Emit Test Event</button>
 </template>
 
 <script setup>
@@ -109,7 +108,6 @@ watch(() => props.dateRange, (newVal) => {
 watch([startDate, endDate], ([newStart, newEnd]) => {
   if (newStart && newEnd) {
     const range = { start: newStart, end: newEnd }
-    console.log('[DateRangeSelector] Emitting update:dateRange', range)
     emit('update:dateRange', range)
   }
 })
