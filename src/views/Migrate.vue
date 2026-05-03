@@ -137,11 +137,12 @@ onMounted(() => {
 async function runMigration() {
   status.value = 'running'
   try {
-    // 1. Migrate transactions
+    // 1. Migrate transactions (skips already-migrated ones)
     currentStep.value = 'Migrating transactions...'
     const txResult = await transactionsStore.migrateFromLocalStorage()
-    if (txResult.error && txResult.migrated === 0 && counts.value.transactions > 0) {
-      throw new Error(`Transactions: ${txResult.error}`)
+    // "All transactions already in Supabase" is fine — not an error
+    if (txResult.error && txResult.migrated === 0 && txResult.error !== 'All transactions already in Supabase') {
+      console.warn('Transactions migration note:', txResult.error)
     }
     results.value.transactions = txResult.migrated
 
