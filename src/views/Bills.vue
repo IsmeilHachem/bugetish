@@ -210,7 +210,7 @@
             </div>
             <h3 class="text-2xl font-bold text-gray-900">Delete Bill</h3>
           </div>
-          <p class="text-gray-600 mb-8 text-lg">Are you sure you want to delete this bill from {{ selectedMonth }} onwards? This will remove the bill from the current month and future months, but preserve historical data for past months.</p>
+          <p class="text-gray-600 mb-8 text-lg">Are you sure you want to permanently delete this bill? It will be completely removed.</p>
           <div class="flex justify-end space-x-4">
             <button
               @click="showDeleteModal = false"
@@ -467,11 +467,10 @@ const deleteBill = (bill) => {
 
 const confirmDelete = () => {
   if (deletingBillId.value) {
-    const success = billsStore.deleteBill(deletingBillId.value, selectedMonth.value)
+    const success = billsStore.deleteBillCompletely(deletingBillId.value)
     if (success) {
       showDeleteModal.value = false
       deletingBillId.value = null
-      // Force update the view
       billsStore.updateBillStatuses()
     } else {
       console.error('Failed to delete bill')
