@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia'
+import { supabase } from '@/utils/supabase'
+import { useAuthStore } from './auth'
 
 // Default categories matching Python implementation
 export const DEFAULT_CATEGORIES = {
@@ -117,31 +119,62 @@ export const useCategoriesStore = defineStore('categories', {
       return false
     },
 
-    // Initialize categories with default structure
-    initialize() {
-      if (this.initialized) return
-      
-      // Try to load from localStorage first
-      const stored = localStorage.getItem('budgetish-categories')
-      if (stored) {
-        const data = JSON.parse(stored)
-        this.categories = data.categories && Object.keys(data.categories).length > 0 ? data.categories : DEFAULT_CATEGORIES
-        this.amounts = data.amounts || {}
-        this.initialized = data.initialized || false
-        // Do not restore undo/redo from disk — those stacks grew huge and exhausted localStorage.
-        // Undo/redo for category edits remains available until the next full page load.
-        this.undoStack = []
-        this.redoStack = []
+    async loadFromSupabase() {
+      const authStore = useAuthStore()
+      if (authStore.loading) await authStore.init()
+      if (!authStore.isLoggedIn) return
+
+      const { data, error } = await supabase
+        .from('user_data')
+        .select('data')
+        .eq('data_type', 'categories')
+        .single()
+
+      if (error || !data) return
+
+      const parsed = data.data
+      if (parsed.categories && Object.keys(parsed.categories).length > 0) {
+        this.categories = parsed.categories
       }
-      
-      // If no stored data or initialization failed, use defaults
+      if (parsed.amounts) this.amounts = parsed.amounts
+      this.initialized = true
+      this.saveToLocalStorage()
+    },
+
+    saveToSupabase() {
+      const authStore = useAuthStore()
+      if (!authStore.isLoggedIn) return
+      supabase.from('user_data').upsert({
+        user_id: authStore.userId,
+        data_type: 'categories',
+        data: { categories: this.categories, amounts: this.amounts },
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id,data_type' }).then(({ error }) => {
+        if (error) console.error('Error saving categories to Supabase:', error)
+      })
+    },
+
+    // Initialize categories with default structure
+    async initialize() {
+      await this.loadFromSupabase()
+
       if (!this.initialized) {
-        this.categories = { ...DEFAULT_CATEGORIES }
-        this.resetAmounts()
+        // Fall back to localStorage / defaults (already loaded in state())
+        const stored = localStorage.getItem('budgetish-categories')
+        if (stored) {
+          const data = JSON.parse(stored)
+          this.categories = data.categories && Object.keys(data.categories).length > 0 ? data.categories : DEFAULT_CATEGORIES
+          this.amounts = data.amounts || {}
+          this.undoStack = []
+          this.redoStack = []
+        }
+        if (!this.initialized) {
+          this.categories = { ...DEFAULT_CATEGORIES }
+          this.resetAmounts()
+        }
         this.initialized = true
         this.saveToLocalStorage()
-      } else {
-        this.saveToLocalStorage()
+        this.saveToSupabase()
       }
     },
 
@@ -186,6 +219,7 @@ export const useCategoriesStore = defineStore('categories', {
       this.amounts[key] = 0
 
       this.saveToLocalStorage()
+      this.saveToSupabase()
       return true
     },
 
@@ -212,6 +246,7 @@ export const useCategoriesStore = defineStore('categories', {
       this.amounts = newAmounts
 
       this.saveState()
+      this.saveToSupabase()
       return true
     },
 
@@ -237,6 +272,7 @@ export const useCategoriesStore = defineStore('categories', {
       }
 
       this.saveState()
+      this.saveToSupabase()
       return true
     },
 
@@ -259,6 +295,7 @@ export const useCategoriesStore = defineStore('categories', {
       this.amounts = newAmounts
 
       this.saveState()
+      this.saveToSupabase()
       return true
     },
 
@@ -278,6 +315,7 @@ export const useCategoriesStore = defineStore('categories', {
       delete this.amounts[key]
 
       this.saveState()
+      this.saveToSupabase()
       return true
     },
 

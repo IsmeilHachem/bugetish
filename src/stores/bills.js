@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { DEFAULT_CATEGORIES as MAIN_DEFAULT_CATEGORIES } from './categories.js'
 import { parseESTDate, generateTimestamp } from '@/utils/dateUtils'
+import { supabase } from '@/utils/supabase'
+import { useAuthStore } from './auth'
 
 const PAID_STATUS = 'PAID'
 const UNPAID_STATUS = 'UNPAID'
@@ -73,36 +75,61 @@ export const useBillsStore = defineStore('bills', {
       return true
     },
 
-    // Initialize bills from localStorage
+    async loadFromSupabase() {
+      const authStore = useAuthStore()
+      if (authStore.loading) await authStore.init()
+      if (!authStore.isLoggedIn) return
+
+      const { data, error } = await supabase
+        .from('user_data')
+        .select('data')
+        .eq('data_type', 'bills')
+        .single()
+
+      if (error || !data) return
+
+      const parsed = data.data
+      this.bills = parsed.bills || []
+      this.billMonthStatus = parsed.billMonthStatus || {}
+      this.categories = DEFAULT_CATEGORIES
+      this.initialized = true
+      this.saveToLocalStorage()
+    },
+
+    saveToSupabase() {
+      const authStore = useAuthStore()
+      if (!authStore.isLoggedIn) return
+      supabase.from('user_data').upsert({
+        user_id: authStore.userId,
+        data_type: 'bills',
+        data: { bills: this.bills, billMonthStatus: this.billMonthStatus },
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id,data_type' }).then(({ error }) => {
+        if (error) console.error('Error saving bills to Supabase:', error)
+      })
+    },
+
+    // Initialize bills from localStorage then Supabase
     async initialize() {
       if (this.initialized) return
+      await this.loadFromSupabase()
 
-      try {
-        // Load bills from localStorage if available
-        const stored = localStorage.getItem('budgetish-bills')
-        if (stored) {
-          const data = JSON.parse(stored)
-          this.bills = data.bills || []
-          this.billMonthStatus = data.billMonthStatus || {}
-          this.undoStack = data.undoStack || []
-          this.redoStack = data.redoStack || []
-        } else {
-          // Start with empty bills
+      if (!this.initialized) {
+        try {
+          const stored = localStorage.getItem('budgetish-bills')
+          if (stored) {
+            const data = JSON.parse(stored)
+            this.bills = data.bills || []
+            this.billMonthStatus = data.billMonthStatus || {}
+          } else {
+            this.bills = []
+            this.billMonthStatus = {}
+          }
+        } catch (error) {
+          console.error('Error loading bills:', error)
           this.bills = []
           this.billMonthStatus = {}
-          this.undoStack = []
-          this.redoStack = []
         }
-        
-        // Always use the default categories from CATEGORY_MAPPING
-        this.categories = DEFAULT_CATEGORIES
-        this.initialized = true
-        this.saveToLocalStorage()
-      } catch (error) {
-        console.error('Error loading bills:', error)
-        // Fallback to empty state
-        this.bills = []
-        this.billMonthStatus = {}
         this.categories = DEFAULT_CATEGORIES
         this.initialized = true
         this.saveToLocalStorage()
@@ -206,6 +233,7 @@ export const useBillsStore = defineStore('bills', {
       this.bills.push(newBill)
       this.sortBillsByDate()
       this.saveToLocalStorage()
+      this.saveToSupabase()
       return true
     },
 
@@ -271,6 +299,7 @@ export const useBillsStore = defineStore('bills', {
       
       this.sortBillsByDate()
       this.saveToLocalStorage()
+      this.saveToSupabase()
       return true
     },
 
@@ -285,7 +314,7 @@ export const useBillsStore = defineStore('bills', {
       // Set deletedAfter to the current month - this will hide it from current month onwards
       bill.deletedAfter = month
       this.saveToLocalStorage()
-      console.log('Bill deleted from month onwards:', bill.name, 'starting from:', month)
+      this.saveToSupabase()
       return true
     },
 
@@ -296,10 +325,9 @@ export const useBillsStore = defineStore('bills', {
         console.error('Bill not found with id:', id)
         return false
       }
-      const bill = this.bills[billIndex]
       this.bills.splice(billIndex, 1)
       this.saveToLocalStorage()
-      console.log('Bill completely removed:', bill.name)
+      this.saveToSupabase()
       return true
     },
 
@@ -312,6 +340,7 @@ export const useBillsStore = defineStore('bills', {
       if (!this.billMonthStatus[id]) this.billMonthStatus[id] = {}
       this.billMonthStatus[id][yyyyMM] = { paid: true, amount: amount !== null ? amount : bill.amount }
       this.saveToLocalStorage()
+      this.saveToSupabase()
       return true
     },
 
@@ -324,6 +353,7 @@ export const useBillsStore = defineStore('bills', {
       if (!this.billMonthStatus[id]) this.billMonthStatus[id] = {}
       this.billMonthStatus[id][yyyyMM] = { paid: false, amount: 0, paymentCount: 0 }
       this.saveToLocalStorage()
+      this.saveToSupabase()
       return true
     },
 
