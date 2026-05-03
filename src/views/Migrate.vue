@@ -69,6 +69,43 @@
         </button>
       </div>
 
+      <!-- Recovery Tools (always visible) -->
+      <div class="mt-8 pt-6 border-t border-gray-200 space-y-3">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Recovery Tools</p>
+
+        <!-- Recover categories from transactions -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <p class="text-sm font-semibold text-amber-800 mb-1">Rebuild Categories from Transactions</p>
+          <p class="text-xs text-amber-700 mb-3">Scans every transaction in Supabase and rebuilds your full category/subcategory list (including custom ones). Use this if subcategories are missing or wrong.</p>
+          <button
+            @click="recoverCategories"
+            :disabled="recoveryStatus.categories === 'running'"
+            class="w-full py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-all disabled:opacity-50"
+          >
+            <span v-if="recoveryStatus.categories === 'running'">Recovering...</span>
+            <span v-else-if="recoveryStatus.categories === 'done'">Done ✓</span>
+            <span v-else>Recover Categories</span>
+          </button>
+          <p v-if="recoveryStatus.categoriesMsg" class="text-xs mt-2 text-amber-700">{{ recoveryStatus.categoriesMsg }}</p>
+        </div>
+
+        <!-- Restore bills -->
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+          <p class="text-sm font-semibold text-purple-800 mb-1">Restore Hidden Bills</p>
+          <p class="text-xs text-purple-700 mb-3">Your bills were soft-deleted (hidden from view) for months after Sep 2025. This restores all of them so they show up again.</p>
+          <button
+            @click="restoreBills"
+            :disabled="recoveryStatus.bills === 'running'"
+            class="w-full py-2 bg-purple-500 text-white rounded-lg text-sm font-medium hover:bg-purple-600 transition-all disabled:opacity-50"
+          >
+            <span v-if="recoveryStatus.bills === 'running'">Restoring...</span>
+            <span v-else-if="recoveryStatus.bills === 'done'">Done ✓</span>
+            <span v-else>Restore Bills</span>
+          </button>
+          <p v-if="recoveryStatus.billsMsg" class="text-xs mt-2 text-purple-700">{{ recoveryStatus.billsMsg }}</p>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
@@ -83,6 +120,7 @@ import { useBillCategoriesStore } from '@/stores/billCategories'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/utils/supabase'
 import { parseTransactionsFromStorage } from '@/utils/transactionStorage'
+import { DEFAULT_CATEGORIES } from '@/stores/categories'
 
 const transactionsStore = useTransactionsStore()
 const categoriesStore = useCategoriesStore()
@@ -96,6 +134,7 @@ const currentStep = ref('')
 const errorMessage = ref('')
 const counts = ref({ transactions: 0, categories: 0, bills: 0, reflections: 0 })
 const results = ref({ transactions: 0 })
+const recoveryStatus = ref({ categories: 'idle', categoriesMsg: '', bills: 'idle', billsMsg: '' })
 
 const totalCount = computed(() =>
   counts.value.transactions + counts.value.categories + counts.value.bills + counts.value.reflections
@@ -122,7 +161,7 @@ onMounted(() => {
     const stored = localStorage.getItem('budgetish-bills')
     if (stored) {
       const data = JSON.parse(stored)
-      counts.value.bills = (data.bills || []).length
+      counts.value.bills = Array.isArray(data.bills) ? data.bills.length : (Array.isArray(data) ? data.length : 0)
     }
   } catch { counts.value.bills = 0 }
 
@@ -212,6 +251,112 @@ async function runMigration() {
   } catch (e) {
     status.value = 'error'
     errorMessage.value = e.message || 'Unknown error'
+  }
+}
+
+async function recoverCategories() {
+  recoveryStatus.value.categories = 'running'
+  recoveryStatus.value.categoriesMsg = ''
+  try {
+    // Fetch ALL transaction categories from Supabase (paginate just in case)
+    const PAGE_SIZE = 1000
+    let allTx = []
+    let offset = 0
+    while (true) {
+      const { data: page, error } = await supabase
+        .from('transactions')
+        .select('category')
+        .range(offset, offset + PAGE_SIZE - 1)
+      if (error) throw error
+      if (!page || page.length === 0) break
+      allTx = allTx.concat(page)
+      if (page.length < PAGE_SIZE) break
+      offset += PAGE_SIZE
+    }
+
+    // Build category structure from transaction data
+    const recovered = {}
+    for (const tx of allTx) {
+      if (!tx.category) continue
+      const sep = ' - '
+      const idx = tx.category.indexOf(sep)
+      if (idx === -1) continue
+      const main = tx.category.slice(0, idx).trim()
+      const sub = tx.category.slice(idx + sep.length).trim()
+      if (!main || !sub) continue
+      if (!recovered[main]) recovered[main] = new Set()
+      recovered[main].add(sub)
+    }
+
+    // Merge with defaults so we don't lose default subcategories
+    const merged = {}
+    for (const [main, subs] of Object.entries(DEFAULT_CATEGORIES)) {
+      merged[main] = [...subs]
+    }
+    for (const [main, subs] of Object.entries(recovered)) {
+      if (!merged[main]) merged[main] = []
+      for (const sub of subs) {
+        if (!merged[main].includes(sub)) merged[main].push(sub)
+      }
+    }
+
+    // Save merged categories to Supabase
+    const { error: saveErr } = await supabase.from('user_data').upsert({
+      user_id: authStore.userId,
+      data_type: 'categories',
+      data: { categories: merged, amounts: categoriesStore.amounts || {} },
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id,data_type' })
+    if (saveErr) throw saveErr
+
+    // Reload categories store
+    await categoriesStore.loadFromSupabase()
+
+    const totalSubs = Object.values(merged).reduce((n, arr) => n + arr.length, 0)
+    recoveryStatus.value.categoriesMsg = `Recovered ${Object.keys(merged).length} main categories with ${totalSubs} subcategories total.`
+    recoveryStatus.value.categories = 'done'
+  } catch (e) {
+    recoveryStatus.value.categoriesMsg = 'Error: ' + (e.message || 'unknown')
+    recoveryStatus.value.categories = 'idle'
+  }
+}
+
+async function restoreBills() {
+  recoveryStatus.value.bills = 'running'
+  recoveryStatus.value.billsMsg = ''
+  try {
+    // Load bills from Supabase
+    const { data, error } = await supabase
+      .from('user_data')
+      .select('data')
+      .eq('data_type', 'bills')
+      .single()
+    if (error) throw error
+    if (!data) throw new Error('No bills data found in Supabase. Run the migration first.')
+
+    const bills = (data.data.bills || []).map(bill => {
+      const b = { ...bill }
+      delete b.deletedAfter
+      return b
+    })
+
+    const { error: saveErr } = await supabase.from('user_data').upsert({
+      user_id: authStore.userId,
+      data_type: 'bills',
+      data: { bills, billMonthStatus: data.data.billMonthStatus || {} },
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id,data_type' })
+    if (saveErr) throw saveErr
+
+    // Reload bills store
+    billsStore.initialized = false
+    await billsStore.loadFromSupabase()
+
+    recoveryStatus.value.billsMsg = `Restored ${bills.length} bill(s). Go to the Bills page to see them.`
+    recoveryStatus.value.bills = 'done'
+  } catch (e) {
+    recoveryStatus.value.billsMsg = 'Error: ' + (e.message || 'unknown')
+    recoveryStatus.value.bills = 'idle'
   }
 }
 </script>
