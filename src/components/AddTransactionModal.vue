@@ -155,7 +155,7 @@ const handleCategorySelected = (category) => {
   showCategorySelect.value = false
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!isFormValid.value) return
 
   const transaction = {
@@ -166,7 +166,7 @@ const handleSubmit = () => {
     isIncome: form.value.isIncome
   }
 
-  const saved = transactionsStore.addTransaction(transaction)
+  const saved = await transactionsStore.addTransaction(transaction)
   if (!saved) {
     alert(
       'Transaction was not saved. The most common cause is browser storage being full or blocked (this app saves to localStorage). Try exporting transactions, removing old data, or clearing other site data for this origin. Invalid categories can also block saves—confirm the category still exists under Categories.'

@@ -279,9 +279,9 @@ const formatCurrency = (value) => {
 }
 
 // Initialize store on component mount
-onMounted(() => {
+onMounted(async () => {
   if (!categoriesStore.initialized) {
-    categoriesStore.initialize()
+    await categoriesStore.initialize()
   }
 })
 

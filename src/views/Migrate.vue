@@ -288,16 +288,15 @@ async function recoverCategories() {
       recovered[main].add(sub)
     }
 
-    // Merge with defaults so we don't lose default subcategories
+    // Build ONLY from what appears in transactions.
+    // For each found main category, also include its default subcategories so the user
+    // doesn't lose defaults they haven't used yet. Main categories with zero transactions
+    // (like "Income" if never used) are intentionally excluded.
     const merged = {}
-    for (const [main, subs] of Object.entries(DEFAULT_CATEGORIES)) {
-      merged[main] = [...subs]
-    }
     for (const [main, subs] of Object.entries(recovered)) {
-      if (!merged[main]) merged[main] = []
-      for (const sub of subs) {
-        if (!merged[main].includes(sub)) merged[main].push(sub)
-      }
+      const defaultSubs = DEFAULT_CATEGORIES[main] || []
+      const allSubs = [...new Set([...defaultSubs, ...[...subs]])]
+      merged[main] = allSubs
     }
 
     // Save merged categories to Supabase
