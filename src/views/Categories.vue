@@ -224,14 +224,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useCategoriesStore } from '../stores/categories'
 import CategoryActions from '../components/CategoryActions.vue'
 import { useTransactionsStore } from '../stores/transactions'
+import { useAuthStore } from '../stores/auth'
 import { parseESTDate } from '@/utils/dateUtils'
 
 const categoriesStore = useCategoriesStore()
 const transactionsStore = useTransactionsStore()
+const authStore = useAuthStore()
+
+// Load transactions when auth is ready (same pattern as Transactions.vue)
+watch(
+  () => authStore.isLoggedIn,
+  async (loggedIn) => {
+    if (loggedIn && transactionsStore.transactions.length === 0) {
+      await transactionsStore.loadFromSupabase()
+    }
+  },
+  { immediate: true }
+)
 
 // Month picker state
 const now = new Date()
