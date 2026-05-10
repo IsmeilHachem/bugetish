@@ -242,11 +242,11 @@ import { parseESTDate, getTodayEST } from '@/utils/dateUtils'
 const transactionsStore = useTransactionsStore()
 const authStore = useAuthStore()
 
-// Load as soon as auth is confirmed — handles both instant and delayed login states
+// Load as soon as auth is confirmed — skip if already loaded to avoid double fetch
 watch(
   () => authStore.isLoggedIn,
   async (loggedIn) => {
-    if (loggedIn) await transactionsStore.loadFromSupabase()
+    if (loggedIn && !transactionsStore.initialized) await transactionsStore.loadFromSupabase()
   },
   { immediate: true }
 )

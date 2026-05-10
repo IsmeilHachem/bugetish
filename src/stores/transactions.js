@@ -59,9 +59,6 @@ export const useTransactionsStore = defineStore('transactions', {
 
       if (!authStore.isLoggedIn) return
 
-      // #region agent log
-      console.log('[DEBUG loadFromSupabase] CALLED — currentTxCount:', this.transactions.length, '| stack:', (new Error()).stack?.split('\n').slice(1,4).join(' | '))
-      // #endregion
 
       // Paginate to bypass Supabase's default 1000-row server cap
       const PAGE_SIZE = 1000
@@ -144,39 +141,8 @@ export const useTransactionsStore = defineStore('transactions', {
         isIncome: transaction.isIncome
       }
 
-      // #region agent log
-      const _t0 = Date.now(); console.log('[DEBUG addTransaction] START — txCount:', this.transactions.length)
-      // #endregion
-
-      // Save to Supabase
-      const { error } = await supabase.from('transactions').insert({
-        id: newTransaction.id,
-        user_id: authStore.userId,
-        date: newTransaction.date,
-        description: newTransaction.description,
-        category: newTransaction.category,
-        amount: newTransaction.amount,
-        is_income: newTransaction.isIncome
-      })
-
-      // #region agent log
-      console.log('[DEBUG addTransaction] Supabase insert took', Date.now()-_t0, 'ms | error:', !!error)
-      // #endregion
-
-      if (error) {
-        console.error('Error saving transaction to Supabase:', error)
-        return false
-      }
-
+      // Optimistic: add to local store immediately so the UI responds instantly
       this.transactions.push(newTransaction)
-
-      // #region agent log
-      const _t1 = Date.now()
-      // #endregion
-      this.saveToLocalStorage()
-      // #region agent log
-      console.log('[DEBUG addTransaction] saveToLocalStorage took', Date.now()-_t1, 'ms | txCount:', this.transactions.length)
-      // #endregion
 
       const sep = ' - '
       const splitIdx = transaction.category.indexOf(sep)
@@ -195,9 +161,23 @@ export const useTransactionsStore = defineStore('transactions', {
         )
       }
 
-      // #region agent log
-      console.log('[DEBUG addTransaction] TOTAL took', Date.now()-_t0, 'ms | finalTxCount:', this.transactions.length)
-      // #endregion
+      // Sync to Supabase in background — don't block the UI
+      supabase.from('transactions').insert({
+        id: newTransaction.id,
+        user_id: authStore.userId,
+        date: newTransaction.date,
+        description: newTransaction.description,
+        category: newTransaction.category,
+        amount: newTransaction.amount,
+        is_income: newTransaction.isIncome
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Error saving transaction to Supabase:', error)
+          // Roll back the optimistic add on failure
+          this.transactions = this.transactions.filter(t => t.id !== newTransaction.id)
+          categoriesStore.updateCategoryAmount(mainCategory, subcategory, this.calculateCategoryTotal(mainCategory, subcategory))
+        }
+      })
 
       return true
     },
