@@ -89,7 +89,7 @@ export const useTransactionsStore = defineStore('transactions', {
         return
       }
 
-      const supabaseTxs = (data || []).map(row => ({
+      this.transactions = (data || []).map(row => ({
         id: row.id,
         date: row.date,
         description: row.description,
@@ -98,37 +98,7 @@ export const useTransactionsStore = defineStore('transactions', {
         isIncome: row.is_income
       }))
 
-      // Recover any transactions that are in localStorage but not yet in Supabase
-      // (background inserts that were in-flight when the page last reloaded)
-      const supabaseIds = new Set(supabaseTxs.map(t => String(t.id)))
-      let orphans = []
-      try {
-        const localRaw = localStorage.getItem('budgetish-transactions')
-        if (localRaw) {
-          const localData = parseTransactionsFromStorage(localRaw)
-          orphans = (localData?.transactions || []).filter(t => !supabaseIds.has(String(t.id)))
-        }
-      } catch (_) {}
-
-      this.transactions = supabaseTxs
       this.initialized = true
-
-      if (orphans.length > 0) {
-        // Re-insert orphaned transactions to Supabase silently
-        for (const tx of orphans) {
-          this.transactions.push(tx)
-          supabase.from('transactions').insert({
-            id: tx.id,
-            user_id: authStore.userId,
-            date: tx.date,
-            description: tx.description,
-            category: tx.category,
-            amount: tx.amount,
-            is_income: tx.isIncome
-          }).catch(() => {})
-        }
-      }
-
       this.saveToLocalStorage()
     },
 
