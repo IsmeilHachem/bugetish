@@ -71,6 +71,7 @@ export const useTransactionsStore = defineStore('transactions', {
           .from('transactions')
           .select('*')
           .order('date', { ascending: true })
+          .order('id', { ascending: true })
           .range(offset, offset + PAGE_SIZE - 1)
 
         if (pageError) { fetchError = pageError; break }
@@ -80,6 +81,14 @@ export const useTransactionsStore = defineStore('transactions', {
         if (page.length < PAGE_SIZE) break
         offset += PAGE_SIZE
       }
+
+      // Deduplicate by ID in case of any remaining overlap
+      const seenIds = new Set()
+      allData = allData.filter(row => {
+        if (seenIds.has(row.id)) return false
+        seenIds.add(row.id)
+        return true
+      })
 
       const error = fetchError
       const data = allData
