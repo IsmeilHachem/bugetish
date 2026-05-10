@@ -86,16 +86,17 @@
           <button
             type="button"
             @click="closeModal"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            :disabled="isSaving"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
-            :disabled="!isFormValid"
+            :disabled="!isFormValid || isSaving"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            Add Transaction
+            {{ isSaving ? 'Saving...' : 'Add Transaction' }}
           </button>
         </div>
       </form>
@@ -139,6 +140,7 @@ const form = ref({
 
 const showCategorySelect = ref(false)
 const selectedCategory = ref('')
+const isSaving = ref(false)
 
 const isFormValid = computed(() => {
   return (
@@ -156,7 +158,7 @@ const handleCategorySelected = (category) => {
 }
 
 const handleSubmit = async () => {
-  if (!isFormValid.value) return
+  if (!isFormValid.value || isSaving.value) return
 
   const transaction = {
     date: form.value.date,
@@ -166,13 +168,18 @@ const handleSubmit = async () => {
     isIncome: form.value.isIncome
   }
 
+  isSaving.value = true
   // #region agent log
   const _t0 = Date.now(); console.log('[DEBUG handleSubmit] START')
+  fetch('http://127.0.0.1:7606/ingest/73bfee0c-5207-4eaa-afad-960a8691d15d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'58059a'},body:JSON.stringify({sessionId:'58059a',runId:'post-fix',hypothesisId:'H-timing',location:'AddTransactionModal.vue:handleSubmit',message:'submit start',data:{ts:_t0},timestamp:_t0})}).catch(()=>{});
   // #endregion
   const saved = await transactionsStore.addTransaction(transaction)
   // #region agent log
   console.log('[DEBUG handleSubmit] addTransaction returned in', Date.now()-_t0, 'ms | saved:', saved)
+  fetch('http://127.0.0.1:7606/ingest/73bfee0c-5207-4eaa-afad-960a8691d15d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'58059a'},body:JSON.stringify({sessionId:'58059a',runId:'post-fix',hypothesisId:'H-timing',location:'AddTransactionModal.vue:handleSubmit',message:'addTransaction returned',data:{elapsedMs:Date.now()-_t0,saved},timestamp:Date.now()})}).catch(()=>{});
   // #endregion
+  isSaving.value = false
+
   if (!saved) {
     alert(
       'Transaction was not saved. The most common cause is browser storage being full or blocked (this app saves to localStorage). Try exporting transactions, removing old data, or clearing other site data for this origin. Invalid categories can also block saves—confirm the category still exists under Categories.'
