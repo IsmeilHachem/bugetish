@@ -104,6 +104,42 @@
           </button>
           <p v-if="recoveryStatus.billsMsg" class="text-xs mt-2 text-purple-700">{{ recoveryStatus.billsMsg }}</p>
         </div>
+
+        <!-- Monthly reconciliation -->
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+          <p class="text-sm font-semibold text-green-800 mb-1">Monthly Reconciliation</p>
+          <p class="text-xs text-green-700 mb-3">Shows every month's income, spending, and net from your saved data. Compare against your bank statement to find any missing transactions.</p>
+          <button
+            @click="loadReconciliation"
+            :disabled="reconciliation.status === 'loading'"
+            class="w-full py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-all disabled:opacity-50"
+          >
+            <span v-if="reconciliation.status === 'loading'">Loading...</span>
+            <span v-else>Show Monthly Totals</span>
+          </button>
+          <p v-if="reconciliation.error" class="text-xs mt-2 text-red-600">{{ reconciliation.error }}</p>
+          <div v-if="reconciliation.rows.length > 0" class="mt-3 space-y-1">
+            <div class="grid grid-cols-4 gap-1 text-xs font-semibold text-green-800 border-b border-green-200 pb-1 mb-1">
+              <span>Month</span><span class="text-right">Income</span><span class="text-right">Spending</span><span class="text-right">Net</span>
+            </div>
+            <div
+              v-for="row in reconciliation.rows"
+              :key="row.month"
+              class="grid grid-cols-4 gap-1 text-xs text-gray-700 py-1 border-b border-green-100"
+            >
+              <span class="font-medium">{{ row.month }}</span>
+              <span class="text-right text-green-700">+{{ row.income }}</span>
+              <span class="text-right text-red-600">-{{ row.spending }}</span>
+              <span class="text-right font-semibold" :class="row.netRaw >= 0 ? 'text-green-700' : 'text-red-600'">{{ row.net }}</span>
+            </div>
+            <div class="grid grid-cols-4 gap-1 text-xs font-bold text-gray-900 pt-2 border-t border-green-300 mt-1">
+              <span>TOTAL</span>
+              <span class="text-right text-green-700">+{{ reconciliation.totals.income }}</span>
+              <span class="text-right text-red-600">-{{ reconciliation.totals.spending }}</span>
+              <span class="text-right" :class="reconciliation.totals.netRaw >= 0 ? 'text-green-700' : 'text-red-600'">{{ reconciliation.totals.net }}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -135,6 +171,7 @@ const errorMessage = ref('')
 const counts = ref({ transactions: 0, categories: 0, bills: 0, reflections: 0 })
 const results = ref({ transactions: 0 })
 const recoveryStatus = ref({ categories: 'idle', categoriesMsg: '', bills: 'idle', billsMsg: '' })
+const reconciliation = ref({ status: 'idle', rows: [], totals: {}, error: '' })
 
 const totalCount = computed(() =>
   counts.value.transactions + counts.value.categories + counts.value.bills + counts.value.reflections
@@ -317,6 +354,65 @@ async function recoverCategories() {
   } catch (e) {
     recoveryStatus.value.categoriesMsg = 'Error: ' + (e.message || 'unknown')
     recoveryStatus.value.categories = 'idle'
+  }
+}
+
+function fmt(n) {
+  return Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+async function loadReconciliation() {
+  reconciliation.value = { status: 'loading', rows: [], totals: {}, error: '' }
+  try {
+    const PAGE_SIZE = 1000
+    let all = []
+    let offset = 0
+    while (true) {
+      const { data: page, error } = await supabase
+        .from('transactions')
+        .select('date, amount, is_income, description')
+        .order('date', { ascending: true })
+        .range(offset, offset + PAGE_SIZE - 1)
+      if (error) throw error
+      if (!page || page.length === 0) break
+      all = all.concat(page)
+      if (page.length < PAGE_SIZE) break
+      offset += PAGE_SIZE
+    }
+
+    const byMonth = {}
+    for (const tx of all) {
+      const key = tx.date.slice(0, 7) // YYYY-MM
+      if (!byMonth[key]) byMonth[key] = { income: 0, spending: 0 }
+      const amt = Number(tx.amount)
+      if (amt >= 0) byMonth[key].income += amt
+      else byMonth[key].spending += Math.abs(amt)
+    }
+
+    let totalIncome = 0, totalSpending = 0
+    const rows = Object.entries(byMonth)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, { income, spending }]) => {
+        totalIncome += income
+        totalSpending += spending
+        const netRaw = income - spending
+        return { month, income: fmt(income), spending: fmt(spending), net: (netRaw >= 0 ? '+' : '-') + fmt(netRaw), netRaw }
+      })
+
+    const netRaw = totalIncome - totalSpending
+    reconciliation.value = {
+      status: 'done',
+      rows,
+      totals: {
+        income: fmt(totalIncome),
+        spending: fmt(totalSpending),
+        net: (netRaw >= 0 ? '+' : '-') + fmt(netRaw),
+        netRaw
+      },
+      error: ''
+    }
+  } catch (e) {
+    reconciliation.value = { status: 'idle', rows: [], totals: {}, error: 'Error: ' + (e.message || 'unknown') }
   }
 }
 
