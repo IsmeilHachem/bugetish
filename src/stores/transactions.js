@@ -107,12 +107,6 @@ export const useTransactionsStore = defineStore('transactions', {
         isIncome: row.is_income
       }))
 
-      // #region agent log
-      const oct14 = (data || []).filter(r => r.date === '2025-10-14')
-      const oct14Groups = oct14.reduce((acc, r) => { acc[r.description] = (acc[r.description] || 0) + 1; return acc }, {})
-      console.log('[DEBUG loadFromSupabase] total rows from Supabase:', (data||[]).length, '| Oct-14 count:', oct14.length, '| Oct-14 breakdown:', oct14Groups, '| callStack:', new Error().stack?.split('\n').slice(1,4).join(' | '))
-      // #endregion
-
       this.initialized = true
       this.saveToLocalStorage()
     },
@@ -142,10 +136,6 @@ export const useTransactionsStore = defineStore('transactions', {
       const categoriesStore = useCategoriesStore()
       const billsStore = useBillsStore()
       const authStore = useAuthStore()
-
-      // #region agent log
-      console.log('[DEBUG addTransaction] called with:', transaction.description, transaction.amount, transaction.date)
-      // #endregion
 
       if (!categoriesStore.validateCategory(transaction.category)) {
         return false
@@ -314,9 +304,6 @@ export const useTransactionsStore = defineStore('transactions', {
     // One-time migration: move existing localStorage transactions into Supabase
     async migrateFromLocalStorage() {
       const authStore = useAuthStore()
-      // #region agent log
-      console.log('[DEBUG migrateFromLocalStorage] called, stack:', new Error().stack?.split('\n').slice(1,4).join(' | '))
-      // #endregion
       if (!authStore.isLoggedIn) return { migrated: 0, error: 'Not logged in' }
 
       const stored = localStorage.getItem('budgetish-transactions')
