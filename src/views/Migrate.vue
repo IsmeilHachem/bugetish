@@ -89,6 +89,22 @@
           <p v-if="recoveryStatus.categoriesMsg" class="text-xs mt-2 text-amber-700">{{ recoveryStatus.categoriesMsg }}</p>
         </div>
 
+        <!-- Remove duplicate transactions -->
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+          <p class="text-sm font-semibold text-red-800 mb-1">Remove Duplicate Transactions</p>
+          <p class="text-xs text-red-700 mb-3">Scans Supabase for transactions with the same date, description, category, and amount, then deletes every copy except the oldest one. Safe to run at any time.</p>
+          <button
+            @click="removeDuplicates"
+            :disabled="recoveryStatus.duplicates === 'running'"
+            class="w-full py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-all disabled:opacity-50"
+          >
+            <span v-if="recoveryStatus.duplicates === 'running'">Removing...</span>
+            <span v-else-if="recoveryStatus.duplicates === 'done'">Done ✓</span>
+            <span v-else>Remove Duplicates</span>
+          </button>
+          <p v-if="recoveryStatus.duplicatesMsg" class="text-xs mt-2" :class="recoveryStatus.duplicates === 'done' ? 'text-green-700' : 'text-red-700'">{{ recoveryStatus.duplicatesMsg }}</p>
+        </div>
+
         <!-- Restore bills -->
         <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
           <p class="text-sm font-semibold text-purple-800 mb-1">Restore Hidden Bills</p>
@@ -173,7 +189,7 @@ const currentStep = ref('')
 const errorMessage = ref('')
 const counts = ref({ transactions: 0, categories: 0, bills: 0, reflections: 0 })
 const results = ref({ transactions: 0 })
-const recoveryStatus = ref({ categories: 'idle', categoriesMsg: '', bills: 'idle', billsMsg: '' })
+const recoveryStatus = ref({ categories: 'idle', categoriesMsg: '', bills: 'idle', billsMsg: '', duplicates: 'idle', duplicatesMsg: '' })
 const reconciliation = ref({ status: 'idle', rows: [], totals: {}, error: '', cycleDay: 20 })
 
 const totalCount = computed(() =>
@@ -442,6 +458,67 @@ async function loadReconciliation() {
     }
   } catch (e) {
     reconciliation.value = { status: 'idle', rows: [], totals: {}, error: 'Error: ' + (e.message || 'unknown'), cycleDay }
+  }
+}
+
+async function removeDuplicates() {
+  recoveryStatus.value.duplicates = 'running'
+  recoveryStatus.value.duplicatesMsg = ''
+  try {
+    // Fetch all transactions from Supabase
+    const PAGE_SIZE = 1000
+    let all = []
+    let offset = 0
+    while (true) {
+      const { data: page, error } = await supabase
+        .from('transactions')
+        .select('id, date, description, category, amount')
+        .order('id', { ascending: true })
+        .range(offset, offset + PAGE_SIZE - 1)
+      if (error) throw error
+      if (!page || page.length === 0) break
+      all = all.concat(page)
+      if (page.length < PAGE_SIZE) break
+      offset += PAGE_SIZE
+    }
+
+    // Group by composite key: date|description|category|amount
+    const groups = {}
+    for (const tx of all) {
+      const key = `${tx.date}|${tx.description}|${tx.category}|${Number(tx.amount).toFixed(2)}`
+      if (!groups[key]) groups[key] = []
+      groups[key].push(tx.id)
+    }
+
+    // Collect IDs to delete (all but the first/oldest per group — already sorted by id asc)
+    const toDelete = []
+    for (const ids of Object.values(groups)) {
+      if (ids.length > 1) toDelete.push(...ids.slice(1))
+    }
+
+    if (toDelete.length === 0) {
+      recoveryStatus.value.duplicatesMsg = 'No duplicates found. Your data is clean.'
+      recoveryStatus.value.duplicates = 'done'
+      return
+    }
+
+    // Delete in batches of 100
+    let deleted = 0
+    for (let i = 0; i < toDelete.length; i += 100) {
+      const batch = toDelete.slice(i, i + 100)
+      const { error } = await supabase.from('transactions').delete().in('id', batch)
+      if (error) throw error
+      deleted += batch.length
+    }
+
+    // Reload store
+    await transactionsStore.loadFromSupabase()
+
+    recoveryStatus.value.duplicatesMsg = `Removed ${deleted} duplicate transaction(s). Your data is clean.`
+    recoveryStatus.value.duplicates = 'done'
+  } catch (e) {
+    recoveryStatus.value.duplicatesMsg = 'Error: ' + (e.message || 'unknown')
+    recoveryStatus.value.duplicates = 'idle'
   }
 }
 
