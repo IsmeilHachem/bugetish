@@ -166,7 +166,13 @@ const handleSubmit = async () => {
     isIncome: form.value.isIncome
   }
 
+  // #region agent log
+  const _t0 = Date.now(); console.log('[DEBUG handleSubmit] START')
+  // #endregion
   const saved = await transactionsStore.addTransaction(transaction)
+  // #region agent log
+  console.log('[DEBUG handleSubmit] addTransaction returned in', Date.now()-_t0, 'ms | saved:', saved)
+  // #endregion
   if (!saved) {
     alert(
       'Transaction was not saved. The most common cause is browser storage being full or blocked (this app saves to localStorage). Try exporting transactions, removing old data, or clearing other site data for this origin. Invalid categories can also block saves—confirm the category still exists under Categories.'
@@ -175,7 +181,13 @@ const handleSubmit = async () => {
   }
 
   emit('transaction-added')
+  // #region agent log
+  console.log('[DEBUG handleSubmit] calling closeModal at', Date.now()-_t0, 'ms')
+  // #endregion
   closeModal()
+  // #region agent log
+  console.log('[DEBUG handleSubmit] DONE at', Date.now()-_t0, 'ms')
+  // #endregion
 }
 
 const closeModal = () => {

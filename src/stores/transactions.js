@@ -60,6 +60,10 @@ export const useTransactionsStore = defineStore('transactions', {
       if (!authStore.isLoggedIn) return
 
 
+      // #region agent log
+      console.log('[DEBUG loadFromSupabase] CALLED txCount:', this.transactions.length, '| caller:', (new Error()).stack?.split('\n')[2])
+      // #endregion
+
       // Paginate to bypass Supabase's default 1000-row server cap
       const PAGE_SIZE = 1000
       let allData = []
