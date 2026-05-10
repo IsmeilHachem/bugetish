@@ -86,17 +86,16 @@
           <button
             type="button"
             @click="closeModal"
-            :disabled="isSaving"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Cancel
           </button>
           <button
             type="submit"
-            :disabled="!isFormValid || isSaving"
+            :disabled="!isFormValid"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            {{ isSaving ? 'Saving...' : 'Add Transaction' }}
+            Add Transaction
           </button>
         </div>
       </form>
@@ -140,7 +139,6 @@ const form = ref({
 
 const showCategorySelect = ref(false)
 const selectedCategory = ref('')
-const isSaving = ref(false)
 
 const isFormValid = computed(() => {
   return (
@@ -168,9 +166,7 @@ const handleSubmit = async () => {
     isIncome: form.value.isIncome
   }
 
-  isSaving.value = true
   const saved = await transactionsStore.addTransaction(transaction)
-  isSaving.value = false
 
   if (!saved) {
     alert(

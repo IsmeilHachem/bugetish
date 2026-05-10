@@ -89,7 +89,7 @@ export const useTransactionsStore = defineStore('transactions', {
         return
       }
 
-      this.transactions = (data || []).map(row => ({
+      const supabaseTxs = (data || []).map(row => ({
         id: row.id,
         date: row.date,
         description: row.description,
@@ -98,7 +98,37 @@ export const useTransactionsStore = defineStore('transactions', {
         isIncome: row.is_income
       }))
 
+      // Recover any transactions that are in localStorage but not yet in Supabase
+      // (background inserts that were in-flight when the page last reloaded)
+      const supabaseIds = new Set(supabaseTxs.map(t => String(t.id)))
+      let orphans = []
+      try {
+        const localRaw = localStorage.getItem('budgetish-transactions')
+        if (localRaw) {
+          const localData = parseTransactionsFromStorage(localRaw)
+          orphans = (localData?.transactions || []).filter(t => !supabaseIds.has(String(t.id)))
+        }
+      } catch (_) {}
+
+      this.transactions = supabaseTxs
       this.initialized = true
+
+      if (orphans.length > 0) {
+        // Re-insert orphaned transactions to Supabase silently
+        for (const tx of orphans) {
+          this.transactions.push(tx)
+          supabase.from('transactions').insert({
+            id: tx.id,
+            user_id: authStore.userId,
+            date: tx.date,
+            description: tx.description,
+            category: tx.category,
+            amount: tx.amount,
+            is_income: tx.isIncome
+          }).catch(() => {})
+        }
+      }
+
       this.saveToLocalStorage()
     },
 
@@ -141,8 +171,9 @@ export const useTransactionsStore = defineStore('transactions', {
         isIncome: transaction.isIncome
       }
 
-      // Optimistic: update local store immediately so list reflects the new transaction
+      // Optimistic: update local store and save to localStorage immediately
       this.transactions.push(newTransaction)
+      this.saveToLocalStorage()
 
       const sep = ' - '
       const splitIdx = transaction.category.indexOf(sep)
@@ -161,9 +192,10 @@ export const useTransactionsStore = defineStore('transactions', {
         )
       }
 
-      // Await Supabase insert — data must be committed before we return
-      // so a page reload never loses the transaction
-      const { error } = await supabase.from('transactions').insert({
+      // Fire Supabase insert in background — modal can close immediately.
+      // localStorage already has the transaction so a page reload won't lose it;
+      // loadFromSupabase will re-insert any orphans that didn't make it to Supabase.
+      supabase.from('transactions').insert({
         id: newTransaction.id,
         user_id: authStore.userId,
         date: newTransaction.date,
@@ -171,15 +203,11 @@ export const useTransactionsStore = defineStore('transactions', {
         category: newTransaction.category,
         amount: newTransaction.amount,
         is_income: newTransaction.isIncome
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Supabase insert failed for transaction', newTransaction.id, error)
+        }
       })
-
-      if (error) {
-        console.error('Error saving transaction to Supabase:', error)
-        // Roll back optimistic add
-        this.transactions = this.transactions.filter(t => t.id !== newTransaction.id)
-        categoriesStore.updateCategoryAmount(mainCategory, subcategory, this.calculateCategoryTotal(mainCategory, subcategory))
-        return false
-      }
 
       return true
     },
