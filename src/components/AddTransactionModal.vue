@@ -92,10 +92,10 @@
           </button>
           <button
             type="submit"
-            :disabled="!isFormValid"
+            :disabled="!isFormValid || isSaving"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            Add Transaction
+            {{ isSaving ? 'Saving...' : 'Add Transaction' }}
           </button>
         </div>
       </form>
@@ -128,6 +128,7 @@ function getTodayDateString() {
 }
 
 const transactionsStore = useTransactionsStore()
+const isSaving = ref(false)
 
 const form = ref({
   date: getTodayDateString(),
@@ -158,6 +159,8 @@ const handleCategorySelected = (category) => {
 const handleSubmit = async () => {
   if (!isFormValid.value || isSaving.value) return
 
+  isSaving.value = true
+
   const transaction = {
     date: form.value.date,
     description: form.value.description,
@@ -167,11 +170,10 @@ const handleSubmit = async () => {
   }
 
   const saved = await transactionsStore.addTransaction(transaction)
+  isSaving.value = false
 
   if (!saved) {
-    alert(
-      'Transaction was not saved. The most common cause is browser storage being full or blocked (this app saves to localStorage). Try exporting transactions, removing old data, or clearing other site data for this origin. Invalid categories can also block saves—confirm the category still exists under Categories.'
-    )
+    alert('Transaction could not be saved. Check your connection and try again.')
     return
   }
 

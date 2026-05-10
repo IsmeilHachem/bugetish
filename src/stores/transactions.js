@@ -161,10 +161,9 @@ export const useTransactionsStore = defineStore('transactions', {
         )
       }
 
-      // Fire Supabase insert in background — modal can close immediately.
-      // localStorage already has the transaction so a page reload won't lose it;
-      // loadFromSupabase will re-insert any orphans that didn't make it to Supabase.
-      supabase.from('transactions').insert({
+      // Await insert — guarantees the transaction is in Supabase before the modal closes,
+      // so any page reload (deliberate or forced) can never lose it.
+      const { error } = await supabase.from('transactions').insert({
         id: newTransaction.id,
         user_id: authStore.userId,
         date: newTransaction.date,
@@ -172,11 +171,14 @@ export const useTransactionsStore = defineStore('transactions', {
         category: newTransaction.category,
         amount: newTransaction.amount,
         is_income: newTransaction.isIncome
-      }).then(({ error }) => {
-        if (error) {
-          console.error('Supabase insert failed for transaction', newTransaction.id, error)
-        }
       })
+
+      if (error) {
+        console.error('Error saving transaction to Supabase:', error)
+        this.transactions = this.transactions.filter(t => t.id !== newTransaction.id)
+        categoriesStore.updateCategoryAmount(mainCategory, subcategory, this.calculateCategoryTotal(mainCategory, subcategory))
+        return false
+      }
 
       return true
     },
