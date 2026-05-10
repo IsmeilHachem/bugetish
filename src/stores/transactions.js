@@ -89,6 +89,9 @@ export const useTransactionsStore = defineStore('transactions', {
         return
       }
 
+      // #region agent log
+      const _tMap = Date.now()
+      // #endregion
       this.transactions = (data || []).map(row => ({
         id: row.id,
         date: row.date,
@@ -97,9 +100,19 @@ export const useTransactionsStore = defineStore('transactions', {
         amount: Number(row.amount),
         isIncome: row.is_income
       }))
+      // #region agent log
+      console.log('[DEBUG loadFromSupabase] map+assign took', Date.now()-_tMap, 'ms | txCount:', this.transactions.length)
+      // #endregion
 
       this.initialized = true
+
+      // #region agent log
+      const _tLS = Date.now()
+      // #endregion
       this.saveToLocalStorage()
+      // #region agent log
+      console.log('[DEBUG loadFromSupabase] saveToLocalStorage took', Date.now()-_tLS, 'ms')
+      // #endregion
     },
 
     // Still save to localStorage as a local cache/fallback
