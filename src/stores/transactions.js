@@ -59,6 +59,10 @@ export const useTransactionsStore = defineStore('transactions', {
 
       if (!authStore.isLoggedIn) return
 
+      // #region agent log
+      console.log('[DEBUG loadFromSupabase] CALLED — currentTxCount:', this.transactions.length, '| stack:', (new Error()).stack?.split('\n').slice(1,4).join(' | '))
+      // #endregion
+
       // Paginate to bypass Supabase's default 1000-row server cap
       const PAGE_SIZE = 1000
       let allData = []
@@ -140,6 +144,10 @@ export const useTransactionsStore = defineStore('transactions', {
         isIncome: transaction.isIncome
       }
 
+      // #region agent log
+      const _t0 = Date.now(); console.log('[DEBUG addTransaction] START — txCount:', this.transactions.length)
+      // #endregion
+
       // Save to Supabase
       const { error } = await supabase.from('transactions').insert({
         id: newTransaction.id,
@@ -151,13 +159,24 @@ export const useTransactionsStore = defineStore('transactions', {
         is_income: newTransaction.isIncome
       })
 
+      // #region agent log
+      console.log('[DEBUG addTransaction] Supabase insert took', Date.now()-_t0, 'ms | error:', !!error)
+      // #endregion
+
       if (error) {
         console.error('Error saving transaction to Supabase:', error)
         return false
       }
 
       this.transactions.push(newTransaction)
+
+      // #region agent log
+      const _t1 = Date.now()
+      // #endregion
       this.saveToLocalStorage()
+      // #region agent log
+      console.log('[DEBUG addTransaction] saveToLocalStorage took', Date.now()-_t1, 'ms | txCount:', this.transactions.length)
+      // #endregion
 
       const sep = ' - '
       const splitIdx = transaction.category.indexOf(sep)
@@ -175,6 +194,10 @@ export const useTransactionsStore = defineStore('transactions', {
           transaction.date
         )
       }
+
+      // #region agent log
+      console.log('[DEBUG addTransaction] TOTAL took', Date.now()-_t0, 'ms | finalTxCount:', this.transactions.length)
+      // #endregion
 
       return true
     },
