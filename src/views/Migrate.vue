@@ -128,24 +128,18 @@
           </button>
           <p v-if="reconciliation.error" class="text-xs mt-2 text-red-600">{{ reconciliation.error }}</p>
           <div v-if="reconciliation.rows.length > 0" class="mt-3 space-y-1">
-            <div class="grid grid-cols-4 gap-1 text-xs font-semibold text-green-800 border-b border-green-200 pb-1 mb-1">
-              <span>Statement Period</span><span class="text-right">Income</span><span class="text-right">Spending</span><span class="text-right">Net</span>
+            <p class="text-xs text-green-700 mb-2">Compare the <strong>End Balance</strong> column to your bank statement's ending balance for that period. The first row that doesn't match is where the missing transaction is.</p>
+            <div class="grid grid-cols-3 gap-1 text-xs font-semibold text-green-800 border-b border-green-200 pb-1 mb-1">
+              <span>Statement Period</span><span class="text-right">Period Net</span><span class="text-right">End Balance</span>
             </div>
             <div
               v-for="row in reconciliation.rows"
               :key="row.month"
-              class="grid grid-cols-4 gap-1 text-xs text-gray-700 py-1 border-b border-green-100"
+              class="grid grid-cols-3 gap-1 text-xs text-gray-700 py-1 border-b border-green-100"
             >
               <span class="font-medium">{{ row.month }}</span>
-              <span class="text-right text-green-700">+{{ row.income }}</span>
-              <span class="text-right text-red-600">-{{ row.spending }}</span>
-              <span class="text-right font-semibold" :class="row.netRaw >= 0 ? 'text-green-700' : 'text-red-600'">{{ row.net }}</span>
-            </div>
-            <div class="grid grid-cols-4 gap-1 text-xs font-bold text-gray-900 pt-2 border-t border-green-300 mt-1">
-              <span>TOTAL</span>
-              <span class="text-right text-green-700">+{{ reconciliation.totals.income }}</span>
-              <span class="text-right text-red-600">-{{ reconciliation.totals.spending }}</span>
-              <span class="text-right" :class="reconciliation.totals.netRaw >= 0 ? 'text-green-700' : 'text-red-600'">{{ reconciliation.totals.net }}</span>
+              <span class="text-right" :class="row.netRaw >= 0 ? 'text-green-700' : 'text-red-600'">{{ row.net }}</span>
+              <span class="text-right font-semibold text-gray-900">{{ row.endBalance }}</span>
             </div>
           </div>
         </div>
@@ -424,21 +418,26 @@ async function loadReconciliation() {
       else byCycle[sortKey].spending += Math.abs(amt)
     }
 
-    let totalIncome = 0, totalSpending = 0
+    let runningBalance = 0
     const rows = Object.entries(byCycle)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([, { label, income, spending }]) => {
-        totalIncome += income
-        totalSpending += spending
         const netRaw = income - spending
-        return { month: label, income: fmt(income), spending: fmt(spending), net: (netRaw >= 0 ? '+' : '-') + fmt(netRaw), netRaw }
+        runningBalance += netRaw
+        return {
+          month: label,
+          income: fmt(income),
+          spending: fmt(spending),
+          net: (netRaw >= 0 ? '+' : '-') + fmt(Math.abs(netRaw)),
+          netRaw,
+          endBalance: fmt(runningBalance)
+        }
       })
 
-    const netRaw = totalIncome - totalSpending
     reconciliation.value = {
       status: 'done', cycleDay,
       rows,
-      totals: { income: fmt(totalIncome), spending: fmt(totalSpending), net: (netRaw >= 0 ? '+' : '-') + fmt(netRaw), netRaw },
+      totals: {},
       error: ''
     }
   } catch (e) {
