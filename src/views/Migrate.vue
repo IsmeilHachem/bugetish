@@ -107,20 +107,29 @@
 
         <!-- Monthly reconciliation -->
         <div class="bg-green-50 border border-green-200 rounded-xl p-4">
-          <p class="text-sm font-semibold text-green-800 mb-1">Monthly Reconciliation</p>
-          <p class="text-xs text-green-700 mb-3">Shows every month's income, spending, and net from your saved data. Compare against your bank statement to find any missing transactions.</p>
+          <p class="text-sm font-semibold text-green-800 mb-1">Billing Cycle Reconciliation</p>
+          <p class="text-xs text-green-700 mb-3">Groups transactions by your bank's billing cycle so totals match your statements exactly. Enter the day your statement starts each month.</p>
+          <div class="flex items-center gap-2 mb-3">
+            <label class="text-xs text-green-800 font-medium whitespace-nowrap">Statement starts on day</label>
+            <input
+              v-model.number="reconciliation.cycleDay"
+              type="number" min="1" max="28"
+              class="w-16 text-xs border border-green-300 rounded px-2 py-1 text-center focus:outline-none focus:ring-1 focus:ring-green-500"
+            />
+            <span class="text-xs text-green-700">of each month</span>
+          </div>
           <button
             @click="loadReconciliation"
             :disabled="reconciliation.status === 'loading'"
             class="w-full py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-all disabled:opacity-50"
           >
             <span v-if="reconciliation.status === 'loading'">Loading...</span>
-            <span v-else>Show Monthly Totals</span>
+            <span v-else>Show Billing Cycle Totals</span>
           </button>
           <p v-if="reconciliation.error" class="text-xs mt-2 text-red-600">{{ reconciliation.error }}</p>
           <div v-if="reconciliation.rows.length > 0" class="mt-3 space-y-1">
             <div class="grid grid-cols-4 gap-1 text-xs font-semibold text-green-800 border-b border-green-200 pb-1 mb-1">
-              <span>Month</span><span class="text-right">Income</span><span class="text-right">Spending</span><span class="text-right">Net</span>
+              <span>Statement Period</span><span class="text-right">Income</span><span class="text-right">Spending</span><span class="text-right">Net</span>
             </div>
             <div
               v-for="row in reconciliation.rows"
@@ -171,7 +180,7 @@ const errorMessage = ref('')
 const counts = ref({ transactions: 0, categories: 0, bills: 0, reflections: 0 })
 const results = ref({ transactions: 0 })
 const recoveryStatus = ref({ categories: 'idle', categoriesMsg: '', bills: 'idle', billsMsg: '' })
-const reconciliation = ref({ status: 'idle', rows: [], totals: {}, error: '' })
+const reconciliation = ref({ status: 'idle', rows: [], totals: {}, error: '', cycleDay: 20 })
 
 const totalCount = computed(() =>
   counts.value.transactions + counts.value.categories + counts.value.bills + counts.value.reflections
@@ -361,8 +370,34 @@ function fmt(n) {
   return Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+// Returns the billing cycle key for a given date string (YYYY-MM-DD)
+// e.g. cycleDay=20: 2026-02-20 → 2026-02-20 to 2026-03-19 → key "Feb 20 – Mar 19"
+function getCycleKey(dateStr, cycleDay) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  let cycleYear, cycleMonth
+  if (d >= cycleDay) {
+    cycleYear = y; cycleMonth = m
+  } else {
+    // belongs to previous cycle
+    if (m === 1) { cycleYear = y - 1; cycleMonth = 12 }
+    else { cycleYear = y; cycleMonth = m - 1 }
+  }
+  // End date: one day before cycleDay of the following month
+  let endYear = cycleYear, endMonth = cycleMonth + 1
+  if (endMonth > 12) { endMonth = 1; endYear++ }
+  const endDay = cycleDay - 1
+
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const startLabel = `${months[cycleMonth-1]} ${cycleDay}`
+  const endLabel = `${months[endMonth-1]} ${endDay}`
+  // sort key: YYYY-MM
+  const sortKey = `${cycleYear}-${String(cycleMonth).padStart(2,'0')}`
+  return { label: `${startLabel} – ${endLabel} '${String(cycleYear).slice(2)}`, sortKey }
+}
+
 async function loadReconciliation() {
-  reconciliation.value = { status: 'loading', rows: [], totals: {}, error: '' }
+  const cycleDay = reconciliation.value.cycleDay || 20
+  reconciliation.value = { status: 'loading', rows: [], totals: {}, error: '', cycleDay }
   try {
     const PAGE_SIZE = 1000
     let all = []
@@ -370,7 +405,7 @@ async function loadReconciliation() {
     while (true) {
       const { data: page, error } = await supabase
         .from('transactions')
-        .select('date, amount, is_income, description')
+        .select('date, amount')
         .order('date', { ascending: true })
         .range(offset, offset + PAGE_SIZE - 1)
       if (error) throw error
@@ -380,39 +415,34 @@ async function loadReconciliation() {
       offset += PAGE_SIZE
     }
 
-    const byMonth = {}
+    const byCycle = {}
     for (const tx of all) {
-      const key = tx.date.slice(0, 7) // YYYY-MM
-      if (!byMonth[key]) byMonth[key] = { income: 0, spending: 0 }
+      const { label, sortKey } = getCycleKey(tx.date, cycleDay)
+      if (!byCycle[sortKey]) byCycle[sortKey] = { label, income: 0, spending: 0 }
       const amt = Number(tx.amount)
-      if (amt >= 0) byMonth[key].income += amt
-      else byMonth[key].spending += Math.abs(amt)
+      if (amt >= 0) byCycle[sortKey].income += amt
+      else byCycle[sortKey].spending += Math.abs(amt)
     }
 
     let totalIncome = 0, totalSpending = 0
-    const rows = Object.entries(byMonth)
+    const rows = Object.entries(byCycle)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, { income, spending }]) => {
+      .map(([, { label, income, spending }]) => {
         totalIncome += income
         totalSpending += spending
         const netRaw = income - spending
-        return { month, income: fmt(income), spending: fmt(spending), net: (netRaw >= 0 ? '+' : '-') + fmt(netRaw), netRaw }
+        return { month: label, income: fmt(income), spending: fmt(spending), net: (netRaw >= 0 ? '+' : '-') + fmt(netRaw), netRaw }
       })
 
     const netRaw = totalIncome - totalSpending
     reconciliation.value = {
-      status: 'done',
+      status: 'done', cycleDay,
       rows,
-      totals: {
-        income: fmt(totalIncome),
-        spending: fmt(totalSpending),
-        net: (netRaw >= 0 ? '+' : '-') + fmt(netRaw),
-        netRaw
-      },
+      totals: { income: fmt(totalIncome), spending: fmt(totalSpending), net: (netRaw >= 0 ? '+' : '-') + fmt(netRaw), netRaw },
       error: ''
     }
   } catch (e) {
-    reconciliation.value = { status: 'idle', rows: [], totals: {}, error: 'Error: ' + (e.message || 'unknown') }
+    reconciliation.value = { status: 'idle', rows: [], totals: {}, error: 'Error: ' + (e.message || 'unknown'), cycleDay }
   }
 }
 
