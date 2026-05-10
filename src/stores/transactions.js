@@ -141,9 +141,8 @@ export const useTransactionsStore = defineStore('transactions', {
         isIncome: transaction.isIncome
       }
 
-      // Optimistic: update local store and save to localStorage immediately
+      // Optimistic: update local store immediately
       this.transactions.push(newTransaction)
-      this.saveToLocalStorage()
 
       const sep = ' - '
       const splitIdx = transaction.category.indexOf(sep)
