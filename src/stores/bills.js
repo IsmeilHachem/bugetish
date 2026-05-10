@@ -99,6 +99,8 @@ export const useBillsStore = defineStore('bills', {
     saveToSupabase() {
       const authStore = useAuthStore()
       if (!authStore.isLoggedIn) return
+      // Never overwrite Supabase before bills have been loaded — would wipe real data with []
+      if (!this.initialized) return
       supabase.from('user_data').upsert({
         user_id: authStore.userId,
         data_type: 'bills',
@@ -461,7 +463,7 @@ export const useBillsStore = defineStore('bills', {
       })
       
       this.saveToLocalStorage()
-      console.log(`Deleted ${billsInCategory.length} bills from category "${categoryName}" starting from month ${currentMonth}`)
+      this.saveToSupabase()
       return billsInCategory.length
     },
 
@@ -476,7 +478,7 @@ export const useBillsStore = defineStore('bills', {
       })
       
       this.saveToLocalStorage()
-      console.log(`Restored ${billsInCategory.length} bills from category "${categoryName}"`)
+      this.saveToSupabase()
       return billsInCategory.length
     },
 
