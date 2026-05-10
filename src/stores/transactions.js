@@ -98,6 +98,12 @@ export const useTransactionsStore = defineStore('transactions', {
         isIncome: row.is_income
       }))
 
+      // #region agent log
+      const oct14 = (data || []).filter(r => r.date === '2025-10-14')
+      const oct14Groups = oct14.reduce((acc, r) => { acc[r.description] = (acc[r.description] || 0) + 1; return acc }, {})
+      fetch('http://127.0.0.1:7606/ingest/73bfee0c-5207-4eaa-afad-960a8691d15d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'58059a'},body:JSON.stringify({sessionId:'58059a',location:'transactions.js:loadFromSupabase',message:'Supabase returned rows',data:{totalRows:(data||[]).length,oct14Count:oct14.length,oct14Groups,callStack:new Error().stack?.split('\n').slice(1,4).join(' | ')},timestamp:Date.now()})}).catch(()=>{})
+      // #endregion
+
       this.initialized = true
       this.saveToLocalStorage()
     },
@@ -127,6 +133,10 @@ export const useTransactionsStore = defineStore('transactions', {
       const categoriesStore = useCategoriesStore()
       const billsStore = useBillsStore()
       const authStore = useAuthStore()
+
+      // #region agent log
+      fetch('http://127.0.0.1:7606/ingest/73bfee0c-5207-4eaa-afad-960a8691d15d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'58059a'},body:JSON.stringify({sessionId:'58059a',location:'transactions.js:addTransaction',message:'addTransaction called',data:{description:transaction.description,amount:transaction.amount,date:transaction.date},timestamp:Date.now()})}).catch(()=>{})
+      // #endregion
 
       if (!categoriesStore.validateCategory(transaction.category)) {
         return false
@@ -295,6 +305,9 @@ export const useTransactionsStore = defineStore('transactions', {
     // One-time migration: move existing localStorage transactions into Supabase
     async migrateFromLocalStorage() {
       const authStore = useAuthStore()
+      // #region agent log
+      fetch('http://127.0.0.1:7606/ingest/73bfee0c-5207-4eaa-afad-960a8691d15d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'58059a'},body:JSON.stringify({sessionId:'58059a',location:'transactions.js:migrateFromLocalStorage',message:'migrateFromLocalStorage called',data:{callStack:new Error().stack?.split('\n').slice(1,4).join(' | ')},timestamp:Date.now()})}).catch(()=>{})
+      // #endregion
       if (!authStore.isLoggedIn) return { migrated: 0, error: 'Not logged in' }
 
       const stored = localStorage.getItem('budgetish-transactions')
