@@ -60,11 +60,6 @@ export const useTransactionsStore = defineStore('transactions', {
       if (!authStore.isLoggedIn) return
 
 
-      // #region agent log
-      console.log('[DEBUG loadFromSupabase] CALLED txCount:', this.transactions.length, '| caller:', (new Error()).stack?.split('\n')[2])
-      fetch('http://127.0.0.1:7606/ingest/73bfee0c-5207-4eaa-afad-960a8691d15d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'58059a'},body:JSON.stringify({sessionId:'58059a',runId:'post-fix',hypothesisId:'H-reload',location:'transactions.js:loadFromSupabase',message:'loadFromSupabase called',data:{txCount:this.transactions.length,caller:(new Error()).stack?.split('\n')[2]},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-
       // Paginate to bypass Supabase's default 1000-row server cap
       const PAGE_SIZE = 1000
       let allData = []
@@ -94,9 +89,6 @@ export const useTransactionsStore = defineStore('transactions', {
         return
       }
 
-      // #region agent log
-      const _tMap = Date.now()
-      // #endregion
       this.transactions = (data || []).map(row => ({
         id: row.id,
         date: row.date,
@@ -105,19 +97,9 @@ export const useTransactionsStore = defineStore('transactions', {
         amount: Number(row.amount),
         isIncome: row.is_income
       }))
-      // #region agent log
-      console.log('[DEBUG loadFromSupabase] map+assign took', Date.now()-_tMap, 'ms | txCount:', this.transactions.length)
-      // #endregion
 
       this.initialized = true
-
-      // #region agent log
-      const _tLS = Date.now()
-      // #endregion
       this.saveToLocalStorage()
-      // #region agent log
-      console.log('[DEBUG loadFromSupabase] saveToLocalStorage took', Date.now()-_tLS, 'ms')
-      // #endregion
     },
 
     // Still save to localStorage as a local cache/fallback
