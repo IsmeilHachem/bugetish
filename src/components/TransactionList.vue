@@ -59,6 +59,9 @@
             <td class="px-4 py-3 text-sm text-gray-500">{{ transaction.category }}</td>
             <td class="px-4 py-3 text-sm" :class="transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'">
               {{ formatCurrency(transaction.amount) }}
+              <div v-if="lifeEnergyStore.lifeEnergyRate > 0 && transaction.amount < 0" class="text-xs text-gray-400 font-normal mt-0.5">
+                ≈ {{ lifeEnergyStore.toCost(transaction.amount) }}
+              </div>
             </td>
             <td class="px-4 py-3">
               <button
@@ -166,9 +169,24 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useTransactionsStore } from '@/stores/transactions'
+import { useLifeEnergyStore } from '@/stores/lifeEnergy'
+import { useAuthStore } from '@/stores/auth'
+import { watch } from 'vue'
 import { parseESTDate, getTodayEST } from '@/utils/dateUtils'
 
 const transactionsStore = useTransactionsStore()
+const lifeEnergyStore = useLifeEnergyStore()
+const authStore = useAuthStore()
+
+watch(
+  () => authStore.isLoggedIn,
+  async (loggedIn) => {
+    if (loggedIn && !lifeEnergyStore.loaded) {
+      await lifeEnergyStore.loadFromSupabase()
+    }
+  },
+  { immediate: true }
+)
 const selectedTransactions = ref([])
 const showDeleteConfirmation = ref(false)
 const showEditModal = ref(false)

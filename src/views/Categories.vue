@@ -63,7 +63,21 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
               </div>
-              <h2 class="text-xl font-bold text-gray-900">{{ mainCategory }}</h2>
+              <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                {{ mainCategory }}
+                <span
+                  v-if="reflectionsStore.getRating(mainCategory)"
+                  :class="[
+                    'inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold',
+                    reflectionsStore.getRating(mainCategory).rating === 1 ? 'bg-blue-100 text-blue-600' :
+                    reflectionsStore.getRating(mainCategory).rating === 2 ? 'bg-green-100 text-green-600' :
+                    'bg-amber-100 text-amber-600'
+                  ]"
+                  :title="reflectionsStore.getRating(mainCategory).rating === 1 ? 'Too little' : reflectionsStore.getRating(mainCategory).rating === 2 ? 'Just right' : 'Too much'"
+                >
+                  {{ reflectionsStore.getRating(mainCategory).rating === 1 ? '↓' : reflectionsStore.getRating(mainCategory).rating === 2 ? '✓' : '⚠' }}
+                </span>
+              </h2>
             </div>
             <div class="flex space-x-2">
               <button 
@@ -229,26 +243,38 @@ import { useCategoriesStore } from '../stores/categories'
 import CategoryActions from '../components/CategoryActions.vue'
 import { useTransactionsStore } from '../stores/transactions'
 import { useAuthStore } from '../stores/auth'
+import { useCategoryReflectionsStore } from '../stores/categoryReflections'
 import { parseESTDate } from '@/utils/dateUtils'
 
 const categoriesStore = useCategoriesStore()
 const transactionsStore = useTransactionsStore()
 const authStore = useAuthStore()
+const reflectionsStore = useCategoryReflectionsStore()
 
-// Load transactions when auth is ready (same pattern as Transactions.vue)
+// Month picker state — declared before watchers so both can reference it
+const now = new Date()
+const selectedMonth = ref(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`)
+
+// Load transactions and reflections when auth is ready
 watch(
   () => authStore.isLoggedIn,
   async (loggedIn) => {
-    if (loggedIn && transactionsStore.transactions.length === 0) {
-      await transactionsStore.loadFromSupabase()
+    if (loggedIn) {
+      if (transactionsStore.transactions.length === 0) {
+        await transactionsStore.loadFromSupabase()
+      }
+      await reflectionsStore.loadForMonth(selectedMonth.value)
     }
   },
   { immediate: true }
 )
 
-// Month picker state
-const now = new Date()
-const selectedMonth = ref(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`)
+// Reload reflections whenever the month changes
+watch(selectedMonth, async (newMonth) => {
+  if (authStore.isLoggedIn) {
+    await reflectionsStore.loadForMonth(newMonth)
+  }
+})
 
 // Helper: Filter transactions for the selected month
 function getMonthTransactions(transactions, monthStr) {

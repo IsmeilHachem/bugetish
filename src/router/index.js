@@ -44,6 +44,16 @@ const routes = [
     path: '/reflections',
     name: 'ReflectionHistory',
     component: ReflectionHistory
+  },
+  {
+    path: '/life-energy',
+    name: 'LifeEnergy',
+    component: () => import('../views/LifeEnergySettings.vue')
+  },
+  {
+    path: '/monthly-review',
+    name: 'MonthlyReview',
+    component: () => import('../views/MonthlyReview.vue')
   }
 ]
 
