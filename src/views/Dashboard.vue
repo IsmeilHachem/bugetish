@@ -43,7 +43,7 @@
               </svg>
             </div>
             <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Current Balance</h3>
+              <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Money Left This Month</h3>
             </div>
           </div>
           <p class="text-3xl font-bold text-gray-900 mb-2">{{ formatCurrency(currentBalance) }}</p>
@@ -68,7 +68,13 @@
             </div>
           </div>
           <p class="text-3xl font-bold text-green-600 mb-2">{{ formatCurrency(monthlyIncome) }}</p>
-          <p class="text-sm text-gray-500">From {{ monthlyIncomeTransactions }} transactions</p>
+          <p class="text-sm text-gray-500 mb-1">From {{ monthlyIncomeTransactions }} transactions</p>
+          <p v-if="prevMonthIncome > 0" class="text-xs font-semibold"
+             :class="monthlyIncome >= prevMonthIncome ? 'text-green-600' : 'text-red-500'">
+            {{ monthlyIncome >= prevMonthIncome ? '↑' : '↓' }}
+            {{ formatCurrency(Math.abs(monthlyIncome - prevMonthIncome)) }}
+            {{ monthlyIncome >= prevMonthIncome ? 'more' : 'less' }} than last month
+          </p>
         </div>
 
         <!-- Monthly Expenses -->
@@ -84,7 +90,13 @@
             </div>
           </div>
           <p class="text-3xl font-bold text-red-600 mb-2">{{ formatCurrency(monthlyExpenses) }}</p>
-          <p class="text-sm text-gray-500">From {{ monthlyExpenseTransactions }} transactions</p>
+          <p class="text-sm text-gray-500 mb-1">From {{ monthlyExpenseTransactions }} transactions</p>
+          <p v-if="prevMonthExpenses > 0" class="text-xs font-semibold"
+             :class="monthlyExpenses <= prevMonthExpenses ? 'text-green-600' : 'text-red-500'">
+            {{ monthlyExpenses <= prevMonthExpenses ? '↓' : '↑' }}
+            {{ formatCurrency(Math.abs(monthlyExpenses - prevMonthExpenses)) }}
+            {{ monthlyExpenses <= prevMonthExpenses ? 'less' : 'more' }} than last month
+          </p>
         </div>
 
         <!-- Upcoming Bills -->
@@ -104,6 +116,123 @@
           <div v-if="upcomingBills.length" class="flex flex-wrap gap-1">
             <span v-for="bill in upcomingBills" :key="bill.id" class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
               {{ bill.name }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Savings Rate Banner -->
+      <div class="mb-8 rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-8 py-5"
+             :class="savingsRate >= 0 ? 'bg-gradient-to-r from-green-50 to-emerald-50' : 'bg-gradient-to-r from-red-50 to-rose-50'">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+                 :class="savingsRate >= 0 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-red-500 to-rose-600'">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wide"
+                 :class="savingsRate >= 0 ? 'text-green-600' : 'text-red-600'">Savings Rate</p>
+              <p class="text-4xl font-bold mt-0.5"
+                 :class="savingsRate >= 0 ? 'text-green-700' : 'text-red-700'">
+                {{ savingsRate >= 0 ? '' : '–' }}{{ Math.abs(savingsRate).toFixed(1) }}%
+              </p>
+            </div>
+          </div>
+          <p class="text-sm font-medium"
+             :class="savingsRate >= 0 ? 'text-green-600' : 'text-red-500'">
+            {{ savingsRate >= 0 ? 'of income saved this month' : 'spending more than earning this month' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- FI Progress Card -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-5">
+          <div>
+            <h3 class="text-xl font-bold text-gray-900">Financial Independence Progress</h3>
+            <p class="text-sm text-gray-400 mt-0.5">Based on 4% safe withdrawal rate</p>
+          </div>
+          <p class="text-sm text-gray-400 whitespace-nowrap">
+            Based on {{ formatCurrency(fiStore.monthlyExpenses) }}/mo avg expenses
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-end gap-6 mb-5">
+          <!-- Invested (editable) -->
+          <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Invested</p>
+            <div v-if="!editingFI" class="flex items-center gap-2">
+              <span class="text-3xl font-bold text-gray-900">{{ formatCurrency(fiStore.total_invested) }}</span>
+              <button @click="startEditFI" class="p-1 text-gray-300 hover:text-blue-500 transition-colors" title="Edit">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+            </div>
+            <div v-else class="flex items-center gap-1">
+              <span class="text-2xl font-bold text-gray-400">$</span>
+              <input
+                v-model="fiInput"
+                type="number"
+                min="0"
+                step="0.01"
+                @blur="saveFI"
+                @keydown="onFIKeydown"
+                autofocus
+                class="text-2xl font-bold text-gray-900 w-44 border-b-2 border-blue-500 focus:outline-none bg-transparent"
+              />
+            </div>
+          </div>
+          <!-- FI Target -->
+          <div class="sm:ml-auto text-left sm:text-right">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">FI Target</p>
+            <p class="text-2xl font-bold text-gray-500">{{ formatCurrency(fiStore.fiNumber) }}</p>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-bold text-green-600">{{ fiStore.progressPercent.toFixed(2) }}% of the way there</span>
+        </div>
+        <div class="w-full bg-gray-100 rounded-full h-2.5">
+          <div
+            class="bg-gradient-to-r from-green-400 to-emerald-500 h-2.5 rounded-full transition-all duration-700"
+            :style="{ width: Math.max(fiStore.progressPercent, 0.15) + '%' }"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Category Watch -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 mb-8">
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900">Category Watch</h3>
+        </div>
+
+        <div v-if="categoryOverspend.length === 0" class="flex items-center gap-2 text-green-600 text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          All categories on track this month ✓
+        </div>
+
+        <div v-else class="space-y-2">
+          <div
+            v-for="alert in categoryOverspend"
+            :key="alert.name"
+            class="flex items-center justify-between px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl"
+          >
+            <span class="text-sm font-semibold text-amber-800">{{ alert.name }}</span>
+            <span class="text-sm font-bold text-amber-700">
+              ↑ {{ formatCurrency(alert.diff) }} more than last month
+              <span class="text-amber-500 font-medium">(+{{ alert.pct.toFixed(0) }}%)</span>
             </span>
           </div>
         </div>
@@ -242,6 +371,8 @@ import { useTransactionsStore } from '@/stores/transactions'
 import { useBillsStore } from '@/stores/bills'
 import { useDashboardStore } from '@/stores/dashboard'
 import { calculateMonthlyTrends } from '@/stores/dashboard'
+import { useAuthStore } from '@/stores/auth'
+import { useFiSettingsStore } from '@/stores/fiSettings'
 import SpendingCategoryChart from '@/components/SpendingCategoryChart.vue'
 import IncomeExpensesChart from '@/components/IncomeExpensesChart.vue'
 import DateRangeSelector from '../components/DateRangeSelector.vue'
@@ -249,6 +380,16 @@ import DateRangeSelector from '../components/DateRangeSelector.vue'
 const transactionsStore = useTransactionsStore()
 const billsStore = useBillsStore()
 const dashboardStore = useDashboardStore()
+const authStore = useAuthStore()
+const fiStore = useFiSettingsStore()
+
+watch(
+  () => authStore.isLoggedIn,
+  async (loggedIn) => {
+    if (loggedIn && !fiStore.loaded) await fiStore.loadFromSupabase()
+  },
+  { immediate: true }
+)
 
 // Date range for category chart
 function getDefault6MonthRange() {
@@ -470,6 +611,79 @@ function formatLocalYYYYMMDD(date) {
     String(date.getMonth() + 1).padStart(2, '0'),
     String(date.getDate()).padStart(2, '0')
   ].join('-')
+}
+
+// Previous month string derived from selectedMonth
+const prevMonth = computed(() => {
+  const [y, m] = selectedMonth.value.split('-').map(Number)
+  const d = new Date(y, m - 2, 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+})
+
+const prevMonthIncome = computed(() => {
+  const monthTx = getMonthTransactions(transactionsStore.getFilteredIncome(), prevMonth.value)
+  return monthTx.reduce((sum, t) => sum + t.amount, 0)
+})
+
+const prevMonthExpenses = computed(() => {
+  const monthTx = getMonthTransactions(transactionsStore.getFilteredExpense(), prevMonth.value)
+  return Math.abs(monthTx.reduce((sum, t) => sum + t.amount, 0))
+})
+
+const savingsRate = computed(() => {
+  if (monthlyIncome.value === 0) return 0
+  return ((monthlyIncome.value - monthlyExpenses.value) / monthlyIncome.value) * 100
+})
+
+// Top 3 categories overspending vs prior month by more than 10%
+const categoryOverspend = computed(() => {
+  const txAll = transactionsStore.getTransactions || []
+  const getSpend = (monthStr) => {
+    const [year, month] = monthStr.split('-').map(Number)
+    const totals = {}
+    for (const t of txAll) {
+      if (t.amount >= 0 || !t.category) continue
+      const [y, m] = t.date.split('-').map(Number)
+      if (y !== year || m !== month) continue
+      const main = t.category.split(' - ')[0]
+      totals[main] = (totals[main] || 0) + Math.abs(t.amount)
+    }
+    return totals
+  }
+  const curr = getSpend(selectedMonth.value)
+  const prev = getSpend(prevMonth.value)
+  const alerts = []
+  for (const [cat, amount] of Object.entries(curr)) {
+    const prevAmount = prev[cat] || 0
+    if (prevAmount === 0) continue
+    const diff = amount - prevAmount
+    const pct = (diff / prevAmount) * 100
+    if (pct > 10) alerts.push({ name: cat, diff, pct })
+  }
+  return alerts.sort((a, b) => b.diff - a.diff).slice(0, 3)
+})
+
+// FI inline editing
+const editingFI = ref(false)
+const fiInput = ref(0)
+
+function startEditFI() {
+  fiInput.value = fiStore.total_invested
+  editingFI.value = true
+}
+
+async function saveFI() {
+  const val = parseFloat(fiInput.value)
+  if (!isNaN(val) && val >= 0) {
+    fiStore.total_invested = val
+    await fiStore.saveToSupabase()
+  }
+  editingFI.value = false
+}
+
+function onFIKeydown(e) {
+  if (e.key === 'Enter') saveFI()
+  if (e.key === 'Escape') editingFI.value = false
 }
 
 // Increment refreshKey every time selectedMonth changes
