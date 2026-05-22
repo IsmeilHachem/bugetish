@@ -111,7 +111,7 @@
             </div>
             <h2 class="text-xl font-bold text-gray-900">Transactions</h2>
             <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-              {{ filteredAndSortedTransactions.length }} transactions
+              Showing {{ paginatedTransactions.length }} of {{ filteredAndSortedTransactions.length }}
             </span>
           </div>
           <button
@@ -155,7 +155,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-100">
-              <tr v-for="transaction in filteredAndSortedTransactions" :key="transaction.id" 
+              <tr v-for="transaction in paginatedTransactions" :key="transaction.id" 
                   :class="[
                     'hover:bg-gray-50 transition-colors duration-200',
                     isFutureTransaction(transaction.date) ? 'bg-green-50 hover:bg-green-100' : ''
@@ -214,6 +214,16 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Load more -->
+        <div v-if="paginatedTransactions.length < filteredAndSortedTransactions.length" class="p-6 text-center border-t border-gray-100">
+          <button
+            @click="loadMore"
+            class="px-6 py-2.5 text-sm font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all duration-200"
+          >
+            Load more — {{ filteredAndSortedTransactions.length - paginatedTransactions.length }} remaining
+          </button>
         </div>
       </div>
     </div>
@@ -363,6 +373,23 @@ const runningTotalsMap = computed(() => {
   })
   return map
 })
+
+// Pagination
+const PAGE_SIZE = 50
+const displayLimit = ref(PAGE_SIZE)
+
+// Reset to first page whenever any filter or sort changes
+watch([dateRange, searchTerm, sortBy, sortOrder], () => {
+  displayLimit.value = PAGE_SIZE
+}, { deep: true })
+
+const paginatedTransactions = computed(() =>
+  filteredAndSortedTransactions.value.slice(0, displayLimit.value)
+)
+
+function loadMore() {
+  displayLimit.value += PAGE_SIZE
+}
 
 // Computed property for filtered and sorted transactions
 const filteredAndSortedTransactions = computed(() => {

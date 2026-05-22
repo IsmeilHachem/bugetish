@@ -198,18 +198,21 @@ export const useTransactionsStore = defineStore('transactions', {
 
       const transaction = this.transactions[index]
 
-      const { error } = await supabase.from('transactions').delete().eq('id', id)
-      if (error) {
-        console.error('Error deleting transaction from Supabase:', error)
-        return false
-      }
-
+      // Optimistic: remove immediately so the UI responds instantly
       this.transactions.splice(index, 1)
 
       const categoriesStore = useCategoriesStore()
       const [mainCategory, subcategory] = transaction.category.split(' - ')
-      const categoryTotal = this.calculateCategoryTotal(mainCategory, subcategory)
-      categoriesStore.updateCategoryAmount(mainCategory, subcategory, categoryTotal)
+      categoriesStore.updateCategoryAmount(mainCategory, subcategory, this.calculateCategoryTotal(mainCategory, subcategory))
+
+      const { error } = await supabase.from('transactions').delete().eq('id', id)
+      if (error) {
+        console.error('Error deleting transaction from Supabase:', error)
+        // Revert: re-insert at original position and restore category amount
+        this.transactions.splice(index, 0, transaction)
+        categoriesStore.updateCategoryAmount(mainCategory, subcategory, this.calculateCategoryTotal(mainCategory, subcategory))
+        return false
+      }
 
       this.saveToLocalStorage()
       return true
