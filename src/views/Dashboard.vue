@@ -148,19 +148,26 @@
 
             <!-- Sparkline: last 3 months as mini bars (normalized heights) -->
             <div v-if="savingsRateLast3.some(r => r !== null)"
-                 class="flex items-end justify-around gap-3 px-2"
+                 class="flex items-end gap-3 px-2"
                  style="height: 64px;">
               <div
                 v-for="(rate, i) in savingsRateLast3"
                 :key="i"
-                class="flex flex-col items-center justify-end gap-1 flex-1"
+                class="flex flex-col items-center justify-end flex-1"
               >
+                <!-- Percentage label above bar -->
+                <span class="text-xs font-semibold mb-0.5"
+                      :class="rate === null ? 'text-gray-400' : rate >= 0 ? 'text-green-700' : 'text-red-500'">
+                  {{ rate === null ? '–' : (rate >= 0 ? '' : '–') + Math.abs(rate).toFixed(1) + '%' }}
+                </span>
+                <!-- Bar -->
                 <div
                   class="w-full rounded-t-sm"
                   :class="(rate !== null && rate >= 0) ? 'bg-green-500 opacity-60' : 'bg-red-400 opacity-60'"
                   :style="{ height: savingsRateBarHeights[i] + 'px' }"
                 ></div>
-                <span class="text-xs font-medium"
+                <!-- Month label below bar -->
+                <span class="text-xs font-medium mt-0.5"
                       :class="savingsRate >= 0 ? 'text-green-700 opacity-50' : 'text-red-600 opacity-50'">
                   {{ ['3M', '2M', '1M'][i] }}
                 </span>
