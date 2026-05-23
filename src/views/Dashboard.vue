@@ -127,6 +127,8 @@
         <div class="lg:col-span-1 rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           <div class="flex flex-col justify-between gap-4 px-8 py-6 h-full"
                :class="savingsRate >= 0 ? 'bg-gradient-to-br from-green-50 to-emerald-100' : 'bg-gradient-to-br from-red-50 to-rose-100'">
+
+            <!-- Header: icon + label + rate -->
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shrink-0"
                    :class="savingsRate >= 0 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-red-500 to-rose-600'">
@@ -143,6 +145,29 @@
                 </p>
               </div>
             </div>
+
+            <!-- Sparkline: last 3 months as mini bars -->
+            <div v-if="savingsRateLast3.some(r => r !== null)"
+                 class="flex items-end justify-around gap-3 px-2"
+                 style="height: 64px;">
+              <div
+                v-for="(rate, i) in savingsRateLast3"
+                :key="i"
+                class="flex flex-col items-center justify-end gap-1 flex-1"
+              >
+                <div
+                  class="w-full rounded-t-sm"
+                  :class="(rate !== null && rate >= 0) ? 'bg-green-500 opacity-60' : 'bg-red-400 opacity-60'"
+                  :style="{ height: rate !== null ? Math.min(Math.max(Math.abs(rate) * 0.48, 4), 48) + 'px' : '3px' }"
+                ></div>
+                <span class="text-xs font-medium"
+                      :class="savingsRate >= 0 ? 'text-green-700 opacity-50' : 'text-red-600 opacity-50'">
+                  {{ ['3M', '2M', '1M'][i] }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Footer: description + 3-month avg -->
             <div>
               <p class="text-sm font-medium"
                  :class="savingsRate >= 0 ? 'text-green-600' : 'text-red-500'">
@@ -153,6 +178,7 @@
                 3-month avg: {{ savingsRate3mAvg >= 0 ? '' : '–' }}{{ Math.abs(savingsRate3mAvg).toFixed(1) }}%
               </p>
             </div>
+
           </div>
         </div>
 
@@ -252,7 +278,7 @@
             </div>
 
             <!-- Spending by Category Chart -->
-            <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full">
+            <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
               <div class="flex items-center space-x-3 mb-4">
                 <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
                   <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -261,13 +287,11 @@
                 </div>
                 <h3 class="text-lg font-bold text-gray-900">Spending by Category</h3>
               </div>
-              <div class="mb-2">
-                <DateRangeSelector
-                  v-model:dateRange="selectedDateRange"
-                  initial-range="6M"
-                />
-              </div>
-              <div class="h-60 w-full overflow-hidden flex items-center justify-center">
+              <DateRangeSelector
+                v-model:dateRange="selectedDateRange"
+                initial-range="6M"
+              />
+              <div class="mt-4 w-full">
                 <SpendingCategoryChart :category-data="categorySpendingData" />
               </div>
             </div>
@@ -645,6 +669,23 @@ const prevMonthExpenses = computed(() => {
 const savingsRate = computed(() => {
   if (monthlyIncome.value === 0) return 0
   return ((monthlyIncome.value - monthlyExpenses.value) / monthlyIncome.value) * 100
+})
+
+// Individual savings rates for the 3 months before selectedMonth (oldest → newest)
+const savingsRateLast3 = computed(() => {
+  const [y, m] = selectedMonth.value.split('-').map(Number)
+  return [3, 2, 1].map(i => {
+    const d = new Date(y, m - 1 - i, 1)
+    const ms = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const inc = getMonthTransactions(transactionsStore.getFilteredIncome(), ms)
+      .reduce((s, t) => s + t.amount, 0)
+    if (inc === 0) return null
+    const exp = Math.abs(
+      getMonthTransactions(transactionsStore.getFilteredExpense(), ms)
+        .reduce((s, t) => s + t.amount, 0)
+    )
+    return ((inc - exp) / inc) * 100
+  })
 })
 
 // Average savings rate over the 3 full months prior to selectedMonth

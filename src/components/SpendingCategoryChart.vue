@@ -4,7 +4,7 @@
       <p class="text-gray-500">No data available for the selected period</p>
     </div>
     <div v-else>
-      <div class="w-full">
+      <div class="w-full h-64">
         <Doughnut
           :data="chartData"
           :options="chartOptions"
