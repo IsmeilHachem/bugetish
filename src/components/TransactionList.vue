@@ -181,7 +181,7 @@ const authStore = useAuthStore()
 watch(
   () => authStore.isLoggedIn,
   async (loggedIn) => {
-    if (loggedIn && !lifeEnergyStore.loaded) {
+    if (loggedIn) {
       await lifeEnergyStore.loadFromSupabase()
     }
   },
