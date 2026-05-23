@@ -186,6 +186,10 @@
                   }"
                 >
                   {{ formatCurrency(transaction.amount) }}
+                  <div v-if="lifeEnergyStore.lifeEnergyRate > 0 && transaction.amount < 0"
+                       class="text-xs text-gray-400 font-normal mt-0.5">
+                    ≈ {{ lifeEnergyStore.toCost(transaction.amount) }}
+                  </div>
                 </td>
                 <td class="px-6 py-4 text-sm text-right tabular-nums font-bold"
                   :class="{
@@ -245,18 +249,28 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useTransactionsStore } from '@/stores/transactions'
 import { useAuthStore } from '@/stores/auth'
+import { useLifeEnergyStore } from '@/stores/lifeEnergy'
 import AddTransactionModal from '@/components/AddTransactionModal.vue'
 import EditTransactionModal from '@/components/EditTransactionModal.vue'
 import { parseESTDate, getTodayEST } from '@/utils/dateUtils'
 
 const transactionsStore = useTransactionsStore()
 const authStore = useAuthStore()
+const lifeEnergyStore = useLifeEnergyStore()
 
 // Load as soon as auth is confirmed — skip if already loaded to avoid double fetch
 watch(
   () => authStore.isLoggedIn,
   async (loggedIn) => {
     if (loggedIn && !transactionsStore.initialized) await transactionsStore.loadFromSupabase()
+  },
+  { immediate: true }
+)
+
+watch(
+  () => authStore.isLoggedIn,
+  async (loggedIn) => {
+    if (loggedIn) await lifeEnergyStore.loadFromSupabase()
   },
   { immediate: true }
 )
