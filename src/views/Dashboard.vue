@@ -146,7 +146,7 @@
               </div>
             </div>
 
-            <!-- Sparkline: last 3 months as mini bars -->
+            <!-- Sparkline: last 3 months as mini bars (normalized heights) -->
             <div v-if="savingsRateLast3.some(r => r !== null)"
                  class="flex items-end justify-around gap-3 px-2"
                  style="height: 64px;">
@@ -158,7 +158,7 @@
                 <div
                   class="w-full rounded-t-sm"
                   :class="(rate !== null && rate >= 0) ? 'bg-green-500 opacity-60' : 'bg-red-400 opacity-60'"
-                  :style="{ height: rate !== null ? Math.min(Math.max(Math.abs(rate) * 0.48, 4), 48) + 'px' : '3px' }"
+                  :style="{ height: savingsRateBarHeights[i] + 'px' }"
                 ></div>
                 <span class="text-xs font-medium"
                       :class="savingsRate >= 0 ? 'text-green-700 opacity-50' : 'text-red-600 opacity-50'">
@@ -686,6 +686,13 @@ const savingsRateLast3 = computed(() => {
     )
     return ((inc - exp) / inc) * 100
   })
+})
+
+// Normalized pixel heights for the 3 sparkline bars (tallest bar = 48px, min = 4px)
+const savingsRateBarHeights = computed(() => {
+  const rates = savingsRateLast3.value
+  const maxAbs = Math.max(...rates.map(r => Math.abs(r ?? 0)), 1)
+  return rates.map(r => r !== null ? (Math.abs(r) / maxAbs) * 44 + 4 : 4)
 })
 
 // Average savings rate over the 3 full months prior to selectedMonth
