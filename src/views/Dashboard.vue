@@ -143,10 +143,16 @@
                 </p>
               </div>
             </div>
-            <p class="text-sm font-medium"
-               :class="savingsRate >= 0 ? 'text-green-600' : 'text-red-500'">
-              {{ savingsRate >= 0 ? 'of income saved this month' : 'spending more than earning this month' }}
-            </p>
+            <div>
+              <p class="text-sm font-medium"
+                 :class="savingsRate >= 0 ? 'text-green-600' : 'text-red-500'">
+                {{ savingsRate >= 0 ? 'of income saved this month' : 'spending more than earning this month' }}
+              </p>
+              <p v-if="savingsRate3mAvg !== null" class="text-sm mt-1"
+                 :class="savingsRate3mAvg >= 0 ? 'text-gray-400' : 'text-red-400'">
+                3-month avg: {{ savingsRate3mAvg >= 0 ? '' : '–' }}{{ Math.abs(savingsRate3mAvg).toFixed(1) }}%
+              </p>
+            </div>
           </div>
         </div>
 
@@ -229,13 +235,18 @@
                 <div
                   v-for="alert in categoryOverspend"
                   :key="alert.name"
-                  class="flex flex-wrap items-start justify-between gap-2 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl"
+                  class="px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl"
                 >
-                  <span class="text-sm font-semibold text-amber-800">{{ alert.name }}</span>
-                  <span class="text-sm font-bold text-amber-700 text-right">
-                    ↑ {{ formatCurrency(alert.diff) }} more
-                    <span class="text-amber-500 font-medium">(+{{ alert.pct.toFixed(0) }}%)</span>
-                  </span>
+                  <div class="flex flex-wrap items-start justify-between gap-2">
+                    <span class="text-sm font-semibold text-amber-800">{{ alert.name }}</span>
+                    <span class="text-sm font-bold text-amber-700 text-right">
+                      ↑ {{ formatCurrency(alert.diff) }} more
+                      <span class="text-amber-500 font-medium">(+{{ alert.pct.toFixed(0) }}%)</span>
+                    </span>
+                  </div>
+                  <p v-if="alert.threeMonthAvg !== null" class="text-xs text-amber-500 mt-1">
+                    3-month avg: {{ formatCurrency(alert.threeMonthAvg) }}/mo
+                  </p>
                 </div>
               </div>
             </div>
@@ -250,13 +261,13 @@
                 </div>
                 <h3 class="text-lg font-bold text-gray-900">Spending by Category</h3>
               </div>
-              <div class="mb-4">
+              <div class="mb-2">
                 <DateRangeSelector
                   v-model:dateRange="selectedDateRange"
                   initial-range="6M"
                 />
               </div>
-              <div class="h-64 w-full overflow-hidden flex items-center justify-center">
+              <div class="h-60 w-full overflow-hidden flex items-center justify-center">
                 <SpendingCategoryChart :category-data="categorySpendingData" />
               </div>
             </div>
@@ -636,6 +647,26 @@ const savingsRate = computed(() => {
   return ((monthlyIncome.value - monthlyExpenses.value) / monthlyIncome.value) * 100
 })
 
+// Average savings rate over the 3 full months prior to selectedMonth
+const savingsRate3mAvg = computed(() => {
+  const [y, m] = selectedMonth.value.split('-').map(Number)
+  const rates = []
+  for (let i = 1; i <= 3; i++) {
+    const d = new Date(y, m - 1 - i, 1)
+    const ms = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const inc = getMonthTransactions(transactionsStore.getFilteredIncome(), ms)
+      .reduce((s, t) => s + t.amount, 0)
+    if (inc === 0) continue
+    const exp = Math.abs(
+      getMonthTransactions(transactionsStore.getFilteredExpense(), ms)
+        .reduce((s, t) => s + t.amount, 0)
+    )
+    rates.push(((inc - exp) / inc) * 100)
+  }
+  if (rates.length === 0) return null
+  return rates.reduce((s, r) => s + r, 0) / rates.length
+})
+
 // Top 3 categories overspending vs prior month by more than 10%
 const categoryOverspend = computed(() => {
   const txAll = transactionsStore.getTransactions || []
@@ -653,13 +684,27 @@ const categoryOverspend = computed(() => {
   }
   const curr = getSpend(selectedMonth.value)
   const prev = getSpend(prevMonth.value)
+
+  // Pre-compute the 3 months prior to selectedMonth for avg display
+  const [sy, sm] = selectedMonth.value.split('-').map(Number)
+  const priorSpends = [1, 2, 3].map(i => {
+    const d = new Date(sy, sm - 1 - i, 1)
+    return getSpend(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  })
+
   const alerts = []
   for (const [cat, amount] of Object.entries(curr)) {
     const prevAmount = prev[cat] || 0
     if (prevAmount === 0) continue
     const diff = amount - prevAmount
     const pct = (diff / prevAmount) * 100
-    if (pct > 10) alerts.push({ name: cat, diff, pct })
+    if (pct > 10) {
+      const priorValues = priorSpends.map(s => s[cat] || 0).filter(v => v > 0)
+      const threeMonthAvg = priorValues.length > 0
+        ? priorValues.reduce((a, b) => a + b, 0) / priorValues.length
+        : null
+      alerts.push({ name: cat, diff, pct, threeMonthAvg })
+    }
   }
   return alerts.sort((a, b) => b.diff - a.diff).slice(0, 3)
 })

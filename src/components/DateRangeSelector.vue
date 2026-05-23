@@ -1,32 +1,30 @@
 <template>
-  <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-    <div class="flex items-center gap-2 flex-wrap">
-      <button
-        v-for="(option, index) in presetOptions"
-        :key="index"
-        @click="selectPreset(option.value)"
-        :class="[
-          'px-3 py-1.5 text-sm rounded-md transition-colors',
-          selectedRange === option.value
-            ? 'bg-blue-500 text-white'
-            : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-        ]"
-      >
-        {{ option.label }}
-      </button>
-    </div>
-    <div class="flex items-center gap-2 flex-wrap">
+  <div class="flex flex-wrap items-center gap-2">
+    <button
+      v-for="(option, index) in presetOptions"
+      :key="index"
+      @click="selectPreset(option.value)"
+      :class="[
+        'px-3 py-1.5 text-sm rounded-md transition-colors shrink-0',
+        selectedRange === option.value
+          ? 'bg-blue-500 text-white'
+          : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+      ]"
+    >
+      {{ option.label }}
+    </button>
+    <div class="flex items-center gap-2 shrink-0">
       <input
         type="month"
         v-model="startDate"
-        class="px-3 py-1.5 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-0"
+        class="px-2 py-1.5 text-sm rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-0"
         :max="endDate"
       />
-      <span class="text-gray-500">to</span>
+      <span class="text-gray-500 text-sm">to</span>
       <input
         type="month"
         v-model="endDate"
-        class="px-3 py-1.5 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-0"
+        class="px-2 py-1.5 text-sm rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-0"
         :min="startDate"
         :max="currentMonth"
       />
