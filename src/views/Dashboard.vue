@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100" :key="selectedMonth + '-' + refreshKey">
-    <div class="container mx-auto px-4 py-8">
+    <div class="w-full px-4 md:px-6 lg:px-8 py-8">
       <!-- Header Section -->
       <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -33,9 +33,9 @@
       </div>
 
       <!-- Quick Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <!-- Current Balance -->
-        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
           <div class="flex items-center space-x-3 mb-4">
             <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,7 +56,7 @@
         </div>
 
         <!-- Monthly Income -->
-        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
           <div class="flex items-center space-x-3 mb-4">
             <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,7 +78,7 @@
         </div>
 
         <!-- Monthly Expenses -->
-        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
           <div class="flex items-center space-x-3 mb-4">
             <div class="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,7 +100,7 @@
         </div>
 
         <!-- Upcoming Bills -->
-        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
           <div class="flex items-center space-x-3 mb-4">
             <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,149 +121,148 @@
         </div>
       </div>
 
-      <!-- Savings Rate Banner -->
-      <div class="mb-8 rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-8 py-5"
-             :class="savingsRate >= 0 ? 'bg-gradient-to-r from-green-50 to-emerald-50' : 'bg-gradient-to-r from-red-50 to-rose-50'">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
-                 :class="savingsRate >= 0 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-red-500 to-rose-600'">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-wide"
-                 :class="savingsRate >= 0 ? 'text-green-600' : 'text-red-600'">Savings Rate</p>
-              <p class="text-4xl font-bold mt-0.5"
-                 :class="savingsRate >= 0 ? 'text-green-700' : 'text-red-700'">
-                {{ savingsRate >= 0 ? '' : '–' }}{{ Math.abs(savingsRate).toFixed(1) }}%
-              </p>
-            </div>
-          </div>
-          <p class="text-sm font-medium"
-             :class="savingsRate >= 0 ? 'text-green-600' : 'text-red-500'">
-            {{ savingsRate >= 0 ? 'of income saved this month' : 'spending more than earning this month' }}
-          </p>
-        </div>
-      </div>
-
-      <!-- FI Progress Card -->
-      <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 mb-8">
-        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-5">
-          <div>
-            <h3 class="text-xl font-bold text-gray-900">Financial Independence Progress</h3>
-            <p class="text-sm text-gray-400 mt-0.5">Based on 4% safe withdrawal rate</p>
-          </div>
-          <p class="text-sm text-gray-400 whitespace-nowrap">
-            Based on {{ formatCurrency(fiStore.monthlyExpenses) }}/mo avg expenses
-          </p>
-        </div>
-
-        <div class="flex flex-col sm:flex-row sm:items-end gap-6 mb-5">
-          <!-- Invested (editable) -->
-          <div>
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Invested</p>
-            <div v-if="!editingFI" class="flex items-center gap-2">
-              <span class="text-3xl font-bold text-gray-900">{{ formatCurrency(fiStore.total_invested) }}</span>
-              <button @click="startEditFI" class="p-1 text-gray-300 hover:text-blue-500 transition-colors" title="Edit">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
-            </div>
-            <div v-else class="flex items-center gap-1">
-              <span class="text-2xl font-bold text-gray-400">$</span>
-              <input
-                v-model="fiInput"
-                type="number"
-                min="0"
-                step="0.01"
-                @blur="saveFI"
-                @keydown="onFIKeydown"
-                autofocus
-                class="text-2xl font-bold text-gray-900 w-44 border-b-2 border-blue-500 focus:outline-none bg-transparent"
-              />
-            </div>
-          </div>
-          <!-- FI Target -->
-          <div class="sm:ml-auto text-left sm:text-right">
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">FI Target</p>
-            <p class="text-2xl font-bold text-gray-500">{{ formatCurrency(fiStore.fiNumber) }}</p>
-          </div>
-        </div>
-
-        <!-- Progress bar -->
-        <div class="flex justify-between items-center mb-1.5">
-          <span class="text-sm font-bold text-green-600">{{ fiStore.progressPercent.toFixed(2) }}% of the way there</span>
-        </div>
-        <div class="w-full bg-gray-100 rounded-full h-2.5">
-          <div
-            class="bg-gradient-to-r from-green-400 to-emerald-500 h-2.5 rounded-full transition-all duration-700"
-            :style="{ width: Math.max(fiStore.progressPercent, 0.15) + '%' }"
-          ></div>
-        </div>
-      </div>
-
-      <!-- Category Watch -->
-      <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 mb-8">
-        <div class="flex items-center space-x-3 mb-4">
-          <div class="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <h3 class="text-lg font-bold text-gray-900">Category Watch</h3>
-        </div>
-
-        <div v-if="categoryOverspend.length === 0" class="flex items-center gap-2 text-green-600 text-sm font-medium">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          All categories on track this month ✓
-        </div>
-
-        <div v-else class="space-y-2">
-          <div
-            v-for="alert in categoryOverspend"
-            :key="alert.name"
-            class="flex items-center justify-between px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl"
-          >
-            <span class="text-sm font-semibold text-amber-800">{{ alert.name }}</span>
-            <span class="text-sm font-bold text-amber-700">
-              ↑ {{ formatCurrency(alert.diff) }} more than last month
-              <span class="text-amber-500 font-medium">(+{{ alert.pct.toFixed(0) }}%)</span>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main Content Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Left Column - Charts -->
-        <div class="lg:col-span-2 space-y-8">
-          <!-- Spending by Category Chart -->
-          <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-            <div class="flex items-center space-x-3 mb-6">
-              <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      <!-- Savings Rate + FI Progress (side by side on lg) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <!-- Savings Rate: 1/3 width on lg -->
+        <div class="lg:col-span-1 rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div class="flex flex-col justify-between gap-4 px-8 py-6 h-full"
+               :class="savingsRate >= 0 ? 'bg-gradient-to-br from-green-50 to-emerald-100' : 'bg-gradient-to-br from-red-50 to-rose-100'">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shrink-0"
+                   :class="savingsRate >= 0 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-red-500 to-rose-600'">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <h3 class="text-xl font-bold text-gray-900">Spending by Category</h3>
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wide"
+                   :class="savingsRate >= 0 ? 'text-green-600' : 'text-red-600'">Savings Rate</p>
+                <p class="text-4xl font-bold mt-0.5"
+                   :class="savingsRate >= 0 ? 'text-green-700' : 'text-red-700'">
+                  {{ savingsRate >= 0 ? '' : '–' }}{{ Math.abs(savingsRate).toFixed(1) }}%
+                </p>
+              </div>
             </div>
-            <div class="mb-6">
-              <DateRangeSelector
-                v-model:dateRange="selectedDateRange"
-                initial-range="6M"
-              />
+            <p class="text-sm font-medium"
+               :class="savingsRate >= 0 ? 'text-green-600' : 'text-red-500'">
+              {{ savingsRate >= 0 ? 'of income saved this month' : 'spending more than earning this month' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- FI Progress: 2/3 width on lg -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-5">
+            <div>
+              <h3 class="text-xl font-bold text-gray-900">Financial Independence Progress</h3>
+              <p class="text-sm text-gray-400 mt-0.5">Based on 4% safe withdrawal rate</p>
             </div>
-            <div class="h-80 md:h-96 max-w-2xl mx-auto w-full overflow-hidden flex items-center justify-center p-2">
-              <SpendingCategoryChart :category-data="categorySpendingData" />
+            <p class="text-sm text-gray-400 whitespace-nowrap">
+              Based on {{ formatCurrency(fiStore.monthlyExpenses) }}/mo avg expenses
+            </p>
+          </div>
+          <div class="flex flex-col sm:flex-row sm:items-end gap-6 mb-5">
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Invested</p>
+              <div v-if="!editingFI" class="flex items-center gap-2">
+                <span class="text-3xl font-bold text-gray-900">{{ formatCurrency(fiStore.total_invested) }}</span>
+                <button @click="startEditFI" class="p-1 text-gray-300 hover:text-blue-500 transition-colors" title="Edit">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              </div>
+              <div v-else class="flex items-center gap-1">
+                <span class="text-2xl font-bold text-gray-400">$</span>
+                <input
+                  v-model="fiInput"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  @blur="saveFI"
+                  @keydown="onFIKeydown"
+                  autofocus
+                  class="text-2xl font-bold text-gray-900 w-44 border-b-2 border-blue-500 focus:outline-none bg-transparent"
+                />
+              </div>
+            </div>
+            <div class="sm:ml-auto text-left sm:text-right">
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">FI Target</p>
+              <p class="text-2xl font-bold text-gray-500">{{ formatCurrency(fiStore.fiNumber) }}</p>
+            </div>
+          </div>
+          <div class="flex justify-between items-center mb-1.5">
+            <span class="text-sm font-bold text-green-600">{{ fiStore.progressPercent.toFixed(2) }}% of the way there</span>
+          </div>
+          <div class="w-full bg-gray-100 rounded-full h-2.5">
+            <div
+              class="bg-gradient-to-r from-green-400 to-emerald-500 h-2.5 rounded-full transition-all duration-700"
+              :style="{ width: Math.max(fiStore.progressPercent, 0.15) + '%' }"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Grid: 2-col charts + 1-col sidebar -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left column -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Category Watch + Spending Chart (side by side on lg) -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Category Watch -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full">
+              <div class="flex items-center space-x-3 mb-4">
+                <div class="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Category Watch</h3>
+              </div>
+              <div v-if="categoryOverspend.length === 0" class="flex items-center gap-2 text-green-600 text-sm font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                All categories on track this month ✓
+              </div>
+              <div v-else class="space-y-2">
+                <div
+                  v-for="alert in categoryOverspend"
+                  :key="alert.name"
+                  class="flex flex-wrap items-start justify-between gap-2 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl"
+                >
+                  <span class="text-sm font-semibold text-amber-800">{{ alert.name }}</span>
+                  <span class="text-sm font-bold text-amber-700 text-right">
+                    ↑ {{ formatCurrency(alert.diff) }} more
+                    <span class="text-amber-500 font-medium">(+{{ alert.pct.toFixed(0) }}%)</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Spending by Category Chart -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full">
+              <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Spending by Category</h3>
+              </div>
+              <div class="mb-4">
+                <DateRangeSelector
+                  v-model:dateRange="selectedDateRange"
+                  initial-range="6M"
+                />
+              </div>
+              <div class="h-64 w-full overflow-hidden flex items-center justify-center">
+                <SpendingCategoryChart :category-data="categorySpendingData" />
+              </div>
             </div>
           </div>
 
-          <!-- Income vs Expenses Chart -->
+          <!-- Income vs Expenses Chart (full width within left col) -->
           <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
             <div class="flex items-center space-x-3 mb-6">
               <div class="w-10 h-10 bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl flex items-center justify-center">
@@ -279,8 +278,8 @@
           </div>
         </div>
 
-        <!-- Right Column - Lists -->
-        <div class="space-y-8">
+        <!-- Right sidebar -->
+        <div class="lg:col-span-1 space-y-6">
           <!-- Recent Transactions -->
           <div class="bg-white rounded-2xl shadow-xl border border-gray-100">
             <div class="p-6 border-b border-gray-100">
@@ -293,8 +292,8 @@
                   </div>
                   <h3 class="text-lg font-bold text-gray-900">Recent Transactions</h3>
                 </div>
-                <router-link 
-                  to="/transactions" 
+                <router-link
+                  to="/transactions"
                   class="text-sm text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors duration-200"
                 >
                   View All →
@@ -302,17 +301,17 @@
               </div>
             </div>
             <div class="divide-y divide-gray-100">
-              <div 
-                v-for="transaction in recentTransactions" 
-                :key="transaction.id" 
+              <div
+                v-for="transaction in recentTransactions"
+                :key="transaction.id"
                 class="p-4 hover:bg-gray-50 transition-colors duration-200"
               >
-                <div class="flex justify-between items-center">
-                  <div>
-                    <p class="text-sm font-semibold text-gray-900">{{ transaction.description }}</p>
+                <div class="flex justify-between items-center gap-2">
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 truncate">{{ transaction.description }}</p>
                     <p class="text-xs text-gray-500 mt-1">{{ formatDate(transaction.date) }}</p>
                   </div>
-                  <span :class="{
+                  <span class="shrink-0" :class="{
                     'text-green-600 font-bold': transaction.amount > 0,
                     'text-red-600 font-bold': transaction.amount < 0
                   }">
@@ -323,7 +322,7 @@
             </div>
           </div>
 
-          <!-- Upcoming Bills List -->
+          <!-- Upcoming Bills -->
           <div class="bg-white rounded-2xl shadow-xl border border-gray-100">
             <div class="p-6 border-b border-gray-100">
               <div class="flex justify-between items-center">
@@ -335,8 +334,8 @@
                   </div>
                   <h3 class="text-lg font-bold text-gray-900">Upcoming Bills</h3>
                 </div>
-                <router-link 
-                  to="/bills" 
+                <router-link
+                  to="/bills"
                   class="text-sm text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors duration-200"
                 >
                   View All →
@@ -344,17 +343,17 @@
               </div>
             </div>
             <div class="divide-y divide-gray-100">
-              <div 
-                v-for="bill in upcomingBills" 
-                :key="bill.id" 
+              <div
+                v-for="bill in upcomingBills"
+                :key="bill.id"
                 class="p-4 hover:bg-gray-50 transition-colors duration-200"
               >
-                <div class="flex justify-between items-center">
-                  <div>
-                    <p class="text-sm font-semibold text-gray-900">{{ bill.name }}</p>
+                <div class="flex justify-between items-center gap-2">
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 truncate">{{ bill.name }}</p>
                     <p class="text-xs text-gray-500 mt-1">Due {{ formatDate(bill.dueDate) }}</p>
                   </div>
-                  <span class="text-gray-900 font-bold">{{ formatCurrency(bill.amount) }}</span>
+                  <span class="text-gray-900 font-bold shrink-0">{{ formatCurrency(bill.amount) }}</span>
                 </div>
               </div>
             </div>
@@ -570,12 +569,14 @@ const recentTransactions = computed(() => {
     .slice(0, 5)
 })
 
-// categorySpendingData uses the filtered transactions for the selected date range
+// categorySpendingData uses the filtered transactions for the selected date range.
+// Income categories (e.g. Pay Day) are excluded — spending only.
 const categorySpendingData = computed(() => {
   return Object.entries(dashboardStore.categoryStats)
+    .filter(([category]) => category !== 'Pay Day')
     .map(([category, stats]) => ({
       category,
-      amount: category === 'Pay Day' ? stats.total : -Math.abs(stats.total)
+      amount: -Math.abs(stats.total)
     }))
     .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))
 })
