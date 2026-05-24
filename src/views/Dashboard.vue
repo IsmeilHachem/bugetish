@@ -242,6 +242,137 @@
         </div>
       </div>
 
+      <!-- Income Goal & Break-Even -->
+      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 mb-6 overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
+
+          <!-- LEFT: Income Progress -->
+          <div class="p-6">
+            <div class="flex items-center space-x-3 mb-5">
+              <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900">Income Goal</h3>
+            </div>
+
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">This month</p>
+              <p class="text-3xl font-bold text-green-600">{{ formatCurrency(monthlyIncome) }}</p>
+            </div>
+
+            <div class="flex flex-wrap items-end gap-6 mb-5">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Target</p>
+                <div v-if="!editingGoal" class="flex items-center gap-2">
+                  <span class="text-2xl font-bold text-gray-700">{{ formatCurrency(incomeGoalsStore.target_monthly_income) }}</span>
+                  <button @click="startEditGoal" class="p-1 text-gray-300 hover:text-blue-500 transition-colors" title="Edit">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                </div>
+                <div v-else class="flex items-center gap-1">
+                  <span class="text-xl font-bold text-gray-400">$</span>
+                  <input
+                    v-model="goalInput"
+                    type="number" min="0" step="0.01"
+                    @blur="saveGoal" @keydown="onGoalKeydown"
+                    autofocus
+                    class="text-xl font-bold text-gray-900 w-32 border-b-2 border-blue-500 focus:outline-none bg-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Label</p>
+                <div v-if="!editingGoalLabel" class="flex items-center gap-1">
+                  <span class="text-sm font-semibold text-gray-500">{{ incomeGoalsStore.target_label }}</span>
+                  <button @click="startEditGoalLabel" class="p-1 text-gray-300 hover:text-blue-500 transition-colors">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                </div>
+                <input
+                  v-else
+                  v-model="goalLabelInput"
+                  type="text"
+                  @blur="saveGoalLabel" @keydown="onGoalLabelKeydown"
+                  autofocus
+                  class="text-sm font-semibold text-gray-700 border-b-2 border-blue-500 focus:outline-none bg-transparent w-32"
+                />
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-1.5">
+              <span class="text-sm font-bold" :class="incomeGoalProgress >= 100 ? 'text-green-600' : 'text-blue-600'">
+                {{ incomeGoalProgress.toFixed(1) }}% of goal
+              </span>
+              <span v-if="incomeGoalGap >= 0" class="text-sm font-semibold text-green-600">Goal reached! ✓</span>
+              <span v-else class="text-sm font-semibold text-red-500">{{ formatCurrency(Math.abs(incomeGoalGap)) }} to go</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2.5 mb-3">
+              <div
+                class="h-2.5 rounded-full transition-all duration-700"
+                :class="incomeGoalProgress >= 100 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-blue-400 to-indigo-500'"
+                :style="{ width: Math.max(incomeGoalProgress, 0.15) + '%' }"
+              ></div>
+            </div>
+            <p v-if="lifeEnergyHoursToGoal !== null" class="text-xs text-gray-400">
+              ≈ {{ lifeEnergyHoursToGoal }} hrs of work needed to reach goal
+            </p>
+          </div>
+
+          <!-- RIGHT: Break-Even Analysis -->
+          <div class="p-6">
+            <div class="flex items-center space-x-3 mb-5">
+              <div class="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900">Break-Even Analysis</h3>
+            </div>
+
+            <div class="space-y-0 mb-5">
+              <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                <span class="text-sm text-gray-500">Current income</span>
+                <span class="text-sm font-bold text-green-600">{{ formatCurrency(monthlyIncome) }}</span>
+              </div>
+              <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                <span class="text-sm text-gray-500">Monthly expenses (3m avg)</span>
+                <span class="text-sm font-bold text-red-500">{{ formatCurrency(avgMonthlyExpenses3m) }}</span>
+              </div>
+              <div class="flex items-center justify-between py-3">
+                <span class="text-sm font-semibold text-gray-700">Monthly gap</span>
+                <span class="text-sm font-bold" :class="breakEvenGap >= 0 ? 'text-green-600' : 'text-red-600'">
+                  {{ breakEvenGap >= 0 ? '+' : '–' }}{{ formatCurrency(Math.abs(breakEvenGap)) }}
+                </span>
+              </div>
+            </div>
+
+            <div v-if="breakEvenGap < 0" class="bg-red-50 border border-red-100 rounded-xl px-4 py-3 space-y-1">
+              <p class="text-sm font-semibold text-red-700">
+                You need {{ formatCurrency(Math.abs(breakEvenGap)) }} more per month to break even
+              </p>
+              <p v-if="lifeEnergyHoursOfGap !== null" class="text-xs text-red-400">
+                That's ≈ {{ lifeEnergyHoursOfGap }} hrs of additional work at your life energy rate
+              </p>
+            </div>
+            <div v-else class="bg-green-50 border border-green-100 rounded-xl px-4 py-3 space-y-1">
+              <p class="text-sm font-semibold text-green-700">
+                You're {{ formatCurrency(breakEvenGap) }} above break-even this month ✓
+              </p>
+              <p class="text-xs text-green-500">
+                Keep it up — every surplus dollar can go to investments
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Main Content Grid: 2-col charts + 1-col sidebar -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left column -->
@@ -414,6 +545,8 @@ import { useDashboardStore } from '@/stores/dashboard'
 import { calculateMonthlyTrends } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
 import { useFiSettingsStore } from '@/stores/fiSettings'
+import { useIncomeGoalsStore } from '@/stores/incomeGoals'
+import { useLifeEnergyStore } from '@/stores/lifeEnergy'
 import SpendingCategoryChart from '@/components/SpendingCategoryChart.vue'
 import IncomeExpensesChart from '@/components/IncomeExpensesChart.vue'
 import DateRangeSelector from '../components/DateRangeSelector.vue'
@@ -423,11 +556,29 @@ const billsStore = useBillsStore()
 const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
 const fiStore = useFiSettingsStore()
+const incomeGoalsStore = useIncomeGoalsStore()
+const lifeEnergyStore = useLifeEnergyStore()
 
 watch(
   () => authStore.isLoggedIn,
   async (loggedIn) => {
     if (loggedIn && !fiStore.loaded) await fiStore.loadFromSupabase()
+  },
+  { immediate: true }
+)
+
+watch(
+  () => authStore.isLoggedIn,
+  async (loggedIn) => {
+    if (loggedIn) await incomeGoalsStore.loadFromSupabase()
+  },
+  { immediate: true }
+)
+
+watch(
+  () => authStore.isLoggedIn,
+  async (loggedIn) => {
+    if (loggedIn) await lifeEnergyStore.loadFromSupabase()
   },
   { immediate: true }
 )
@@ -763,6 +914,90 @@ const categoryOverspend = computed(() => {
   }
   return alerts.sort((a, b) => b.diff - a.diff).slice(0, 3)
 })
+
+// 3-month average expenses (months before selectedMonth)
+const avgMonthlyExpenses3m = computed(() => {
+  const [y, m] = selectedMonth.value.split('-').map(Number)
+  const totals = []
+  for (let i = 1; i <= 3; i++) {
+    const d = new Date(y, m - 1 - i, 1)
+    const ms = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const exp = Math.abs(
+      getMonthTransactions(transactionsStore.getFilteredExpense(), ms)
+        .reduce((s, t) => s + t.amount, 0)
+    )
+    if (exp > 0) totals.push(exp)
+  }
+  if (totals.length === 0) return 0
+  return totals.reduce((a, b) => a + b, 0) / totals.length
+})
+
+// Income goal progress (capped at 100)
+const incomeGoalProgress = computed(() => {
+  if (incomeGoalsStore.target_monthly_income <= 0) return 0
+  return Math.min((monthlyIncome.value / incomeGoalsStore.target_monthly_income) * 100, 100)
+})
+
+// Gap: positive = above goal, negative = below
+const incomeGoalGap = computed(() =>
+  monthlyIncome.value - incomeGoalsStore.target_monthly_income
+)
+
+// Break-even gap vs 3m avg expenses
+const breakEvenGap = computed(() =>
+  monthlyIncome.value - avgMonthlyExpenses3m.value
+)
+
+// Life energy hours needed to reach income goal
+const lifeEnergyHoursToGoal = computed(() => {
+  if (lifeEnergyStore.lifeEnergyRate <= 0 || incomeGoalGap.value >= 0) return null
+  return (Math.abs(incomeGoalGap.value) / lifeEnergyStore.lifeEnergyRate).toFixed(1)
+})
+
+// Life energy hours of the break-even shortfall
+const lifeEnergyHoursOfGap = computed(() => {
+  if (lifeEnergyStore.lifeEnergyRate <= 0 || breakEvenGap.value >= 0) return null
+  return (Math.abs(breakEvenGap.value) / lifeEnergyStore.lifeEnergyRate).toFixed(1)
+})
+
+// Income goal inline editing
+const editingGoal = ref(false)
+const editingGoalLabel = ref(false)
+const goalInput = ref(0)
+const goalLabelInput = ref('')
+
+function startEditGoal() {
+  goalInput.value = incomeGoalsStore.target_monthly_income
+  editingGoal.value = true
+}
+async function saveGoal() {
+  const val = parseFloat(goalInput.value)
+  if (!isNaN(val) && val >= 0) {
+    incomeGoalsStore.target_monthly_income = val
+    await incomeGoalsStore.saveToSupabase()
+  }
+  editingGoal.value = false
+}
+function onGoalKeydown(e) {
+  if (e.key === 'Enter') saveGoal()
+  if (e.key === 'Escape') editingGoal.value = false
+}
+
+function startEditGoalLabel() {
+  goalLabelInput.value = incomeGoalsStore.target_label
+  editingGoalLabel.value = true
+}
+async function saveGoalLabel() {
+  if (goalLabelInput.value.trim()) {
+    incomeGoalsStore.target_label = goalLabelInput.value.trim()
+    await incomeGoalsStore.saveToSupabase()
+  }
+  editingGoalLabel.value = false
+}
+function onGoalLabelKeydown(e) {
+  if (e.key === 'Enter') saveGoalLabel()
+  if (e.key === 'Escape') editingGoalLabel.value = false
+}
 
 // FI inline editing
 const editingFI = ref(false)
