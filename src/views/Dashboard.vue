@@ -148,7 +148,7 @@
 
             <!-- Sparkline: SVG line graph, last 3 months -->
             <div v-if="savingsRateLast3.some(p => p.rate !== null)">
-              <svg viewBox="0 0 200 80" class="w-full" style="height:80px;" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 200 120" class="w-full" style="height:120px;" xmlns="http://www.w3.org/2000/svg">
                 <!-- Zero baseline -->
                 <line x1="10" :y1="getSparkY(0)" x2="190" :y2="getSparkY(0)"
                       stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 3" />
@@ -177,27 +177,27 @@
                     <!-- Rate label above/below point -->
                     <text
                       :x="[30,100,170][i]"
-                      :y="getSparkY(p.rate) - 6"
+                      :y="getSparkY(p.rate) - 8"
                       text-anchor="middle"
-                      font-size="9"
+                      font-size="10"
                       :fill="p.rate >= 0 ? '#16a34a' : '#dc2626'"
                       font-weight="600"
                     >{{ (p.rate >= 0 ? '' : '–') + Math.abs(p.rate).toFixed(1) + '%' }}</text>
                     <!-- Month label at bottom -->
                     <text
                       :x="[30,100,170][i]"
-                      y="77"
+                      y="112"
                       text-anchor="middle"
-                      font-size="9"
+                      font-size="10"
                       fill="#9ca3af"
                     >{{ p.month }}</text>
                   </template>
                   <template v-else>
                     <text
                       :x="[30,100,170][i]"
-                      y="77"
+                      y="112"
                       text-anchor="middle"
-                      font-size="9"
+                      font-size="10"
                       fill="#d1d5db"
                     >{{ p.month }}</text>
                   </template>
@@ -954,8 +954,8 @@ const savingsRateLast3 = computed(() => {
 
 // SVG sparkline helpers
 const getSparkY = (rate) => {
-  const y = 45 - (rate / 25) * 35
-  return Math.max(8, Math.min(65, y))
+  const y = 65 - (rate / 25) * 50
+  return Math.max(12, Math.min(90, y))
 }
 
 const sparklinePoints = computed(() =>
