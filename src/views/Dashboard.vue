@@ -148,7 +148,7 @@
 
             <!-- Sparkline: SVG line graph, last 3 months -->
             <div v-if="savingsRateLast3.some(p => p.rate !== null)" class="w-full">
-              <svg viewBox="0 0 220 110" width="100%" height="110" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 220 160" width="100%" height="160" xmlns="http://www.w3.org/2000/svg">
                 <!-- Zero baseline -->
                 <line x1="20" :y1="getSparkY(0)" x2="200" :y2="getSparkY(0)"
                       stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 3" />
@@ -172,13 +172,13 @@
                           :fill="p.rate >= 0 ? '#16a34a' : '#dc2626'">
                       {{ (p.rate >= 0 ? '' : '–') + Math.abs(p.rate).toFixed(1) + '%' }}
                     </text>
-                    <text :x="[40,110,180][i]" y="104"
+                    <text :x="[40,110,180][i]" y="152"
                           text-anchor="middle" font-size="10" fill="#9ca3af">
                       {{ p.month }}
                     </text>
                   </template>
                   <template v-else>
-                    <text :x="[40,110,180][i]" y="104"
+                    <text :x="[40,110,180][i]" y="152"
                           text-anchor="middle" font-size="10" fill="#d1d5db">
                       {{ p.month }}
                     </text>
@@ -937,7 +937,7 @@ const savingsRateLast3 = computed(() => {
 // SVG sparkline helpers
 const getSparkY = (rate) => {
   const clamped = Math.max(-30, Math.min(30, rate))
-  return 65 - (clamped / 30) * 50
+  return 80 - (clamped / 30) * 65
 }
 
 const sparklinePoints = computed(() => {
