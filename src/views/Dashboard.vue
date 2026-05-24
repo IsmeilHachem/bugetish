@@ -146,32 +146,63 @@
               </div>
             </div>
 
-            <!-- Sparkline: last 3 months as mini bars (normalized heights) -->
-            <div v-if="savingsRateLast3.some(r => r !== null)"
-                 class="flex items-end gap-3 px-2"
-                 style="height: 64px;">
-              <div
-                v-for="(rate, i) in savingsRateLast3"
-                :key="i"
-                class="flex flex-col items-center justify-end flex-1"
-              >
-                <!-- Percentage label above bar -->
-                <span class="text-xs font-semibold mb-0.5"
-                      :class="rate === null ? 'text-gray-400' : rate >= 0 ? 'text-green-700' : 'text-red-500'">
-                  {{ rate === null ? '–' : (rate >= 0 ? '' : '–') + Math.abs(rate).toFixed(1) + '%' }}
-                </span>
-                <!-- Bar -->
-                <div
-                  class="w-full rounded-t-sm"
-                  :class="(rate !== null && rate >= 0) ? 'bg-green-500 opacity-60' : 'bg-red-400 opacity-60'"
-                  :style="{ height: savingsRateBarHeights[i] + 'px' }"
-                ></div>
-                <!-- Month label below bar -->
-                <span class="text-xs font-medium mt-0.5"
-                      :class="savingsRate >= 0 ? 'text-green-700 opacity-50' : 'text-red-600 opacity-50'">
-                  {{ ['3M', '2M', '1M'][i] }}
-                </span>
-              </div>
+            <!-- Sparkline: SVG line graph, last 3 months -->
+            <div v-if="savingsRateLast3.some(p => p.rate !== null)">
+              <svg viewBox="0 0 200 80" class="w-full" style="height:80px;" xmlns="http://www.w3.org/2000/svg">
+                <!-- Zero baseline -->
+                <line x1="10" :y1="getSparkY(0)" x2="190" :y2="getSparkY(0)"
+                      stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 3" />
+
+                <!-- Connecting line -->
+                <polyline
+                  v-if="sparklinePoints"
+                  :points="sparklinePoints"
+                  fill="none"
+                  :stroke="sparklineColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  opacity="0.8"
+                />
+
+                <!-- Data points + labels -->
+                <template v-for="(p, i) in savingsRateLast3" :key="i">
+                  <template v-if="p.rate !== null">
+                    <circle
+                      :cx="[30,100,170][i]"
+                      :cy="getSparkY(p.rate)"
+                      r="3"
+                      :fill="sparklineColor"
+                    />
+                    <!-- Rate label above/below point -->
+                    <text
+                      :x="[30,100,170][i]"
+                      :y="getSparkY(p.rate) - 6"
+                      text-anchor="middle"
+                      font-size="9"
+                      :fill="p.rate >= 0 ? '#16a34a' : '#dc2626'"
+                      font-weight="600"
+                    >{{ (p.rate >= 0 ? '' : '–') + Math.abs(p.rate).toFixed(1) + '%' }}</text>
+                    <!-- Month label at bottom -->
+                    <text
+                      :x="[30,100,170][i]"
+                      y="77"
+                      text-anchor="middle"
+                      font-size="9"
+                      fill="#9ca3af"
+                    >{{ p.month }}</text>
+                  </template>
+                  <template v-else>
+                    <text
+                      :x="[30,100,170][i]"
+                      y="77"
+                      text-anchor="middle"
+                      font-size="9"
+                      fill="#d1d5db"
+                    >{{ p.month }}</text>
+                  </template>
+                </template>
+              </svg>
             </div>
 
             <!-- Footer: description + 3-month avg -->
@@ -901,6 +932,8 @@ const savingsRate = computed(() => {
 })
 
 // Individual savings rates for the 3 months before selectedMonth (oldest → newest)
+// Returns objects with actual abbreviated month names for the SVG sparkline
+const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const savingsRateLast3 = computed(() => {
   const [y, m] = selectedMonth.value.split('-').map(Number)
   return [3, 2, 1].map(i => {
@@ -908,20 +941,34 @@ const savingsRateLast3 = computed(() => {
     const ms = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     const inc = getMonthTransactions(transactionsStore.getFilteredIncome(), ms)
       .reduce((s, t) => s + t.amount, 0)
-    if (inc === 0) return null
-    const exp = Math.abs(
-      getMonthTransactions(transactionsStore.getFilteredExpense(), ms)
-        .reduce((s, t) => s + t.amount, 0)
-    )
-    return ((inc - exp) / inc) * 100
+    const rate = inc === 0 ? null : (() => {
+      const exp = Math.abs(
+        getMonthTransactions(transactionsStore.getFilteredExpense(), ms)
+          .reduce((s, t) => s + t.amount, 0)
+      )
+      return ((inc - exp) / inc) * 100
+    })()
+    return { month: monthNames[d.getMonth()], rate }
   })
 })
 
-// Normalized pixel heights for the 3 sparkline bars (tallest bar = 48px, min = 4px)
-const savingsRateBarHeights = computed(() => {
-  const rates = savingsRateLast3.value
-  const maxAbs = Math.max(...rates.map(r => Math.abs(r ?? 0)), 1)
-  return rates.map(r => r !== null ? (Math.abs(r) / maxAbs) * 44 + 4 : 4)
+// SVG sparkline helpers
+const getSparkY = (rate) => {
+  const y = 45 - (rate / 25) * 35
+  return Math.max(8, Math.min(65, y))
+}
+
+const sparklinePoints = computed(() =>
+  savingsRateLast3.value
+    .map((p, i) => p.rate !== null ? `${[30, 100, 170][i]},${getSparkY(p.rate)}` : null)
+    .filter(Boolean)
+    .join(' ')
+)
+
+const sparklineColor = computed(() => {
+  const rates = savingsRateLast3.value.map(p => p.rate).filter(r => r !== null)
+  if (rates.length < 2) return '#9ca3af'
+  return rates[rates.length - 1] > rates[0] ? '#16a34a' : '#dc2626'
 })
 
 // Average savings rate over the 3 full months prior to selectedMonth
