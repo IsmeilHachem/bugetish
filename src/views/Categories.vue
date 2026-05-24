@@ -6,22 +6,22 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 flex-wrap">
           <div>
             <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              Category Management
+              Category Spending
             </h1>
-            <p class="text-gray-600 mt-2 text-lg">Organize and manage your spending categories</p>
+            <p class="text-gray-600 mt-2 text-lg">Track and reflect on your spending by category</p>
           </div>
           <div class="flex flex-col sm:flex-row flex-wrap gap-3 items-start sm:items-center w-full md:w-auto">
             <div class="relative">
               <label class="block text-sm font-semibold text-gray-700 mb-2">Select Month</label>
-              <input 
-                type="month" 
-                v-model="selectedMonth" 
+              <input
+                type="month"
+                v-model="selectedMonth"
                 class="px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200 hover:shadow-md"
               />
             </div>
             <div class="flex gap-2">
-              <button 
-                @click="undo" 
+              <button
+                @click="undo"
                 :disabled="!categoriesStore.canUndo"
                 class="px-4 py-3 text-gray-600 bg-gray-100 border border-gray-300 rounded-xl hover:bg-gray-200 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 title="Undo last action"
@@ -30,8 +30,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                 </svg>
               </button>
-              <button 
-                @click="redo" 
+              <button
+                @click="redo"
                 :disabled="!categoriesStore.canRedo"
                 class="px-4 py-3 text-gray-600 bg-gray-100 border border-gray-300 rounded-xl hover:bg-gray-200 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 title="Redo last action"
@@ -41,124 +41,253 @@
                 </svg>
               </button>
             </div>
-            <div class="flex flex-wrap gap-2">
-              <CategoryActions />
+          </div>
+        </div>
+      </div>
+
+      <!-- Income Section -->
+      <div v-if="incomeCategories.length > 0" class="mb-8">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+          <h2 class="text-sm font-bold text-green-700 uppercase tracking-widest">Income</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div
+            v-for="mainCategory in incomeCategories"
+            :key="mainCategory"
+            class="bg-green-50 rounded-2xl shadow-xl p-6 border border-green-100 border-l-4 border-l-green-400 flex flex-col h-full hover:shadow-2xl transition-all duration-300"
+          >
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+                <h2 class="text-xl font-bold text-gray-900">{{ mainCategory }}</h2>
+              </div>
+              <div class="flex space-x-2">
+                <button @click="editMainCategory(mainCategory)" class="p-2 text-gray-400 bg-white border border-gray-200 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200" title="Edit category">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button @click="deleteMainCategory(mainCategory)" class="p-2 text-gray-400 bg-white border border-gray-200 rounded-lg hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all duration-200" title="Delete category">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Subheaders -->
+            <div class="grid grid-cols-2 font-semibold mb-4 text-gray-600 text-sm">
+              <div class="text-left">Subcategory</div>
+              <div class="text-right">Amount</div>
+            </div>
+
+            <!-- Subcategories -->
+            <div class="flex-1">
+              <div class="space-y-3">
+                <div
+                  v-for="subcategory in categoriesStore.getSubcategories(mainCategory)"
+                  :key="subcategory"
+                  class="flex justify-between items-start p-3 bg-white rounded-xl transition-colors duration-200"
+                >
+                  <div class="flex items-center space-x-2">
+                    <span class="text-gray-700 font-medium">{{ subcategory }}</span>
+                    <button @click="editSubcategory(mainCategory, subcategory)" class="p-1 text-gray-400 hover:text-blue-600 transition-colors duration-200" title="Edit subcategory">
+                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="flex items-start space-x-3">
+                    <div class="text-right">
+                      <div class="text-gray-900 font-semibold">{{ formatCurrency(Math.abs(getCategoryAmount(mainCategory, subcategory))) }}</div>
+                      <div v-if="lifeEnergyStore.lifeEnergyRate > 0 && getCategoryAmount(mainCategory, subcategory) !== 0" class="text-xs text-gray-400">
+                        ≈ {{ lifeEnergyStore.toCost(getCategoryAmount(mainCategory, subcategory)) }}
+                      </div>
+                    </div>
+                    <button @click="deleteSubcategory(mainCategory, subcategory)" class="p-1 text-gray-400 hover:text-red-600 transition-colors duration-200 mt-0.5" title="Delete subcategory">
+                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button @click="addSubcategory(mainCategory)" class="w-full mt-4 px-4 py-2 text-sm text-green-600 bg-white border border-green-200 rounded-xl hover:bg-green-50 hover:border-green-300 transition-all duration-200 font-medium">
+                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Subcategory
+              </button>
+            </div>
+
+            <!-- Total -->
+            <div class="border-t border-green-200 pt-4 mt-4">
+              <div class="flex justify-between items-start">
+                <span class="font-bold text-gray-900">Total</span>
+                <div class="text-right">
+                  <div class="font-bold text-green-600 text-lg">{{ formatCurrency(Math.abs(getCategoryTotal(mainCategory))) }}</div>
+                  <div v-if="lifeEnergyStore.lifeEnergyRate > 0" class="text-xs text-gray-400">
+                    ≈ {{ lifeEnergyStore.toCost(getCategoryTotal(mainCategory)) }} of life energy
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Categories Grid -->
-      <div class="columns-1 sm:columns-2 md:columns-3 xl:columns-4 gap-8">
-        <div 
-          v-for="mainCategory in categoriesStore.getMainCategories" 
-          :key="mainCategory"
-          class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 flex flex-col hover:shadow-2xl transition-all duration-300 transform hover:scale-105 mb-8 break-inside-avoid"
-        >
-          <!-- Main Category Header -->
-          <div class="flex justify-between items-center mb-8">
-            <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
+      <!-- Spending Section -->
+      <div v-if="spendingCategories.length > 0" class="mb-8">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+          <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Spending</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div
+            v-for="mainCategory in spendingCategories"
+            :key="mainCategory"
+            class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 border-l-4 flex flex-col h-full hover:shadow-2xl transition-all duration-300"
+            :class="{
+              'border-l-amber-400': reflectionsStore.getRating(mainCategory)?.rating === 3,
+              'border-l-green-400': reflectionsStore.getRating(mainCategory)?.rating === 2,
+              'border-l-blue-400':  reflectionsStore.getRating(mainCategory)?.rating === 1,
+              'border-l-gray-200':  !reflectionsStore.getRating(mainCategory)
+            }"
+          >
+            <!-- Header -->
+            <div class="flex justify-between items-start mb-6">
+              <div class="flex items-start space-x-3 min-w-0">
+                <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2 flex-wrap">
+                    {{ mainCategory }}
+                    <span
+                      v-if="reflectionsStore.getRating(mainCategory)"
+                      :class="[
+                        'inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold',
+                        reflectionsStore.getRating(mainCategory).rating === 1 ? 'bg-blue-100 text-blue-600' :
+                        reflectionsStore.getRating(mainCategory).rating === 2 ? 'bg-green-100 text-green-600' :
+                        'bg-amber-100 text-amber-600'
+                      ]"
+                      :title="reflectionsStore.getRating(mainCategory).rating === 1 ? 'Too little' : reflectionsStore.getRating(mainCategory).rating === 2 ? 'Just right' : 'Too much'"
+                    >
+                      {{ reflectionsStore.getRating(mainCategory).rating === 1 ? '↓' : reflectionsStore.getRating(mainCategory).rating === 2 ? '✓' : '⚠' }}
+                    </span>
+                  </h2>
+                  <!-- MoM trend -->
+                  <div v-if="getCategoryTrend(mainCategory)" class="text-xs mt-0.5 font-medium"
+                       :class="getCategoryTrend(mainCategory).dir === 'up' ? 'text-red-500' : 'text-green-600'">
+                    {{ getCategoryTrend(mainCategory).dir === 'up' ? '↑' : '↓' }}
+                    {{ formatCurrency(getCategoryTrend(mainCategory).diff) }} vs last month
+                  </div>
+                </div>
               </div>
-              <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                {{ mainCategory }}
-                <span
-                  v-if="reflectionsStore.getRating(mainCategory)"
-                  :class="[
-                    'inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold',
-                    reflectionsStore.getRating(mainCategory).rating === 1 ? 'bg-blue-100 text-blue-600' :
-                    reflectionsStore.getRating(mainCategory).rating === 2 ? 'bg-green-100 text-green-600' :
-                    'bg-amber-100 text-amber-600'
-                  ]"
-                  :title="reflectionsStore.getRating(mainCategory).rating === 1 ? 'Too little' : reflectionsStore.getRating(mainCategory).rating === 2 ? 'Just right' : 'Too much'"
+              <div class="flex space-x-2 shrink-0">
+                <button @click="editMainCategory(mainCategory)" class="p-2 text-gray-400 bg-gray-50 border border-gray-200 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200" title="Edit category">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button @click="deleteMainCategory(mainCategory)" class="p-2 text-gray-400 bg-gray-50 border border-gray-200 rounded-lg hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all duration-200" title="Delete category">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Subheaders -->
+            <div class="grid grid-cols-2 font-semibold mb-4 text-gray-600 text-sm">
+              <div class="text-left">Subcategory</div>
+              <div class="text-right">Amount</div>
+            </div>
+
+            <!-- Subcategories -->
+            <div class="flex-1">
+              <div class="space-y-3">
+                <div
+                  v-for="subcategory in categoriesStore.getSubcategories(mainCategory)"
+                  :key="subcategory"
+                  class="flex justify-between items-start p-3 bg-gray-50 rounded-xl transition-colors duration-200"
                 >
-                  {{ reflectionsStore.getRating(mainCategory).rating === 1 ? '↓' : reflectionsStore.getRating(mainCategory).rating === 2 ? '✓' : '⚠' }}
-                </span>
-              </h2>
-            </div>
-            <div class="flex space-x-2">
-              <button 
-                @click="editMainCategory(mainCategory)"
-                class="p-2 text-gray-400 bg-gray-50 border border-gray-200 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200"
-                title="Edit category"
-              >
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
-              <button 
-                @click="deleteMainCategory(mainCategory)"
-                class="p-2 text-gray-400 bg-gray-50 border border-gray-200 rounded-lg hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all duration-200"
-                title="Delete category"
-              >
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          
-          <!-- Subheaders -->
-          <div class="grid grid-cols-2 font-semibold mb-4 text-gray-600 text-sm">
-            <div class="text-left">Subcategory</div>
-            <div class="text-right">Amount</div>
-          </div>
-          
-          <!-- Subcategories -->
-          <div>
-            <div class="space-y-4">
-              <div 
-                v-for="subcategory in categoriesStore.getSubcategories(mainCategory)" 
-                :key="subcategory"
-                class="flex justify-between items-center p-3 bg-gray-50 rounded-xl transition-colors duration-200"
-              >
-                <div class="flex items-center space-x-2">
-                  <span class="text-gray-700 font-medium">{{ subcategory }}</span>
-                  <button 
-                    @click="editSubcategory(mainCategory, subcategory)"
-                    class="p-1 text-gray-400 hover:text-blue-600 transition-colors duration-200"
-                    title="Edit subcategory"
-                  >
-                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-gray-700 font-medium">{{ subcategory }}</span>
+                    <button @click="editSubcategory(mainCategory, subcategory)" class="p-1 text-gray-400 hover:text-blue-600 transition-colors duration-200" title="Edit subcategory">
+                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="flex items-start space-x-3">
+                    <div class="text-right">
+                      <div class="text-gray-900 font-semibold">{{ formatCurrency(Math.abs(getCategoryAmount(mainCategory, subcategory))) }}</div>
+                      <div v-if="lifeEnergyStore.lifeEnergyRate > 0 && getCategoryAmount(mainCategory, subcategory) !== 0" class="text-xs text-gray-400">
+                        ≈ {{ lifeEnergyStore.toCost(getCategoryAmount(mainCategory, subcategory)) }}
+                      </div>
+                    </div>
+                    <button @click="deleteSubcategory(mainCategory, subcategory)" class="p-1 text-gray-400 hover:text-red-600 transition-colors duration-200 mt-0.5" title="Delete subcategory">
+                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                <div class="flex items-center space-x-3">
-                  <span class="text-gray-900 font-semibold">{{ formatCurrency(Math.abs(getCategoryAmount(mainCategory, subcategory))) }}</span>
-                  <button 
-                    @click="deleteSubcategory(mainCategory, subcategory)"
-                    class="p-1 text-gray-400 hover:text-red-600 transition-colors duration-200"
-                    title="Delete subcategory"
-                  >
-                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+              </div>
+              <button @click="addSubcategory(mainCategory)" class="w-full mt-4 px-4 py-2 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 font-medium">
+                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Subcategory
+              </button>
+            </div>
+
+            <!-- Total -->
+            <div :class="[categoriesStore.getSubcategories(mainCategory).length > 1 ? 'pt-6 mt-6' : 'pt-2 mt-2', 'border-t border-gray-200']">
+              <div class="flex justify-between items-start">
+                <span class="font-bold text-gray-900">Total</span>
+                <div class="text-right">
+                  <div class="font-bold text-blue-600 text-lg">{{ formatCurrency(Math.abs(getCategoryTotal(mainCategory))) }}</div>
+                  <div v-if="lifeEnergyStore.lifeEnergyRate > 0" class="text-xs text-gray-400">
+                    ≈ {{ lifeEnergyStore.toCost(getCategoryTotal(mainCategory)) }} of life energy
+                  </div>
                 </div>
               </div>
             </div>
-            <button 
-              @click="addSubcategory(mainCategory)"
-              class="w-full mt-4 px-4 py-2 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 font-medium"
-            >
-              <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Manage Categories (collapsible, bottom) -->
+      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 mb-8 overflow-hidden">
+        <button
+          @click="manageOpen = !manageOpen"
+          class="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors duration-200"
+        >
+          <div class="flex items-center gap-3">
+            <div class="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              Add Subcategory
-            </button>
-          </div>
-          
-          <!-- Total Row -->
-          <div :class="[categoriesStore.getSubcategories(mainCategory).length > 1 ? 'pt-6 mt-6' : 'pt-2 mt-2', 'border-t border-gray-200']">
-            <div class="flex justify-between items-center">
-              <span class="font-bold text-gray-900">Total</span>
-              <span class="font-bold text-blue-600 text-lg">{{ formatCurrency(Math.abs(getCategoryTotal(mainCategory))) }}</span>
             </div>
+            <span class="text-sm font-semibold text-gray-600">Manage Categories</span>
           </div>
+          <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="manageOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div v-if="manageOpen" class="px-6 pb-6 border-t border-gray-100 pt-4">
+          <CategoryActions />
         </div>
       </div>
 
@@ -175,25 +304,15 @@
               {{ isEditingSubcategory ? 'Edit Subcategory' : 'Edit Category' }}
             </h3>
           </div>
-          <input 
-            v-model="editName" 
-            type="text" 
+          <input
+            v-model="editName"
+            type="text"
             class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
             :placeholder="isEditingSubcategory ? 'New subcategory name' : 'New category name'"
           >
           <div class="mt-6 flex justify-end space-x-4">
-            <button 
-              @click="cancelEdit"
-              class="px-6 py-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
-            >
-              Cancel
-            </button>
-            <button 
-              @click="confirmEdit"
-              class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg"
-            >
-              Save Changes
-            </button>
+            <button @click="cancelEdit" class="px-6 py-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200">Cancel</button>
+            <button @click="confirmEdit" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg">Save Changes</button>
           </div>
         </div>
       </div>
@@ -207,29 +326,17 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
             </div>
-            <h3 class="text-xl font-bold text-gray-900">
-              Add Subcategory to {{ categoryToAddSubcategory }}
-            </h3>
+            <h3 class="text-xl font-bold text-gray-900">Add Subcategory to {{ categoryToAddSubcategory }}</h3>
           </div>
-          <input 
-            v-model="newSubcategoryName" 
-            type="text" 
+          <input
+            v-model="newSubcategoryName"
+            type="text"
             class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
             placeholder="Enter subcategory name"
           >
           <div class="mt-6 flex justify-end space-x-4">
-            <button 
-              @click="cancelAddSubcategory"
-              class="px-6 py-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
-            >
-              Cancel
-            </button>
-            <button 
-              @click="confirmAddSubcategory"
-              class="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg"
-            >
-              Add Subcategory
-            </button>
+            <button @click="cancelAddSubcategory" class="px-6 py-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200">Cancel</button>
+            <button @click="confirmAddSubcategory" class="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg">Add Subcategory</button>
           </div>
         </div>
       </div>
@@ -244,18 +351,23 @@ import CategoryActions from '../components/CategoryActions.vue'
 import { useTransactionsStore } from '../stores/transactions'
 import { useAuthStore } from '../stores/auth'
 import { useCategoryReflectionsStore } from '../stores/categoryReflections'
+import { useLifeEnergyStore } from '../stores/lifeEnergy'
 import { parseESTDate } from '@/utils/dateUtils'
 
 const categoriesStore = useCategoriesStore()
 const transactionsStore = useTransactionsStore()
 const authStore = useAuthStore()
 const reflectionsStore = useCategoryReflectionsStore()
+const lifeEnergyStore = useLifeEnergyStore()
 
-// Month picker state — declared before watchers so both can reference it
+// Month picker state
 const now = new Date()
 const selectedMonth = ref(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`)
 
-// Load transactions and reflections when auth is ready
+// Manage section toggle
+const manageOpen = ref(false)
+
+// Load transactions, reflections, and life energy when auth is ready
 watch(
   () => authStore.isLoggedIn,
   async (loggedIn) => {
@@ -264,6 +376,7 @@ watch(
         await transactionsStore.loadFromSupabase()
       }
       await reflectionsStore.loadForMonth(selectedMonth.value)
+      await lifeEnergyStore.loadFromSupabase()
     }
   },
   { immediate: true }
@@ -276,7 +389,7 @@ watch(selectedMonth, async (newMonth) => {
   }
 })
 
-// Helper: Filter transactions for the selected month
+// Helper: Filter transactions for a given month string
 function getMonthTransactions(transactions, monthStr) {
   if (!Array.isArray(transactions) || !monthStr) return []
   const [year, month] = monthStr.split('-').map(Number)
@@ -287,7 +400,7 @@ function getMonthTransactions(transactions, monthStr) {
   })
 }
 
-// Helper: Get amount for a category/subcategory for the selected month
+// Helper: Get amount for a subcategory in the selected month
 const getCategoryAmount = (mainCategory, subcategory) => {
   const monthTx = getMonthTransactions(transactionsStore.getTransactions || [], selectedMonth.value)
   return monthTx
@@ -299,15 +412,64 @@ const getCategoryAmount = (mainCategory, subcategory) => {
     .reduce((sum, t) => sum + t.amount, 0)
 }
 
-// Helper: Get total for a main category for the selected month
-const getCategoryTotal = (mainCategory) => {
-  const monthTx = getMonthTransactions(transactionsStore.getTransactions || [], selectedMonth.value)
+// Helper: Get total for a main category in a given month
+const getCategoryTotalForMonth = (mainCategory, monthStr) => {
+  const monthTx = getMonthTransactions(transactionsStore.getTransactions || [], monthStr)
   return monthTx
     .filter(t => t.category && t.category.split(' - ')[0] === mainCategory)
     .reduce((sum, t) => sum + t.amount, 0)
 }
 
-// Helper: Format currency
+const getCategoryTotal = (mainCategory) => getCategoryTotalForMonth(mainCategory, selectedMonth.value)
+
+// Previous month string
+const prevMonth = computed(() => {
+  const [y, m] = selectedMonth.value.split('-').map(Number)
+  const d = new Date(y, m - 2, 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+})
+
+// MoM trend: >5% change shows indicator
+const getCategoryTrend = (mainCategory) => {
+  const curr = Math.abs(getCategoryTotal(mainCategory))
+  const prev = Math.abs(getCategoryTotalForMonth(mainCategory, prevMonth.value))
+  if (prev === 0) return null
+  const pct = ((curr - prev) / prev) * 100
+  if (pct > 5)  return { dir: 'up',   diff: curr - prev }
+  if (pct < -5) return { dir: 'down', diff: prev - curr }
+  return null
+}
+
+// Income categories: named "Pay Day" OR all transactions positive
+const incomeCategories = computed(() => {
+  const allCategories = categoriesStore.getMainCategories || []
+  const monthTx = getMonthTransactions(transactionsStore.getTransactions || [], selectedMonth.value)
+  return allCategories.filter(cat => {
+    if (cat === 'Pay Day') return true
+    const catTx = monthTx.filter(t => t.category && t.category.split(' - ')[0] === cat)
+    if (catTx.length === 0) return false
+    return catTx.every(t => t.amount > 0)
+  })
+})
+
+// Spending categories sorted by fulfillment rating
+// Order: 3 (Too much) → unrated → 2 (Just right) → 1 (Too little)
+const ratingOrder = { 3: 0, 2: 2, 1: 3 }
+const spendingCategories = computed(() => {
+  const incomeSet = new Set(incomeCategories.value)
+  return (categoriesStore.getMainCategories || [])
+    .filter(cat => !incomeSet.has(cat))
+    .slice()
+    .sort((a, b) => {
+      const rA = reflectionsStore.getRating(a)?.rating ?? null
+      const rB = reflectionsStore.getRating(b)?.rating ?? null
+      const oA = rA !== null ? (ratingOrder[rA] ?? 1) : 1
+      const oB = rB !== null ? (ratingOrder[rB] ?? 1) : 1
+      return oA - oB
+    })
+})
+
+// Format currency
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -317,7 +479,7 @@ const formatCurrency = (value) => {
   }).format(value)
 }
 
-// Initialize store on component mount
+// Initialize categories store on mount
 onMounted(async () => {
   if (!categoriesStore.initialized) {
     await categoriesStore.initialize()
@@ -336,7 +498,6 @@ const showAddSubcategoryModal = ref(false)
 const categoryToAddSubcategory = ref('')
 const newSubcategoryName = ref('')
 
-// Category management methods
 const editMainCategory = (category) => {
   categoryToEdit.value = category
   editName.value = category
@@ -387,7 +548,6 @@ const deleteSubcategory = async (mainCategory, subcategory) => {
   }
 }
 
-// Add subcategory methods
 const addSubcategory = (mainCategory) => {
   categoryToAddSubcategory.value = mainCategory
   newSubcategoryName.value = ''
@@ -407,12 +567,6 @@ const confirmAddSubcategory = () => {
   cancelAddSubcategory()
 }
 
-// Undo/Redo methods
-const undo = () => {
-  categoriesStore.undo()
-}
-
-const redo = () => {
-  categoriesStore.redo()
-}
-</script> 
+const undo = () => categoriesStore.undo()
+const redo = () => categoriesStore.redo()
+</script>
