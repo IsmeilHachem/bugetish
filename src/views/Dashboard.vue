@@ -148,7 +148,7 @@
 
             <!-- Sparkline: SVG line graph, last 3 months -->
             <div v-if="savingsRateLast3.some(p => p.rate !== null)">
-              <svg viewBox="0 0 200 120" class="w-full" style="height:120px;" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet" class="w-full" style="height:110px;" xmlns="http://www.w3.org/2000/svg">
                 <!-- Zero baseline -->
                 <line x1="10" :y1="getSparkY(0)" x2="190" :y2="getSparkY(0)"
                       stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 3" />
@@ -186,7 +186,7 @@
                     <!-- Month label at bottom -->
                     <text
                       :x="[30,100,170][i]"
-                      y="112"
+                      y="106"
                       text-anchor="middle"
                       font-size="10"
                       fill="#9ca3af"
@@ -195,7 +195,7 @@
                   <template v-else>
                     <text
                       :x="[30,100,170][i]"
-                      y="112"
+                      y="106"
                       text-anchor="middle"
                       font-size="10"
                       fill="#d1d5db"
@@ -954,8 +954,8 @@ const savingsRateLast3 = computed(() => {
 
 // SVG sparkline helpers
 const getSparkY = (rate) => {
-  const y = 65 - (rate / 25) * 50
-  return Math.max(12, Math.min(90, y))
+  const y = 60 - (rate / 25) * 45
+  return Math.max(15, Math.min(95, y))
 }
 
 const sparklinePoints = computed(() =>
