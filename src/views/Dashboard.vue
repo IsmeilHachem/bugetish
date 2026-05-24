@@ -373,6 +373,77 @@
         </div>
       </div>
 
+      <!-- Debt Payoff Milestone -->
+      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 mb-6 overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
+
+          <!-- LEFT: Countdown + Progress -->
+          <div class="p-6">
+            <div class="flex items-center space-x-3 mb-1">
+              <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">Debt Payoff Milestone</h3>
+                <p class="text-xs text-gray-400">Your biggest fixed debt clears automatically</p>
+              </div>
+            </div>
+
+            <div class="mt-5 mb-4 flex flex-wrap items-end gap-6">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Loan</p>
+                <p class="text-xl font-bold text-gray-800">Personal Loan <span class="text-purple-600">($900/mo)</span></p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Payoff date</p>
+                <p class="text-xl font-bold text-gray-800">December 2030</p>
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-1.5">
+              <span class="text-sm font-bold text-purple-600">{{ debtPayoffProgress.toFixed(1) }}% paid off</span>
+              <span class="text-sm font-semibold text-gray-500">{{ debtPayoffMonthsLeft }} months to go — Dec 2030</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2.5">
+              <div
+                class="bg-gradient-to-r from-purple-400 to-indigo-500 h-2.5 rounded-full transition-all duration-700"
+                :style="{ width: Math.max(debtPayoffProgress, 0.15) + '%' }"
+              ></div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Impact message -->
+          <div class="p-6 flex flex-col justify-center">
+            <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-5 py-4 space-y-3">
+              <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-indigo-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p class="text-sm font-semibold text-indigo-800">
+                    When this clears, your monthly obligations drop by $900
+                  </p>
+                  <p class="text-xs text-indigo-600 mt-1">
+                    Your break-even income target becomes <span class="font-bold">$6,028/mo</span> instead of $6,928/mo
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-xs text-indigo-500">
+                  {{ debtPayoffMonthsLeft }} months until this automatic relief kicks in — no action needed
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Main Content Grid: 2-col charts + 1-col sidebar -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left column -->
@@ -998,6 +1069,19 @@ function onGoalLabelKeydown(e) {
   if (e.key === 'Enter') saveGoalLabel()
   if (e.key === 'Escape') editingGoalLabel.value = false
 }
+
+// Debt Payoff Milestone — Personal Loan $900/mo, ends Dec 2030, 60-month term
+const debtPayoffMonthsLeft = computed(() => {
+  const today = new Date()
+  const payoff = new Date(2030, 11, 1)
+  return (payoff.getFullYear() - today.getFullYear()) * 12
+    + (payoff.getMonth() - today.getMonth())
+})
+
+const debtPayoffProgress = computed(() => {
+  const completed = Math.max(60 - debtPayoffMonthsLeft.value, 0)
+  return Math.min((completed / 60) * 100, 100)
+})
 
 // FI inline editing
 const editingFI = ref(false)
