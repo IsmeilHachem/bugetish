@@ -147,12 +147,11 @@
             </div>
 
             <!-- Sparkline: SVG line graph, last 3 months -->
-            <div v-if="savingsRateLast3.some(p => p.rate !== null)">
-              <svg viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet" class="w-full" style="height:110px;" xmlns="http://www.w3.org/2000/svg">
+            <div v-if="savingsRateLast3.some(p => p.rate !== null)" class="w-full">
+              <svg viewBox="0 0 220 110" width="100%" height="110" xmlns="http://www.w3.org/2000/svg">
                 <!-- Zero baseline -->
-                <line x1="10" :y1="getSparkY(0)" x2="190" :y2="getSparkY(0)"
+                <line x1="20" :y1="getSparkY(0)" x2="200" :y2="getSparkY(0)"
                       stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 3" />
-
                 <!-- Connecting line -->
                 <polyline
                   v-if="sparklinePoints"
@@ -162,44 +161,27 @@
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  opacity="0.8"
+                  opacity="0.85"
                 />
-
                 <!-- Data points + labels -->
                 <template v-for="(p, i) in savingsRateLast3" :key="i">
                   <template v-if="p.rate !== null">
-                    <circle
-                      :cx="[30,100,170][i]"
-                      :cy="getSparkY(p.rate)"
-                      r="3"
-                      :fill="sparklineColor"
-                    />
-                    <!-- Rate label above/below point -->
-                    <text
-                      :x="[30,100,170][i]"
-                      :y="getSparkY(p.rate) - 8"
-                      text-anchor="middle"
-                      font-size="10"
-                      :fill="p.rate >= 0 ? '#16a34a' : '#dc2626'"
-                      font-weight="600"
-                    >{{ (p.rate >= 0 ? '' : '–') + Math.abs(p.rate).toFixed(1) + '%' }}</text>
-                    <!-- Month label at bottom -->
-                    <text
-                      :x="[30,100,170][i]"
-                      y="106"
-                      text-anchor="middle"
-                      font-size="10"
-                      fill="#9ca3af"
-                    >{{ p.month }}</text>
+                    <circle :cx="[40,110,180][i]" :cy="getSparkY(p.rate)" r="3.5" :fill="sparklineColor" />
+                    <text :x="[40,110,180][i]" :y="getSparkY(p.rate) - 7"
+                          text-anchor="middle" font-size="10" font-weight="600"
+                          :fill="p.rate >= 0 ? '#16a34a' : '#dc2626'">
+                      {{ (p.rate >= 0 ? '' : '–') + Math.abs(p.rate).toFixed(1) + '%' }}
+                    </text>
+                    <text :x="[40,110,180][i]" y="104"
+                          text-anchor="middle" font-size="10" fill="#9ca3af">
+                      {{ p.month }}
+                    </text>
                   </template>
                   <template v-else>
-                    <text
-                      :x="[30,100,170][i]"
-                      y="106"
-                      text-anchor="middle"
-                      font-size="10"
-                      fill="#d1d5db"
-                    >{{ p.month }}</text>
+                    <text :x="[40,110,180][i]" y="104"
+                          text-anchor="middle" font-size="10" fill="#d1d5db">
+                      {{ p.month }}
+                    </text>
                   </template>
                 </template>
               </svg>
@@ -954,16 +936,18 @@ const savingsRateLast3 = computed(() => {
 
 // SVG sparkline helpers
 const getSparkY = (rate) => {
-  const y = 60 - (rate / 25) * 45
-  return Math.max(15, Math.min(95, y))
+  const clamped = Math.max(-30, Math.min(30, rate))
+  return 65 - (clamped / 30) * 50
 }
 
-const sparklinePoints = computed(() =>
-  savingsRateLast3.value
-    .map((p, i) => p.rate !== null ? `${[30, 100, 170][i]},${getSparkY(p.rate)}` : null)
+const sparklinePoints = computed(() => {
+  return savingsRateLast3.value
+    .map((p, i) => p.rate !== null
+      ? `${[40, 110, 180][i]},${getSparkY(p.rate)}`
+      : null)
     .filter(Boolean)
     .join(' ')
-)
+})
 
 const sparklineColor = computed(() => {
   const rates = savingsRateLast3.value.map(p => p.rate).filter(r => r !== null)
