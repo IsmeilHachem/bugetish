@@ -56,8 +56,8 @@
           <Line :data="chartData" :options="chartOptions" :plugins="chartPlugins" />
         </div>
 
-        <div v-if="crossoverResult.beyond30" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
-          ⚠️ At current pace, crossover is 30+ years away. Increasing monthly investment moves this date closer.
+        <div v-if="crossoverResult.beyond40" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+          ⚠️ At current pace, crossover is 40+ years away. Increasing monthly investment moves this date closer.
         </div>
         <div v-else-if="crossoverResult.alreadyThere" class="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800 font-semibold">
           🎉 Your investment income already covers your expenses. You've reached the crossover point!
@@ -251,9 +251,13 @@ const crossoverResult = computed(() => {
 
   const MONTHLY_RETURN = 0.07 / 12 // 7% annual compound growth
   const now = new Date()
-  for (let m = 0; m < 360; m++) {
+  for (let m = 0; m < 480; m++) {
     invested = invested * (1 + MONTHLY_RETURN) + monthlyInvestment.value
     const income = (invested * 0.04) / 12
+    // Debug log at key milestones (verify formula matches expected values)
+    if (monthlyInvestment.value === 1000 && [59, 119, 179, 239, 359].includes(m)) {
+      console.log(`[FI] Year ${Math.round((m + 1) / 12)}: invested=$${Math.round(invested).toLocaleString()}, income=$${Math.round(income)}/mo`)
+    }
     if (income >= targetExp) {
       const d = new Date(now.getFullYear(), now.getMonth() + m + 1, 1)
       return {
@@ -262,12 +266,12 @@ const crossoverResult = computed(() => {
         months: m + 1,
         investedNeeded: invested,
         alreadyThere: false,
-        beyond30: false
+        beyond40: false
       }
     }
   }
 
-  return { date: '30+ years', years: '30+', months: null, investedNeeded: null, alreadyThere: false, beyond30: true }
+  return { date: '40+ years', years: '40+', months: null, investedNeeded: null, alreadyThere: false, beyond40: true }
 })
 
 // --- Chart: custom "Today" vertical line plugin ---
@@ -336,8 +340,8 @@ const chartData = computed(() => {
   // Determine how many projected months to show
   const crossoverMonths = crossoverResult.value.months // null or number
   const maxProj = crossoverMonths !== null
-    ? Math.min(crossoverMonths + 6, 360)  // 6-month buffer past crossover
-    : 180                                  // 15 years if no crossover
+    ? Math.min(crossoverMonths + 6, 480)  // 6-month buffer past crossover
+    : 480                                  // 40 years if no crossover found
 
   // Build projected data with compound growth (7% annual = 0.583%/mo)
   const MONTHLY_RETURN = 0.07 / 12
