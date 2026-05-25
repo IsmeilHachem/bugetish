@@ -95,7 +95,8 @@ const routes = [
   { path: '/bills', name: 'Bills', icon: '📋' },
   { path: '/reflections', name: 'Reflections', icon: '💭' },
   { path: '/monthly-review', name: 'Review', icon: '🔍' },
-  { path: '/life-energy', name: 'Life Energy', icon: '⏱️' }
+  { path: '/life-energy', name: 'Life Energy', icon: '⏱️' },
+  { path: '/fi-journey', name: 'FI Journey', icon: '🌅' }
 ]
 
 async function signOut() {

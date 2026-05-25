@@ -54,6 +54,11 @@ const routes = [
     path: '/monthly-review',
     name: 'MonthlyReview',
     component: () => import('../views/MonthlyReview.vue')
+  },
+  {
+    path: '/fi-journey',
+    name: 'FIJourney',
+    component: () => import('../views/FIJourney.vue')
   }
 ]
 
