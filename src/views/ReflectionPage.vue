@@ -132,7 +132,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useReflectionsStore } from '@/stores/reflections'
 import { useTransactionsStore } from '@/stores/transactions'
 import { useLifeEnergyStore } from '@/stores/lifeEnergy'
@@ -151,26 +151,7 @@ const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 
-// Load insight stores when auth is ready
-watch(
-  () => authStore.isLoggedIn,
-  async (loggedIn) => {
-    if (loggedIn) {
-      await Promise.all([
-        lifeEnergyStore.loadFromSupabase(),
-        fiSettingsStore.loadFromSupabase()
-      ])
-      await categoryReflectionsStore.loadForMonth(selectedMonth.value)
-    }
-  },
-  { immediate: true }
-)
-
-// Month picker state
-const today = new Date()
-const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
-const selectedMonth = ref(defaultMonth)
-
+// --- Helpers (declared first so they can be used below) ---
 function getPeriodStart(monthStr) {
   const [year, month] = monthStr.split('-').map(Number)
   return `${year}-${String(month).padStart(2, '0')}-01`
@@ -180,6 +161,21 @@ function getPeriodEnd(monthStr) {
   const end = new Date(year, month, 0)
   return `${year}-${String(month).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`
 }
+function extractMonthFromQuery(r) {
+  const queryMonth = r.query.month
+  if (typeof queryMonth === 'string' && /^\d{4}-\d{2}$/.test(queryMonth)) return queryMonth
+  const queryPeriodStart = r.query.periodStart
+  if (typeof queryPeriodStart === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(queryPeriodStart)) {
+    return queryPeriodStart.slice(0, 7)
+  }
+  return null
+}
+
+// --- Month picker state ---
+const today = new Date()
+const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+// Apply URL query param synchronously at setup time (route.query is available immediately)
+const selectedMonth = ref(extractMonthFromQuery(route) ?? defaultMonth)
 
 const periodType = 'month'
 const reflection = ref({
@@ -220,34 +216,27 @@ function onMonthChange() {
   loadReflectionForMonth(selectedMonth.value)
 }
 
-function extractMonthFromQuery(route) {
-  // Prefer ?month=YYYY-MM, fallback to ?periodStart=YYYY-MM-DD
-  const queryMonth = route.query.month
-  if (typeof queryMonth === 'string' && /^\d{4}-\d{2}$/.test(queryMonth)) {
-    return queryMonth
-  }
-  const queryPeriodStart = route.query.periodStart
-  if (typeof queryPeriodStart === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(queryPeriodStart)) {
-    return queryPeriodStart.slice(0, 7)
-  }
-  return null
-}
+// --- Single auth watcher — replaces onMounted ---
+watch(
+  () => authStore.isLoggedIn,
+  async (loggedIn) => {
+    if (!loggedIn) return
+    await Promise.all([
+      !transactionsStore.initialized ? transactionsStore.loadFromSupabase() : Promise.resolve(),
+      lifeEnergyStore.loadFromSupabase(),
+      fiSettingsStore.loadFromSupabase()
+    ])
+    await reflectionsStore.initialize()
+    loadReflectionForMonth(selectedMonth.value)
+    await categoryReflectionsStore.loadForMonth(selectedMonth.value)
+  },
+  { immediate: true }
+)
 
-onMounted(() => {
-  reflectionsStore.initialize()
-  // Check for ?month=YYYY-MM or ?periodStart=YYYY-MM-DD in the query
+// Reactive URL query param changes (e.g. navigating here from history links)
+watch(() => [route.query.month, route.query.periodStart], () => {
   const monthFromQuery = extractMonthFromQuery(route)
-  if (monthFromQuery) {
-    selectedMonth.value = monthFromQuery
-  }
-  loadReflectionForMonth(selectedMonth.value)
-})
-
-watch(() => [route.query.month, route.query.periodStart], ([newMonth, newPeriodStart]) => {
-  const monthFromQuery = extractMonthFromQuery(route)
-  if (monthFromQuery) {
-    selectedMonth.value = monthFromQuery
-  }
+  if (monthFromQuery) selectedMonth.value = monthFromQuery
 })
 
 watch(selectedMonth, async (newMonth) => {
