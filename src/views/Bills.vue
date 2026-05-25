@@ -345,7 +345,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useBillsStore } from '@/stores/bills'
 import { useAuthStore } from '@/stores/auth'
 import { useLifeEnergyStore } from '@/stores/lifeEnergy'
@@ -355,11 +355,15 @@ const billsStore = useBillsStore()
 const authStore = useAuthStore()
 const lifeEnergyStore = useLifeEnergyStore()
 
-// Load life energy when auth is ready
+// Load bills and life energy when auth is ready (auth watch pattern — no onMounted)
 watch(
   () => authStore.isLoggedIn,
   async (loggedIn) => {
-    if (loggedIn) await lifeEnergyStore.loadFromSupabase()
+    if (loggedIn) {
+      await billsStore.initialize()
+      billsStore.updateBillStatuses()
+      await lifeEnergyStore.loadFromSupabase()
+    }
   },
   { immediate: true }
 )
@@ -375,12 +379,6 @@ const showArchiveModal = ref(false)
 const archivingBill = ref(null)
 const paidSectionOpen = ref(false)
 const archivedSectionOpen = ref(false)
-
-// Initialize
-onMounted(async () => {
-  await billsStore.initialize()
-  billsStore.updateBillStatuses()
-})
 
 watch(billsStore.billMonthStatus, (val) => {
   localStorage.setItem('billMonthStatus', JSON.stringify(val))
