@@ -29,18 +29,87 @@
         </ul>
       </div>
     </div>
+    <!-- YMOYL Insights header (Change 1) -->
+    <div v-if="totalLifeHours !== null || bestWorstCategory || fiSettingsStore.loaded" class="mb-6 bg-gray-50 rounded-xl p-5 border border-gray-200">
+      <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Your Month in Life Energy</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+        <!-- Insight 1: Life hours traded -->
+        <div v-if="totalLifeHours !== null" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex items-center space-x-2 mb-2">
+            <span class="text-xl">⏳</span>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Life Energy Traded</span>
+          </div>
+          <div class="text-2xl font-bold text-gray-800">{{ Math.round(totalLifeHours) }} hrs</div>
+          <div class="text-xs text-gray-400 mt-1">at your real wage of {{ formatCurrency(lifeEnergyStore.lifeEnergyRate) }}/hr</div>
+        </div>
+
+        <!-- Insight 2: Best / worst category -->
+        <div v-if="bestWorstCategory" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex items-center space-x-2 mb-2">
+            <span class="text-xl">⚖️</span>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Category Value</span>
+          </div>
+          <div class="text-sm space-y-1">
+            <div><span class="text-green-600 font-semibold">Best:</span> <span class="font-medium text-gray-800">{{ bestWorstCategory.best }}</span></div>
+            <div><span class="text-red-500 font-semibold">Worst:</span> <span class="font-medium text-gray-800">{{ bestWorstCategory.worst }}</span></div>
+          </div>
+        </div>
+
+        <!-- Insight 3: FI Progress -->
+        <div v-if="fiSettingsStore.loaded" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex items-center space-x-2 mb-2">
+            <span class="text-xl">🎯</span>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">FI Progress</span>
+          </div>
+          <div class="text-2xl font-bold text-gray-800">{{ fiSettingsStore.progressPercent }}%</div>
+          <div class="text-xs text-gray-500 mt-1">{{ formatCurrency(fiSettingsStore.total_invested) }} invested</div>
+          <div class="text-xs text-gray-400">Target: {{ formatCurrency(fiSettingsStore.fiNumber) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Link to Monthly Review (Change 3) -->
+    <div class="mb-6">
+      <router-link
+        :to="{ path: '/monthly-review', query: { month: selectedMonth } }"
+        class="inline-flex items-center px-4 py-2.5 border-2 border-violet-400 text-violet-700 rounded-xl font-semibold text-sm hover:bg-violet-50 transition-colors duration-200"
+      >
+        Rate your categories for this month
+        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </router-link>
+    </div>
+
+    <!-- Reflection form with YMOYL questions (Change 2) -->
     <form @submit.prevent="saveReflection">
       <div class="mb-4">
-        <label class="block font-medium mb-1">What went well this month?</label>
-        <textarea v-model="reflection.notes" class="w-full border rounded p-2" rows="2" />
+        <label class="block font-medium mb-1">Which spending brought real fulfillment this month?</label>
+        <textarea
+          v-model="reflection.notes"
+          class="w-full border rounded p-2"
+          rows="2"
+          placeholder="Think about purchases that felt genuinely worth the hours of life you traded for them..."
+        />
       </div>
       <div class="mb-4">
-        <label class="block font-medium mb-1">What challenges did you face?</label>
-        <textarea v-model="reflection.challenges" class="w-full border rounded p-2" rows="2" />
+        <label class="block font-medium mb-1">Which spending felt like wasted life energy?</label>
+        <textarea
+          v-model="reflection.challenges"
+          class="w-full border rounded p-2"
+          rows="2"
+          placeholder="Spending that didn't match your values or brought less satisfaction than expected..."
+        />
       </div>
       <div class="mb-4">
-        <label class="block font-medium mb-1">Goal for next month</label>
-        <textarea v-model="reflection.goals" class="w-full border rounded p-2" rows="2" />
+        <label class="block font-medium mb-1">One change to better align spending with your values next month</label>
+        <textarea
+          v-model="reflection.goals"
+          class="w-full border rounded p-2"
+          rows="2"
+          placeholder="Be specific — what one thing would make the biggest difference toward financial independence?"
+        />
       </div>
       <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Reflection</button>
     </form>
@@ -66,13 +135,36 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useReflectionsStore } from '@/stores/reflections'
 import { useTransactionsStore } from '@/stores/transactions'
+import { useLifeEnergyStore } from '@/stores/lifeEnergy'
+import { useCategoryReflectionsStore } from '@/stores/categoryReflections'
+import { useFiSettingsStore } from '@/stores/fiSettings'
+import { useAuthStore } from '@/stores/auth'
 import { useRoute, useRouter } from 'vue-router'
 import { createESTDate } from '@/utils/dateUtils'
 
 const reflectionsStore = useReflectionsStore()
 const transactionsStore = useTransactionsStore()
+const lifeEnergyStore = useLifeEnergyStore()
+const categoryReflectionsStore = useCategoryReflectionsStore()
+const fiSettingsStore = useFiSettingsStore()
+const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
+
+// Load insight stores when auth is ready
+watch(
+  () => authStore.isLoggedIn,
+  async (loggedIn) => {
+    if (loggedIn) {
+      await Promise.all([
+        lifeEnergyStore.loadFromSupabase(),
+        fiSettingsStore.loadFromSupabase()
+      ])
+      await categoryReflectionsStore.loadForMonth(selectedMonth.value)
+    }
+  },
+  { immediate: true }
+)
 
 // Month picker state
 const today = new Date()
@@ -158,8 +250,11 @@ watch(() => [route.query.month, route.query.periodStart], ([newMonth, newPeriodS
   }
 })
 
-watch(selectedMonth, (newMonth) => {
+watch(selectedMonth, async (newMonth) => {
   loadReflectionForMonth(newMonth)
+  if (authStore.isLoggedIn) {
+    await categoryReflectionsStore.loadForMonth(newMonth)
+  }
 })
 
 function saveReflection() {
@@ -205,6 +300,49 @@ const stats = computed(() => {
     pathToFreedom,
     topCategories
   }
+})
+
+// YMOYL Insight 1: total life hours traded this month
+const totalLifeHours = computed(() => {
+  if (!lifeEnergyStore.lifeEnergyRate || lifeEnergyStore.lifeEnergyRate <= 0) return null
+  const [year, month] = selectedMonth.value.split('-').map(Number)
+  const total = (transactionsStore.getTransactions || [])
+    .filter(t => {
+      if (t.amount >= 0) return false
+      const d = new Date(t.date)
+      return d.getFullYear() === year && d.getMonth() + 1 === month
+    })
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+  return total / lifeEnergyStore.lifeEnergyRate
+})
+
+// YMOYL Insight 2: best and worst value spending category
+const bestWorstCategory = computed(() => {
+  const [year, month] = selectedMonth.value.split('-').map(Number)
+  const monthTx = (transactionsStore.getTransactions || []).filter(t => {
+    if (t.amount >= 0) return false
+    const d = new Date(t.date)
+    return d.getFullYear() === year && d.getMonth() + 1 === month
+  })
+  const catTotals = {}
+  for (const t of monthTx) {
+    const main = t.category?.split(' - ')[0]
+    if (!main || main === 'Pay Day') continue
+    catTotals[main] = (catTotals[main] || 0) + Math.abs(t.amount)
+  }
+  // fulfillment score: just right=1.0, too little=0.5, too much=0.0
+  const ratingScore = { 2: 1.0, 1: 0.5, 3: 0.0 }
+  const ratios = []
+  for (const [cat, dollars] of Object.entries(catTotals)) {
+    const ratingData = categoryReflectionsStore.getRating(cat)
+    if (!ratingData || !ratingData.rating) continue
+    const score = ratingScore[ratingData.rating]
+    if (score === undefined) continue
+    ratios.push({ cat, ratio: score / (dollars || 1) })
+  }
+  if (ratios.length < 2) return null
+  ratios.sort((a, b) => b.ratio - a.ratio)
+  return { best: ratios[0].cat, worst: ratios[ratios.length - 1].cat }
 })
 
 function formatCurrency(amount) {

@@ -154,6 +154,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useTransactionsStore } from '@/stores/transactions'
 import { useCategoriesStore } from '@/stores/categories'
 import { useCategoryReflectionsStore } from '@/stores/categoryReflections'
@@ -163,9 +164,21 @@ const transactionsStore = useTransactionsStore()
 const categoriesStore = useCategoriesStore()
 const reflectionsStore = useCategoryReflectionsStore()
 const authStore = useAuthStore()
+const route = useRoute()
 
 const now = new Date()
 const selectedMonth = ref(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`)
+
+// Pick up ?month=YYYY-MM from URL (e.g. linked from ReflectionPage)
+watch(
+  () => route.query.month,
+  (monthParam) => {
+    if (typeof monthParam === 'string' && /^\d{4}-\d{2}$/.test(monthParam)) {
+      selectedMonth.value = monthParam
+    }
+  },
+  { immediate: true }
+)
 const loading = ref(false)
 const openNotes = ref({})
 const notesMap = ref({})
@@ -217,6 +230,7 @@ const activeCategories = computed(() => {
 
   return Object.entries(totals)
     .map(([name, total]) => ({ name, total }))
+    .filter(cat => cat.name !== 'Pay Day') // income category — not a spending category
     .sort((a, b) => a.total - b.total) // most spent first (most negative)
 })
 
