@@ -249,9 +249,10 @@ const crossoverResult = computed(() => {
     return { date: 'Now!', years: '0', months: 0, investedNeeded: invested, alreadyThere: true, beyond30: false }
   }
 
+  const MONTHLY_RETURN = 0.07 / 12 // 7% annual compound growth
   const now = new Date()
   for (let m = 0; m < 360; m++) {
-    invested += monthlyInvestment.value
+    invested = invested * (1 + MONTHLY_RETURN) + monthlyInvestment.value
     const income = (invested * 0.04) / 12
     if (income >= targetExp) {
       const d = new Date(now.getFullYear(), now.getMonth() + m + 1, 1)
@@ -338,7 +339,8 @@ const chartData = computed(() => {
     ? Math.min(crossoverMonths + 6, 360)  // 6-month buffer past crossover
     : 180                                  // 15 years if no crossover
 
-  // Build projected data
+  // Build projected data with compound growth (7% annual = 0.583%/mo)
+  const MONTHLY_RETURN = 0.07 / 12
   let projInvested = fiSettingsStore.total_invested
   const projMths = []
   const projExp = []
@@ -347,7 +349,7 @@ const chartData = computed(() => {
   for (let i = 0; i < maxProj; i++) {
     const d = new Date(curYear, curMonth - 1 + i + 1, 1)
     projMths.push({ y: d.getFullYear(), m: d.getMonth() + 1 })
-    projInvested += monthlyInvestment.value
+    projInvested = projInvested * (1 + MONTHLY_RETURN) + monthlyInvestment.value
     projExp.push(targetExp)
     projInc.push((projInvested * 0.04) / 12)
   }
