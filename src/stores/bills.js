@@ -23,6 +23,8 @@ export const useBillsStore = defineStore('bills', {
 
   getters: {
     getBills: (state) => state.bills,
+    getActiveBills: (state) => state.bills.filter(b => !b.archived),
+    getArchivedBills: (state) => state.bills.filter(b => b.archived === true),
     getCategories: (state) => state.categories,
 
     // Get bills by status
@@ -315,6 +317,26 @@ export const useBillsStore = defineStore('bills', {
       
       // Set deletedAfter to the current month - this will hide it from current month onwards
       bill.deletedAfter = month
+      this.saveToLocalStorage()
+      this.saveToSupabase()
+      return true
+    },
+
+    // Archive a bill (soft-delete — sets archived: true, preserves data)
+    archiveBill(id) {
+      const bill = this.bills.find(b => b.id === id)
+      if (!bill) return false
+      bill.archived = true
+      this.saveToLocalStorage()
+      this.saveToSupabase()
+      return true
+    },
+
+    // Restore an archived bill
+    restoreArchivedBill(id) {
+      const bill = this.bills.find(b => b.id === id)
+      if (!bill) return false
+      bill.archived = false
       this.saveToLocalStorage()
       this.saveToSupabase()
       return true
