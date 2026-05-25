@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-    <div class="container mx-auto px-4 py-8">
+    <div class="w-full px-4 md:px-6 lg:px-8 py-8">
       <!-- Header Section -->
       <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -98,6 +98,54 @@
             </div>
           </div>
         </div>
+
+        <!-- Type toggle -->
+        <div class="mt-5 flex items-center gap-2 flex-wrap">
+          <span class="text-sm font-semibold text-gray-500 mr-1">Show:</span>
+          <button @click="setTypeFilter('all')"
+            class="px-4 py-1.5 text-sm font-medium border rounded-lg transition-colors duration-200"
+            :class="typeFilter === 'all' ? 'bg-purple-600 text-white border-purple-600' : 'text-gray-600 border-gray-300 hover:border-gray-400 bg-white'">
+            All
+          </button>
+          <button @click="setTypeFilter('income')"
+            class="px-4 py-1.5 text-sm font-medium border rounded-lg transition-colors duration-200"
+            :class="typeFilter === 'income' ? 'bg-green-600 text-white border-green-600' : 'text-gray-600 border-gray-300 hover:border-gray-400 bg-white'">
+            Income
+          </button>
+          <button @click="setTypeFilter('expenses')"
+            class="px-4 py-1.5 text-sm font-medium border rounded-lg transition-colors duration-200"
+            :class="typeFilter === 'expenses' ? 'bg-red-600 text-white border-red-600' : 'text-gray-600 border-gray-300 hover:border-gray-400 bg-white'">
+            Expenses
+          </button>
+        </div>
+
+        <!-- Category pills -->
+        <div v-if="availableCategories.length > 0" class="mt-3 flex flex-wrap gap-2">
+          <button @click="selectedCategory = null"
+            class="px-3 py-1 text-xs font-medium border rounded-full transition-colors duration-200"
+            :class="selectedCategory === null ? 'bg-indigo-600 text-white border-indigo-600' : 'text-gray-500 border-gray-200 hover:border-gray-400 bg-white'">
+            All Categories
+          </button>
+          <button v-for="cat in availableCategories" :key="cat"
+            @click="selectedCategory = cat"
+            class="px-3 py-1 text-xs font-medium border rounded-full transition-colors duration-200"
+            :class="selectedCategory === cat ? 'bg-indigo-600 text-white border-indigo-600' : 'text-gray-500 border-gray-200 hover:border-gray-400 bg-white'">
+            {{ cat }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary bar -->
+      <div class="bg-white rounded-2xl shadow-xl px-6 py-3 mb-4 border border-gray-100 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        <span class="text-gray-500 font-medium">{{ filteredAndSortedTransactions.length }} transaction{{ filteredAndSortedTransactions.length === 1 ? '' : 's' }}</span>
+        <span class="text-gray-200 hidden sm:inline">·</span>
+        <span class="font-semibold text-green-600">Income: {{ formatCurrency(filteredIncome) }}</span>
+        <span class="text-gray-200 hidden sm:inline">·</span>
+        <span class="font-semibold text-red-600">Expenses: {{ formatCurrency(Math.abs(filteredExpenses)) }}</span>
+        <span class="text-gray-200 hidden sm:inline">·</span>
+        <span class="font-semibold" :class="filteredNet >= 0 ? 'text-green-600' : 'text-red-600'">
+          Net: {{ filteredNet >= 0 ? '+' : '' }}{{ formatCurrency(filteredNet) }}
+        </span>
       </div>
 
       <!-- Transactions Table -->
@@ -146,7 +194,7 @@
                 <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Amount
                 </th>
-                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="hidden md:table-cell px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Running Total
                 </th>
                 <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -191,7 +239,7 @@
                     ≈ {{ lifeEnergyStore.toCost(transaction.amount) }}
                   </div>
                 </td>
-                <td class="px-6 py-4 text-sm text-right tabular-nums font-bold"
+                <td class="hidden md:table-cell px-6 py-4 text-sm text-right tabular-nums font-bold"
                   :class="{
                     'text-blue-600': transaction.runningTotal >= 0,
                     'text-red-600': transaction.runningTotal < 0
@@ -246,7 +294,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useTransactionsStore } from '@/stores/transactions'
 import { useAuthStore } from '@/stores/auth'
 import { useLifeEnergyStore } from '@/stores/lifeEnergy'
@@ -280,28 +328,24 @@ const showAddModal = ref(false)
 const showEditModal = ref(false)
 const selectedTransaction = ref(null)
 
-// Filter and sort state — default wide range so all loaded data is visible
+// Filter and sort state — default to current month
 const now = new Date()
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 const dateRange = ref({
-  start: '2024-01',
+  start: currentMonth,
   end: currentMonth
 })
-
-// Once transactions load, tighten start to the earliest transaction's month
-watch(
-  () => transactionsStore.getTransactions,
-  (txs) => {
-    if (!txs || txs.length === 0) return
-    const earliest = txs.reduce((min, t) => t.date < min ? t.date : min, txs[0].date)
-    const [y, m] = earliest.split('-')
-    dateRange.value.start = `${y}-${m}`
-  },
-  { immediate: true }
-)
 const searchTerm = ref('')
 const sortBy = ref('date')
 const sortOrder = ref('desc')
+const typeFilter = ref('all') // 'all' | 'income' | 'expenses'
+const selectedCategory = ref(null) // null = all categories
+
+function setTypeFilter(val) {
+  typeFilter.value = val
+  selectedCategory.value = null
+  displayLimit.value = PAGE_SIZE
+}
 
 // Helper function to filter transactions by date range
 function filterTransactionsByDateRange(transactions, range) {
@@ -393,7 +437,7 @@ const PAGE_SIZE = 50
 const displayLimit = ref(PAGE_SIZE)
 
 // Reset to first page whenever any filter or sort changes
-watch([dateRange, searchTerm, sortBy, sortOrder], () => {
+watch([dateRange, searchTerm, sortBy, sortOrder, typeFilter, selectedCategory], () => {
   displayLimit.value = PAGE_SIZE
 }, { deep: true })
 
@@ -405,16 +449,36 @@ function loadMore() {
   displayLimit.value += PAGE_SIZE
 }
 
+// Transactions after date, type, and search — used for category pills and summary
+const preFilteredTransactions = computed(() => {
+  let txs = transactionsStore.getTransactions || []
+  txs = filterTransactionsByDateRange(txs, dateRange.value)
+  if (typeFilter.value === 'income') txs = txs.filter(t => t.amount > 0)
+  else if (typeFilter.value === 'expenses') txs = txs.filter(t => t.amount < 0)
+  txs = searchTransactions(txs, searchTerm.value)
+  return txs
+})
+
+// Unique main categories from current pre-filtered set
+const availableCategories = computed(() => {
+  return [...new Set(
+    preFilteredTransactions.value
+      .map(t => t.category?.split(' - ')[0])
+      .filter(Boolean)
+  )].sort()
+})
+
 // Computed property for filtered and sorted transactions
 const filteredAndSortedTransactions = computed(() => {
-  let transactions = transactionsStore.getTransactions || []
-  
-  // Apply date range filter
-  transactions = filterTransactionsByDateRange(transactions, dateRange.value)
-  
-  // Apply search filter
-  transactions = searchTransactions(transactions, searchTerm.value)
-  
+  let transactions = preFilteredTransactions.value.slice()
+
+  // Apply category filter
+  if (selectedCategory.value) {
+    transactions = transactions.filter(t =>
+      t.category && t.category.split(' - ')[0] === selectedCategory.value
+    )
+  }
+
   // Sort transactions
   transactions = sortTransactions(transactions, sortBy.value, sortOrder.value)
   
@@ -461,6 +525,15 @@ const filteredAndSortedTransactions = computed(() => {
     }))
   }
 })
+
+// Summary bar totals (full filtered set, before pagination)
+const filteredIncome = computed(() =>
+  filteredAndSortedTransactions.value.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0)
+)
+const filteredExpenses = computed(() =>
+  filteredAndSortedTransactions.value.filter(t => t.amount < 0).reduce((s, t) => s + t.amount, 0)
+)
+const filteredNet = computed(() => filteredIncome.value + filteredExpenses.value)
 
 const formatDate = (date) => {
   const d = parseESTDate(date)
