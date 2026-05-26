@@ -32,6 +32,28 @@
         </div>
       </div>
 
+      <!-- Milestone Celebration Banner -->
+      <Transition name="milestone-banner">
+        <div
+          v-if="celebrationBanner"
+          class="bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl shadow-xl p-6 mb-6 border border-green-300 relative overflow-hidden"
+        >
+          <button
+            @click="dismissBanner"
+            class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 rounded-full transition-colors text-xl font-bold leading-none"
+            aria-label="Dismiss"
+          >&times;</button>
+          <div class="flex items-start gap-4">
+            <div class="text-5xl shrink-0 leading-none">🎉</div>
+            <div class="min-w-0 pr-8">
+              <p class="text-xs font-bold text-green-100 uppercase tracking-widest mb-1">Milestone Reached!</p>
+              <h2 class="text-2xl font-bold text-white mb-2">{{ celebrationBanner.name }}</h2>
+              <p class="text-green-50 text-sm leading-relaxed">{{ celebrationBanner.message }}</p>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
       <!-- Quick Stats Cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <!-- Current Balance -->
@@ -634,6 +656,7 @@ import { useLifeEnergyStore } from '@/stores/lifeEnergy'
 import SpendingCategoryChart from '@/components/SpendingCategoryChart.vue'
 import IncomeExpensesChart from '@/components/IncomeExpensesChart.vue'
 import DateRangeSelector from '../components/DateRangeSelector.vue'
+import { MILESTONE_DEFS, isCelebrated, markCelebrated, recordAchievedDate } from '@/utils/milestones'
 
 const transactionsStore = useTransactionsStore()
 const billsStore = useBillsStore()
@@ -1143,4 +1166,62 @@ function onFIKeydown(e) {
 watch(selectedMonth, () => {
   refreshKey.value++
 })
-</script> 
+
+// --- Milestone Celebrations ---
+
+// Savings balance (cumulative transactions tagged as savings)
+const savingsBalance = computed(() =>
+  Math.max(0, (transactionsStore.getTransactions || [])
+    .filter(t => t.category?.toLowerCase().includes('saving'))
+    .reduce((sum, t) => sum + t.amount, 0))
+)
+
+function isMilestoneHit(key) {
+  const avgExp = avgMonthlyExpenses3m.value
+  const savings = savingsBalance.value
+  const invested = fiStore.total_invested
+  switch (key) {
+    case 'one_month_buffer': return avgExp > 0 && savings >= avgExp
+    case 'emergency_fund':   return avgExp > 0 && savings >= avgExp * 3
+    case 'first_10k':        return invested >= 10000
+    case 'debt_freedom':     return new Date() >= new Date(2030, 11, 1)
+    case 'fi_crossover':     return fiStore.progressPercent >= 100
+    default: return false
+  }
+}
+
+const celebrationBanner = ref(null)
+
+function checkMilestones() {
+  for (const def of MILESTONE_DEFS) {
+    if (isMilestoneHit(def.key) && !isCelebrated(def.key)) {
+      recordAchievedDate(def.key)
+      celebrationBanner.value = def
+      return
+    }
+  }
+  celebrationBanner.value = null
+}
+
+function dismissBanner() {
+  if (celebrationBanner.value) {
+    markCelebrated(celebrationBanner.value.key)
+    celebrationBanner.value = null
+  }
+}
+
+// Check milestones once FI settings finish loading (transactions already initialized in onMounted)
+watch(() => fiStore.loaded, (loaded) => { if (loaded) checkMilestones() })
+</script>
+
+<style scoped>
+.milestone-banner-enter-active,
+.milestone-banner-leave-active {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.milestone-banner-enter-from,
+.milestone-banner-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+</style> 

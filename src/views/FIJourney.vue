@@ -147,8 +147,10 @@
           <div
             v-for="ms in milestones"
             :key="ms.title"
-            class="p-4 rounded-xl border transition-all"
-            :class="ms.pct >= 100 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-100'"
+            class="p-4 rounded-xl border border-l-4 transition-all"
+            :class="ms.pct >= 100
+              ? 'bg-green-50 border-green-200 border-l-green-500'
+              : 'bg-gray-50 border-gray-100 border-l-gray-200'"
           >
             <div class="flex items-start justify-between mb-3">
               <div>
@@ -159,6 +161,9 @@
                   {{ ms.title }}
                 </div>
                 <div class="text-xs text-gray-400 mt-0.5 ml-5">{{ ms.sub }}</div>
+                <div v-if="ms.pct >= 100 && achievedDates[ms.key]" class="text-xs text-green-600 font-semibold mt-0.5 ml-5">
+                  Achieved {{ achievedDates[ms.key] }}
+                </div>
               </div>
               <div class="text-right shrink-0 ml-4">
                 <div class="font-bold text-sm" :class="ms.pct >= 100 ? 'text-green-600' : 'text-gray-600'">
@@ -198,6 +203,7 @@ import {
 import { useTransactionsStore } from '@/stores/transactions'
 import { useFiSettingsStore } from '@/stores/fiSettings'
 import { useAuthStore } from '@/stores/auth'
+import { recordAchievedDate, getAchievedDates } from '@/utils/milestones'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
@@ -457,6 +463,18 @@ const chartOptions = {
   animation: { duration: 250 }
 }
 
+// Achievement date tracking (localStorage, read-only reactive copy)
+const achievedDates = ref(getAchievedDates())
+
+// Record achieved dates when milestones are first completed
+watch(milestones, (list) => {
+  let changed = false
+  for (const ms of list) {
+    if (ms.pct >= 100 && recordAchievedDate(ms.key)) changed = true
+  }
+  if (changed) achievedDates.value = getAchievedDates()
+}, { immediate: true })
+
 // --- Savings balance (milestone 1 & 2) ---
 const savingsBalance = computed(() =>
   Math.max(
@@ -495,6 +513,7 @@ const milestones = computed(() => {
 
   return [
     {
+      key: 'one_month_buffer',
       title: 'One Month Buffer',
       sub: `Target: ${fmt(avgExp)} saved`,
       pct: avgExp > 0 ? (savings / avgExp) * 100 : 0,
@@ -502,6 +521,7 @@ const milestones = computed(() => {
       color: 'bg-blue-400'
     },
     {
+      key: 'emergency_fund',
       title: 'Emergency Fund',
       sub: `Target: ${fmt(avgExp * 3)} (3 months of expenses)`,
       pct: avgExp > 0 ? (savings / (avgExp * 3)) * 100 : 0,
@@ -509,6 +529,7 @@ const milestones = computed(() => {
       color: 'bg-cyan-400'
     },
     {
+      key: 'first_10k',
       title: 'First $10,000 Invested',
       sub: `${fmt(invested)} invested so far`,
       pct: (invested / 10000) * 100,
@@ -516,6 +537,7 @@ const milestones = computed(() => {
       color: 'bg-violet-400'
     },
     {
+      key: 'debt_freedom',
       title: 'Debt Freedom',
       sub: 'Personal Loan · Payoff Dec 2030',
       pct: debtProgress.value,
@@ -523,6 +545,7 @@ const milestones = computed(() => {
       color: 'bg-amber-400'
     },
     {
+      key: 'fi_crossover',
       title: 'FI Crossover',
       sub: `Target: ${fmt(fiSettingsStore.fiNumber)}`,
       pct: fiSettingsStore.progressPercent,

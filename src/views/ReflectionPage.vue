@@ -29,6 +29,25 @@
         </ul>
       </div>
     </div>
+    <!-- Milestone achievement banner (display-only prompt) -->
+    <div v-if="milestonesThisMonth.length > 0" class="mb-6 space-y-3">
+      <div
+        v-for="ms in milestonesThisMonth"
+        :key="ms.key"
+        class="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4"
+      >
+        <span class="text-2xl shrink-0">🏆</span>
+        <div>
+          <p class="font-semibold text-amber-800 text-sm">
+            You reached a milestone this month: <strong>{{ ms.name }}</strong>
+          </p>
+          <p class="text-amber-600 text-xs mt-1">
+            Consider noting this achievement in your reflection below.
+          </p>
+        </div>
+      </div>
+    </div>
+
     <!-- YMOYL Insights header (Change 1) -->
     <div v-if="totalLifeHours !== null || bestWorstCategory || fiSettingsStore.loaded" class="mb-6 bg-gray-50 rounded-xl p-5 border border-gray-200">
       <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Your Month in Life Energy</h3>
@@ -141,6 +160,7 @@ import { useFiSettingsStore } from '@/stores/fiSettings'
 import { useAuthStore } from '@/stores/auth'
 import { useRoute, useRouter } from 'vue-router'
 import { createESTDate } from '@/utils/dateUtils'
+import { MILESTONE_DEFS, getAchievedDates } from '@/utils/milestones'
 
 const reflectionsStore = useReflectionsStore()
 const transactionsStore = useTransactionsStore()
@@ -216,11 +236,20 @@ function onMonthChange() {
   loadReflectionForMonth(selectedMonth.value)
 }
 
+// Achievement dates from localStorage (read fresh each time auth loads so navigation from FIJourney shows the banner)
+const achievedDates = ref({})
+
+// Milestones achieved in the currently selected month (display-only prompt)
+const milestonesThisMonth = computed(() =>
+  MILESTONE_DEFS.filter(def => achievedDates.value[def.key] === monthLabel.value)
+)
+
 // --- Single auth watcher — replaces onMounted ---
 watch(
   () => authStore.isLoggedIn,
   async (loggedIn) => {
     if (!loggedIn) return
+    achievedDates.value = getAchievedDates()
     await Promise.all([
       !transactionsStore.initialized ? transactionsStore.loadFromSupabase() : Promise.resolve(),
       lifeEnergyStore.loadFromSupabase(),
