@@ -262,6 +262,14 @@
                   </div>
                 </div>
               </div>
+              <!-- 3-month rolling average + trend -->
+              <div v-if="categoryThreeMonthAvgs[mainCategory] !== null" class="mt-2 flex items-center justify-between gap-2">
+                <span class="text-xs text-gray-400">
+                  3-month avg: {{ formatCurrency(categoryThreeMonthAvgs[mainCategory]) }}/mo<template v-if="lifeEnergyStore.lifeEnergyRate > 0"> · ≈ {{ lifeEnergyStore.toCost(categoryThreeMonthAvgs[mainCategory]) }}</template>
+                </span>
+                <span v-if="categoryAvgTrends[mainCategory] === 'above'" class="text-xs text-amber-500 font-medium shrink-0">↑ above avg</span>
+                <span v-else-if="categoryAvgTrends[mainCategory] === 'below'" class="text-xs text-green-500 font-medium shrink-0">↓ below avg</span>
+              </div>
             </div>
           </div>
         </div>
@@ -421,6 +429,45 @@ const getCategoryTotalForMonth = (mainCategory, monthStr) => {
 }
 
 const getCategoryTotal = (mainCategory) => getCategoryTotalForMonth(mainCategory, selectedMonth.value)
+
+// 3-month rolling average for a spending category (3 full months before beforeMonth)
+function getThreeMonthAvg(categoryName, transactions, beforeMonth) {
+  const [y, m] = beforeMonth.split('-').map(Number)
+  const totals = [1, 2, 3].map(i => {
+    const d = new Date(y, m - 1 - i, 1)
+    const yr = d.getFullYear(), mo = d.getMonth() + 1
+    return (transactions || []).filter(t => {
+      if (t.amount >= 0) return false
+      if (t.category?.split(' - ')[0] !== categoryName) return false
+      const [ty, tm] = t.date.split('-').map(Number)
+      return ty === yr && tm === mo
+    }).reduce((s, t) => s + Math.abs(t.amount), 0)
+  })
+  return totals.every(v => v === 0) ? null : totals.reduce((a, b) => a + b, 0) / 3
+}
+
+// Pre-compute 3-month averages for all spending categories
+const categoryThreeMonthAvgs = computed(() => {
+  const txs = transactionsStore.getTransactions || []
+  const map = {}
+  for (const cat of spendingCategories.value) {
+    map[cat] = getThreeMonthAvg(cat, txs, selectedMonth.value)
+  }
+  return map
+})
+
+// Pre-compute avg-vs-current trend for each spending category
+const categoryAvgTrends = computed(() => {
+  const map = {}
+  for (const cat of spendingCategories.value) {
+    const avg = categoryThreeMonthAvgs.value[cat]
+    if (!avg) { map[cat] = null; continue }
+    const curr = Math.abs(getCategoryTotal(cat))
+    const pct = ((curr - avg) / avg) * 100
+    map[cat] = pct > 10 ? 'above' : pct < -10 ? 'below' : null
+  }
+  return map
+})
 
 // Previous month string
 const prevMonth = computed(() => {

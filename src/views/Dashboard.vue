@@ -488,12 +488,12 @@
                   <div class="flex flex-wrap items-start justify-between gap-2">
                     <span class="text-sm font-semibold text-amber-800">{{ alert.name }}</span>
                     <span class="text-sm font-bold text-amber-700 text-right">
-                      ↑ {{ formatCurrency(alert.diff) }} more
+                      ↑ {{ formatCurrency(alert.diff) }} vs 3-month avg
                       <span class="text-amber-500 font-medium">(+{{ alert.pct.toFixed(0) }}%)</span>
                     </span>
                   </div>
-                  <p v-if="alert.threeMonthAvg !== null" class="text-xs text-amber-500 mt-1">
-                    3-month avg: {{ formatCurrency(alert.threeMonthAvg) }}/mo
+                  <p class="text-xs text-amber-500 mt-1">
+                    3-month avg: {{ formatCurrency(alert.threeMonthAvg) }} · This month: {{ formatCurrency(alert.thisMonth) }}
                   </p>
                 </div>
               </div>
@@ -692,6 +692,22 @@ function getMonthTransactions(transactions, monthStr) {
     const dateObj = new Date(y, m - 1, d)
     return dateObj.getFullYear() === year && dateObj.getMonth() + 1 === month
   })
+}
+
+// 3-month rolling average for a spending category (3 full months before beforeMonth)
+function getThreeMonthAvg(categoryName, transactions, beforeMonth) {
+  const [y, m] = beforeMonth.split('-').map(Number)
+  const totals = [1, 2, 3].map(i => {
+    const d = new Date(y, m - 1 - i, 1)
+    const yr = d.getFullYear(), mo = d.getMonth() + 1
+    return (transactions || []).filter(t => {
+      if (t.amount >= 0) return false
+      if (t.category?.split(' - ')[0] !== categoryName) return false
+      const [ty, tm] = t.date.split('-').map(Number)
+      return ty === yr && tm === mo
+    }).reduce((s, t) => s + Math.abs(t.amount), 0)
+  })
+  return totals.every(v => v === 0) ? null : totals.reduce((a, b) => a + b, 0) / 3
 }
 
 // Helper function to filter transactions by selected date range
@@ -975,43 +991,29 @@ const savingsRate3mAvg = computed(() => {
   return rates.reduce((s, r) => s + r, 0) / rates.length
 })
 
-// Top 3 categories overspending vs prior month by more than 10%
+// Top 3 categories overspending vs 3-month rolling average by more than 15%
 const categoryOverspend = computed(() => {
   const txAll = transactionsStore.getTransactions || []
-  const getSpend = (monthStr) => {
-    const [year, month] = monthStr.split('-').map(Number)
-    const totals = {}
-    for (const t of txAll) {
-      if (t.amount >= 0 || !t.category) continue
-      const [y, m] = t.date.split('-').map(Number)
-      if (y !== year || m !== month) continue
-      const main = t.category.split(' - ')[0]
-      totals[main] = (totals[main] || 0) + Math.abs(t.amount)
-    }
-    return totals
-  }
-  const curr = getSpend(selectedMonth.value)
-  const prev = getSpend(prevMonth.value)
-
-  // Pre-compute the 3 months prior to selectedMonth for avg display
   const [sy, sm] = selectedMonth.value.split('-').map(Number)
-  const priorSpends = [1, 2, 3].map(i => {
-    const d = new Date(sy, sm - 1 - i, 1)
-    return getSpend(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
-  })
+
+  // Current month spending by main category
+  const curr = {}
+  for (const t of txAll) {
+    if (t.amount >= 0 || !t.category) continue
+    const [ty, tm] = t.date.split('-').map(Number)
+    if (ty !== sy || tm !== sm) continue
+    const main = t.category.split(' - ')[0]
+    curr[main] = (curr[main] || 0) + Math.abs(t.amount)
+  }
 
   const alerts = []
   for (const [cat, amount] of Object.entries(curr)) {
-    const prevAmount = prev[cat] || 0
-    if (prevAmount === 0) continue
-    const diff = amount - prevAmount
-    const pct = (diff / prevAmount) * 100
-    if (pct > 10) {
-      const priorValues = priorSpends.map(s => s[cat] || 0).filter(v => v > 0)
-      const threeMonthAvg = priorValues.length > 0
-        ? priorValues.reduce((a, b) => a + b, 0) / priorValues.length
-        : null
-      alerts.push({ name: cat, diff, pct, threeMonthAvg })
+    const avg = getThreeMonthAvg(cat, txAll, selectedMonth.value)
+    if (!avg || avg === 0) continue
+    const diff = amount - avg
+    const pct = (diff / avg) * 100
+    if (pct > 15) {
+      alerts.push({ name: cat, diff, pct, threeMonthAvg: avg, thisMonth: amount })
     }
   }
   return alerts.sort((a, b) => b.diff - a.diff).slice(0, 3)
