@@ -1183,7 +1183,7 @@ function isMilestoneHit(key) {
   switch (key) {
     case 'one_month_buffer': return avgExp > 0 && savings >= avgExp
     case 'emergency_fund':   return avgExp > 0 && savings >= avgExp * 3
-    case 'first_10k':        return invested >= 10000
+    case 'first_10k':        return invested >= 100
     case 'debt_freedom':     return new Date() >= new Date(2030, 11, 1)
     case 'fi_crossover':     return fiStore.progressPercent >= 100
     default: return false
