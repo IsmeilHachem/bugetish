@@ -1,13 +1,13 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-slate-950">
     <!-- Navigation Header -->
-    <header class="bg-white shadow-sm">
+    <header class="bg-slate-900 border-b border-slate-700">
       <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex">
             <!-- Logo -->
             <div class="flex-shrink-0 flex items-center">
-              <h1 class="text-xl font-bold text-gray-900">BudgetIsh</h1>
+              <h1 class="text-xl font-bold text-white">BudgetIsh</h1>
             </div>
             <!-- Desktop Navigation Links -->
             <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -18,8 +18,8 @@
                 class="inline-flex items-center px-1 pt-1 text-sm font-medium"
                 :class="[
                   $route.path === route.path
-                    ? 'border-b-2 border-blue-500 text-gray-900'
-                    : 'border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    ? 'border-b-2 border-indigo-400 text-white'
+                    : 'border-b-2 border-transparent text-slate-300 hover:border-slate-500 hover:text-white'
                 ]"
               >
                 {{ route.name }}
@@ -30,7 +30,7 @@
           <div v-if="authStore.isLoggedIn" class="flex items-center">
             <button
               @click="signOut"
-              class="text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
+              class="text-sm text-slate-400 hover:text-white font-medium transition-colors"
             >
               Sign out
             </button>
@@ -60,7 +60,7 @@
     </main>
 
     <!-- Mobile Bottom Navigation -->
-    <nav v-if="authStore.isLoggedIn" class="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+    <nav v-if="authStore.isLoggedIn" class="sm:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700 z-50">
       <div class="flex justify-around">
         <router-link
           v-for="route in routes"
@@ -69,8 +69,8 @@
           class="flex flex-col items-center py-2 px-1 text-xs font-medium flex-1"
           :class="[
             $route.path === route.path
-              ? 'text-blue-600'
-              : 'text-gray-500'
+              ? 'text-indigo-400'
+              : 'text-slate-400'
           ]"
         >
           <span class="text-lg mb-0.5">{{ route.icon }}</span>

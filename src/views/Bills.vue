@@ -1,24 +1,24 @@
 <!-- Bills View -->
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+  <div class="min-h-screen bg-slate-950">
     <div class="container mx-auto px-4 py-8">
 
       <!-- Header -->
-      <div class="bg-white rounded-2xl shadow-xl p-8 mb-6 border border-gray-100">
+      <div class="bg-gradient-to-br from-rose-950 to-slate-900 rounded-2xl shadow-xl p-8 mb-6 border border-rose-900">
         <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
           <div>
-            <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h1 class="text-4xl font-bold text-white">
               Bills
             </h1>
-            <p class="text-gray-600 mt-2 text-lg">Track and manage your recurring bills and payments</p>
+            <p class="text-slate-300 mt-2 text-lg">Track and manage your recurring bills and payments</p>
           </div>
           <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
             <div class="relative">
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Select Month</label>
+              <label class="block text-sm font-semibold text-slate-300 mb-2">Select Month</label>
               <input
                 type="month"
                 v-model="selectedMonth"
-                class="px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200 hover:shadow-md"
+                class="px-4 py-3 border border-slate-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 bg-slate-800 text-slate-100 transition-all duration-200"
               />
             </div>
             <div class="flex gap-2 mt-auto">
@@ -48,23 +48,23 @@
 
       <!-- Summary Stats -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-2xl shadow-xl p-5 border border-gray-100">
-          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Total Bills</p>
-          <p class="text-3xl font-bold text-gray-900">{{ billsForMonth.length }}</p>
-          <p class="text-xs text-gray-400 mt-1">this month</p>
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-5 border border-slate-700 border-l-4 border-l-rose-500">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Total Bills</p>
+          <p class="text-3xl font-bold text-slate-100">{{ billsForMonth.length }}</p>
+          <p class="text-xs text-slate-400 mt-1">this month</p>
         </div>
-        <div class="bg-white rounded-2xl shadow-xl p-5 border border-gray-100">
-          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Amount Due</p>
-          <p class="text-3xl font-bold text-gray-900">{{ formatCurrency(totalAmountDue) }}</p>
-          <p class="text-xs text-gray-400 mt-1">total this month</p>
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-5 border border-slate-700 border-l-4 border-l-rose-500">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Amount Due</p>
+          <p class="text-3xl font-bold text-slate-100">{{ formatCurrency(totalAmountDue) }}</p>
+          <p class="text-xs text-slate-400 mt-1">total this month</p>
         </div>
-        <div class="bg-white rounded-2xl shadow-xl p-5 border border-gray-100">
-          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Paid</p>
-          <p class="text-3xl font-bold text-green-600">{{ formatCurrency(totalPaid) }}</p>
-          <p class="text-xs text-gray-400 mt-1">{{ paidThisMonthBills.length }} bills paid</p>
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-5 border border-slate-700 border-l-4 border-l-rose-500">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Paid</p>
+          <p class="text-3xl font-bold text-green-400">{{ formatCurrency(totalPaid) }}</p>
+          <p class="text-xs text-slate-400 mt-1">{{ paidThisMonthBills.length }} bills paid</p>
         </div>
-        <div class="bg-white rounded-2xl shadow-xl p-5 border border-gray-100">
-          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Remaining</p>
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-5 border border-slate-700 border-l-4 border-l-rose-500">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Remaining</p>
           <p class="text-3xl font-bold" :class="totalRemaining > 0 ? 'text-orange-600' : 'text-green-600'">
             {{ formatCurrency(totalRemaining) }}
           </p>
@@ -78,15 +78,15 @@
       <div class="space-y-5">
 
         <!-- Section 1: Due This Week -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-            <div class="w-7 h-7 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center shrink-0">
+        <div class="bg-rose-950/30 rounded-2xl shadow-xl border border-rose-900/50 overflow-hidden">
+          <div class="px-6 py-4 border-b border-rose-900/50 flex items-center gap-3">
+            <div class="w-7 h-7 bg-gradient-to-r from-rose-500 to-red-600 rounded-lg flex items-center justify-center shrink-0">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 class="text-base font-bold text-gray-900">Due This Week</h2>
-            <span v-if="dueThisWeekBills.length > 0" class="ml-auto text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
+            <h2 class="text-base font-bold text-slate-100">Due This Week</h2>
+            <span v-if="dueThisWeekBills.length > 0" class="ml-auto text-xs font-semibold text-rose-300 bg-rose-900/50 px-2 py-0.5 rounded-full">
               {{ dueThisWeekBills.length }} bill{{ dueThisWeekBills.length === 1 ? '' : 's' }}
             </span>
           </div>
@@ -102,19 +102,19 @@
                 v-for="bill in dueThisWeekBills"
                 :key="bill.id"
                 class="flex items-start justify-between p-4 rounded-xl border transition-colors duration-200"
-                :class="isOverdueBill(bill) ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'"
+                :class="isOverdueBill(bill) ? 'bg-slate-800 border-slate-700 border-l-2 border-l-rose-500' : 'bg-slate-800 border-slate-700 border-l-2 border-l-rose-400'"
               >
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2 flex-wrap">
-                    <span class="font-semibold text-gray-900 capitalize">{{ bill.name }}</span>
-                    <span class="text-xs px-2 py-0.5 bg-white border border-gray-200 text-gray-500 rounded-full">{{ bill.category }}</span>
-                    <span v-if="isOverdueBill(bill)" class="text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded-full font-medium">Overdue</span>
+                    <span class="font-semibold text-slate-100 capitalize">{{ bill.name }}</span>
+                    <span class="text-xs px-2 py-0.5 bg-slate-700 border border-slate-600 text-slate-400 rounded-full">{{ bill.category }}</span>
+                    <span v-if="isOverdueBill(bill)" class="text-xs px-2 py-0.5 bg-slate-700 border border-rose-500/40 text-rose-400 rounded-full font-medium">Overdue</span>
                   </div>
-                  <p class="text-xs text-gray-500 mt-0.5">Due {{ formatDate(bill.dueDate) }}</p>
+                  <p class="text-xs text-slate-400 mt-0.5">Due {{ formatDate(bill.dueDate) }}</p>
                 </div>
                 <div class="flex items-start gap-3 shrink-0 ml-4">
                   <div class="text-right">
-                    <p class="font-bold text-gray-900">{{ formatCurrency(bill.amount) }}</p>
+                    <p class="font-bold text-slate-100">{{ formatCurrency(bill.amount) }}</p>
                     <p v-if="lifeEnergyStore.lifeEnergyRate > 0 && bill.amount" class="text-xs text-gray-400">
                       ≈ {{ lifeEnergyStore.toCost(bill.amount) }}
                     </p>
@@ -141,15 +141,15 @@
         </div>
 
         <!-- Section 2: Due This Month -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-            <div class="w-7 h-7 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+        <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-700 flex items-center gap-3">
+            <div class="w-7 h-7 bg-gradient-to-r from-rose-500 to-rose-600 rounded-lg flex items-center justify-center shrink-0">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 class="text-base font-bold text-gray-900">Due This Month</h2>
-            <span v-if="dueThisMonthBills.length > 0" class="ml-auto text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+            <h2 class="text-base font-bold text-slate-100">Due This Month</h2>
+            <span v-if="dueThisMonthBills.length > 0" class="ml-auto text-xs font-semibold text-rose-300 bg-rose-900/40 px-2 py-0.5 rounded-full">
               {{ dueThisMonthBills.length }} bill{{ dueThisMonthBills.length === 1 ? '' : 's' }}
             </span>
           </div>
@@ -162,19 +162,19 @@
                 v-for="bill in dueThisMonthBills"
                 :key="bill.id"
                 class="flex items-start justify-between p-4 rounded-xl border transition-colors duration-200"
-                :class="isOverdueBill(bill) ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-100'"
+                :class="isOverdueBill(bill) ? 'bg-slate-800 border-slate-700 border-l-2 border-l-rose-500' : 'bg-slate-700/50 border-slate-600'"
               >
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2 flex-wrap">
-                    <span class="font-semibold text-gray-900 capitalize">{{ bill.name }}</span>
-                    <span class="text-xs px-2 py-0.5 bg-white border border-gray-200 text-gray-500 rounded-full">{{ bill.category }}</span>
-                    <span v-if="isOverdueBill(bill)" class="text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded-full font-medium">Overdue</span>
+                    <span class="font-semibold text-slate-100 capitalize">{{ bill.name }}</span>
+                    <span class="text-xs px-2 py-0.5 bg-slate-700 border border-slate-600 text-slate-400 rounded-full">{{ bill.category }}</span>
+                    <span v-if="isOverdueBill(bill)" class="text-xs px-2 py-0.5 bg-slate-700 border border-rose-500/40 text-rose-400 rounded-full font-medium">Overdue</span>
                   </div>
-                  <p class="text-xs text-gray-500 mt-0.5">Due {{ formatDate(bill.dueDate) }}</p>
+                  <p class="text-xs text-slate-400 mt-0.5">Due {{ formatDate(bill.dueDate) }}</p>
                 </div>
                 <div class="flex items-start gap-3 shrink-0 ml-4">
                   <div class="text-right">
-                    <p class="font-bold text-gray-900">{{ formatCurrency(bill.amount) }}</p>
+                    <p class="font-bold text-slate-100">{{ formatCurrency(bill.amount) }}</p>
                     <p v-if="lifeEnergyStore.lifeEnergyRate > 0 && bill.amount" class="text-xs text-gray-400">
                       ≈ {{ lifeEnergyStore.toCost(bill.amount) }}
                     </p>
@@ -201,10 +201,10 @@
         </div>
 
         <!-- Section 3: Paid This Month (collapsible) -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
           <button
             @click="paidSectionOpen = !paidSectionOpen"
-            class="w-full flex items-center gap-3 px-6 py-4 text-left hover:bg-gray-50 transition-colors duration-200"
+            class="w-full flex items-center gap-3 px-6 py-4 text-left hover:bg-slate-700/50 transition-colors duration-200"
           >
             <div class="w-7 h-7 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shrink-0">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,8 +212,8 @@
               </svg>
             </div>
             <div class="flex-1 text-left">
-              <span class="text-base font-bold text-gray-900">Paid This Month</span>
-              <span class="ml-2 text-sm text-gray-500">
+              <span class="text-base font-bold text-slate-100">Paid This Month</span>
+              <span class="ml-2 text-sm text-slate-400">
                 — {{ paidThisMonthBills.length }} bill{{ paidThisMonthBills.length === 1 ? '' : 's' }}, {{ formatCurrency(totalPaid) }} total
               </span>
             </div>
@@ -221,26 +221,26 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          <div v-if="paidSectionOpen" class="border-t border-gray-100">
+          <div v-if="paidSectionOpen" class="border-t border-slate-700">
             <div class="p-4">
-              <div v-if="paidThisMonthBills.length === 0" class="text-sm text-gray-400 py-2">
+              <div v-if="paidThisMonthBills.length === 0" class="text-sm text-slate-400 py-2">
                 No bills paid yet this month.
               </div>
               <div v-else class="space-y-2">
                 <div
                   v-for="bill in paidThisMonthBills"
                   :key="bill.id"
-                  class="flex items-center justify-between p-4 bg-green-50 border border-green-100 rounded-xl"
+                  class="flex items-center justify-between p-4 bg-green-950/20 border border-green-900/50 rounded-xl"
                 >
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 flex-wrap">
-                      <span class="font-semibold text-gray-700 capitalize">{{ bill.name }}</span>
-                      <span class="text-xs px-2 py-0.5 bg-white border border-gray-200 text-gray-400 rounded-full">{{ bill.category }}</span>
+                      <span class="font-semibold text-slate-200 capitalize">{{ bill.name }}</span>
+                      <span class="text-xs px-2 py-0.5 bg-slate-700 border border-slate-600 text-slate-400 rounded-full">{{ bill.category }}</span>
                     </div>
-                    <p class="text-xs text-gray-400 mt-0.5">Due {{ formatDate(bill.dueDate) }}</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Due {{ formatDate(bill.dueDate) }}</p>
                   </div>
                   <div class="flex items-center gap-3 shrink-0 ml-4">
-                    <p class="font-bold text-green-600">{{ formatCurrency(bill.amount) }}</p>
+                    <p class="font-bold text-green-400">{{ formatCurrency(bill.amount) }}</p>
                     <button @click="markBillAsUnpaid(bill)" class="px-2.5 py-1.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap">
                       Mark Unpaid
                     </button>
@@ -252,41 +252,41 @@
         </div>
 
         <!-- Section 4: Archived Bills (collapsible) -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
           <button
             @click="archivedSectionOpen = !archivedSectionOpen"
-            class="w-full flex items-center gap-3 px-6 py-4 text-left hover:bg-gray-50 transition-colors duration-200"
+            class="w-full flex items-center gap-3 px-6 py-4 text-left hover:bg-slate-700/50 transition-colors duration-200"
           >
-            <div class="w-7 h-7 bg-gray-200 rounded-lg flex items-center justify-center shrink-0">
-              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-7 h-7 bg-slate-700 rounded-lg flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
               </svg>
             </div>
             <div class="flex-1 text-left">
-              <span class="text-base font-bold text-gray-500">Archived Bills</span>
-              <span class="ml-2 text-sm text-gray-400">— {{ billsStore.getArchivedBills.length }} archived</span>
+              <span class="text-base font-bold text-slate-400">Archived Bills</span>
+              <span class="ml-2 text-sm text-slate-500">— {{ billsStore.getArchivedBills.length }} archived</span>
             </div>
             <svg class="w-4 h-4 text-gray-400 transition-transform duration-200 shrink-0" :class="archivedSectionOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          <div v-if="archivedSectionOpen" class="border-t border-gray-100">
+          <div v-if="archivedSectionOpen" class="border-t border-slate-700">
             <div class="p-4">
-              <div v-if="billsStore.getArchivedBills.length === 0" class="text-sm text-gray-400 py-2">
+              <div v-if="billsStore.getArchivedBills.length === 0" class="text-sm text-slate-400 py-2">
                 No archived bills.
               </div>
               <div v-else class="space-y-2">
                 <div
                   v-for="bill in billsStore.getArchivedBills"
                   :key="bill.id"
-                  class="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-xl opacity-75"
+                  class="flex items-center justify-between p-4 bg-slate-700/40 border border-slate-600 rounded-xl opacity-75"
                 >
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 flex-wrap">
-                      <span class="font-semibold text-gray-500 capitalize">{{ bill.name }}</span>
-                      <span class="text-xs px-2 py-0.5 bg-white border border-gray-200 text-gray-400 rounded-full">{{ bill.category }}</span>
+                      <span class="font-semibold text-slate-400 capitalize">{{ bill.name }}</span>
+                      <span class="text-xs px-2 py-0.5 bg-slate-700 border border-slate-600 text-slate-500 rounded-full">{{ bill.category }}</span>
                     </div>
-                    <p class="text-xs text-gray-400 mt-0.5">{{ formatCurrency(bill.amount) }}/mo · Archived</p>
+                    <p class="text-xs text-slate-500 mt-0.5">{{ formatCurrency(bill.amount) }}/mo · Archived</p>
                   </div>
                   <button
                     @click="restoreBill(bill)"

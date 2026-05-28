@@ -1,14 +1,14 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+  <div class="min-h-screen bg-slate-950">
     <div class="w-full px-4 md:px-6 lg:px-8 py-8">
       <!-- Header Section -->
-      <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+      <div class="bg-gradient-to-br from-cyan-950 to-slate-900 rounded-2xl shadow-xl p-8 mb-8 border border-cyan-900">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
-            <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h1 class="text-4xl font-bold text-white">
               Transaction Management
             </h1>
-            <p class="text-gray-600 mt-2 text-lg">Track and manage your financial transactions</p>
+            <p class="text-slate-300 mt-2 text-lg">Track and manage your financial transactions</p>
           </div>
           <div class="flex gap-3">
             <button
@@ -35,51 +35,51 @@
       </div>
 
       <!-- Filters Section -->
-      <div class="bg-white rounded-2xl shadow-xl mb-8 p-6 border border-gray-100">
+      <div class="bg-cyan-950/30 rounded-2xl shadow-xl mb-8 p-6 border border-cyan-900/50">
         <div class="flex items-center space-x-3 mb-6">
-          <div class="w-8 h-8 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
+          <div class="w-8 h-8 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-lg flex items-center justify-center">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
             </svg>
           </div>
-          <h2 class="text-xl font-bold text-gray-900">Filters & Search</h2>
+          <h2 class="text-xl font-bold text-slate-100">Filters & Search</h2>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <!-- Date Range Filter -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Date Range</label>
+            <label class="block text-sm font-semibold text-slate-300 mb-2">Date Range</label>
             <div class="flex flex-col sm:flex-row gap-3">
               <input
                 type="month"
                 v-model="dateRange.start"
-                class="flex-1 min-w-0 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:shadow-md"
+                class="flex-1 min-w-0 px-4 py-3 border border-slate-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 bg-slate-800 text-slate-100 transition-all duration-200"
               />
               <input
                 type="month"
                 v-model="dateRange.end"
-                class="flex-1 min-w-0 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:shadow-md"
+                class="flex-1 min-w-0 px-4 py-3 border border-slate-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 bg-slate-800 text-slate-100 transition-all duration-200"
               />
             </div>
           </div>
 
           <!-- Search Filter -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Search</label>
+            <label class="block text-sm font-semibold text-slate-300 mb-2">Search</label>
             <input
               type="text"
               v-model="searchTerm"
               placeholder="Search by description, category, or amount"
-              class="w-full min-w-0 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:shadow-md"
+              class="w-full min-w-0 px-4 py-3 border border-slate-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 bg-slate-800 text-slate-100 placeholder-slate-500 transition-all duration-200"
             />
           </div>
 
           <!-- Sort Filter -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Sort By</label>
+            <label class="block text-sm font-semibold text-slate-300 mb-2">Sort By</label>
             <div class="flex gap-3">
               <select
                 v-model="sortBy"
-                class="flex-1 min-w-0 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:shadow-md"
+                class="flex-1 min-w-0 px-4 py-3 border border-slate-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 bg-slate-800 text-slate-100 transition-all duration-200"
               >
                 <option value="date">Date</option>
                 <option value="amount">Amount</option>
@@ -88,7 +88,7 @@
               </select>
               <button
                 @click="toggleSortOrder"
-                class="px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
+                class="px-4 py-3 border border-slate-600 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path v-if="sortOrder === 'desc'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
@@ -101,20 +101,20 @@
 
         <!-- Type toggle -->
         <div class="mt-5 flex items-center gap-2 flex-wrap">
-          <span class="text-sm font-semibold text-gray-500 mr-1">Show:</span>
+          <span class="text-sm font-semibold text-slate-400 mr-1">Show:</span>
           <button @click="setTypeFilter('all')"
             class="px-4 py-1.5 text-sm font-medium border rounded-lg transition-colors duration-200"
-            :class="typeFilter === 'all' ? 'bg-purple-600 text-white border-purple-600' : 'text-gray-600 border-gray-300 hover:border-gray-400 bg-white'">
+            :class="typeFilter === 'all' ? 'bg-cyan-600 text-white border-cyan-600' : 'text-slate-400 border-slate-600 hover:border-slate-500 bg-slate-800'">
             All
           </button>
           <button @click="setTypeFilter('income')"
             class="px-4 py-1.5 text-sm font-medium border rounded-lg transition-colors duration-200"
-            :class="typeFilter === 'income' ? 'bg-green-600 text-white border-green-600' : 'text-gray-600 border-gray-300 hover:border-gray-400 bg-white'">
+            :class="typeFilter === 'income' ? 'bg-green-600 text-white border-green-600' : 'text-slate-400 border-slate-600 hover:border-slate-500 bg-slate-800'">
             Income
           </button>
           <button @click="setTypeFilter('expenses')"
             class="px-4 py-1.5 text-sm font-medium border rounded-lg transition-colors duration-200"
-            :class="typeFilter === 'expenses' ? 'bg-red-600 text-white border-red-600' : 'text-gray-600 border-gray-300 hover:border-gray-400 bg-white'">
+            :class="typeFilter === 'expenses' ? 'bg-red-600 text-white border-red-600' : 'text-slate-400 border-slate-600 hover:border-slate-500 bg-slate-800'">
             Expenses
           </button>
         </div>
@@ -123,42 +123,42 @@
         <div v-if="availableCategories.length > 0" class="mt-3 flex flex-wrap gap-2">
           <button @click="selectedCategory = null"
             class="px-3 py-1 text-xs font-medium border rounded-full transition-colors duration-200"
-            :class="selectedCategory === null ? 'bg-indigo-600 text-white border-indigo-600' : 'text-gray-500 border-gray-200 hover:border-gray-400 bg-white'">
+            :class="selectedCategory === null ? 'bg-cyan-600 text-white border-cyan-600' : 'text-slate-400 border-slate-600 hover:border-slate-500 bg-slate-800'">
             All Categories
           </button>
           <button v-for="cat in availableCategories" :key="cat"
             @click="selectedCategory = cat"
             class="px-3 py-1 text-xs font-medium border rounded-full transition-colors duration-200"
-            :class="selectedCategory === cat ? 'bg-indigo-600 text-white border-indigo-600' : 'text-gray-500 border-gray-200 hover:border-gray-400 bg-white'">
+            :class="selectedCategory === cat ? 'bg-cyan-600 text-white border-cyan-600' : 'text-slate-400 border-slate-600 hover:border-slate-500 bg-slate-800'">
             {{ cat }}
           </button>
         </div>
       </div>
 
       <!-- Summary bar -->
-      <div class="bg-white rounded-2xl shadow-xl px-6 py-3 mb-4 border border-gray-100 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-        <span class="text-gray-500 font-medium">{{ filteredAndSortedTransactions.length }} transaction{{ filteredAndSortedTransactions.length === 1 ? '' : 's' }}</span>
-        <span class="text-gray-200 hidden sm:inline">·</span>
-        <span class="font-semibold text-green-600">Income: {{ formatCurrency(filteredIncome) }}</span>
-        <span class="text-gray-200 hidden sm:inline">·</span>
-        <span class="font-semibold text-red-600">Expenses: {{ formatCurrency(Math.abs(filteredExpenses)) }}</span>
-        <span class="text-gray-200 hidden sm:inline">·</span>
-        <span class="font-semibold" :class="filteredNet >= 0 ? 'text-green-600' : 'text-red-600'">
+      <div class="bg-slate-800 rounded-2xl shadow-xl px-6 py-3 mb-4 border border-slate-700 border-l-4 border-l-cyan-500 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        <span class="text-slate-400 font-medium">{{ filteredAndSortedTransactions.length }} transaction{{ filteredAndSortedTransactions.length === 1 ? '' : 's' }}</span>
+        <span class="text-slate-600 hidden sm:inline">·</span>
+        <span class="font-semibold text-green-400">Income: {{ formatCurrency(filteredIncome) }}</span>
+        <span class="text-slate-600 hidden sm:inline">·</span>
+        <span class="font-semibold text-red-400">Expenses: {{ formatCurrency(Math.abs(filteredExpenses)) }}</span>
+        <span class="text-slate-600 hidden sm:inline">·</span>
+        <span class="font-semibold" :class="filteredNet >= 0 ? 'text-green-400' : 'text-red-400'">
           Net: {{ filteredNet >= 0 ? '+' : '' }}{{ formatCurrency(filteredNet) }}
         </span>
       </div>
 
       <!-- Transactions Table -->
-      <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-        <div class="flex justify-between items-center p-6 border-b border-gray-100">
+      <div class="bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-700">
+        <div class="flex justify-between items-center p-6 border-b border-slate-700">
           <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+            <div class="w-8 h-8 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-lg flex items-center justify-center">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <h2 class="text-xl font-bold text-gray-900">Transactions</h2>
-            <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+            <h2 class="text-xl font-bold text-slate-100">Transactions</h2>
+            <span class="text-sm text-slate-400 bg-slate-700 px-3 py-1 rounded-full">
               Showing {{ paginatedTransactions.length }} of {{ filteredAndSortedTransactions.length }}
             </span>
           </div>
@@ -171,42 +171,42 @@
         </div>
 
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-100">
-            <thead class="bg-gray-50">
+          <table class="min-w-full divide-y divide-slate-700">
+            <thead class="bg-slate-900">
               <tr>
                 <th scope="col" class="w-12 px-6 py-4">
                   <input
                     type="checkbox"
                     v-model="allSelected"
                     @change="toggleAll"
-                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    class="rounded border-slate-600 text-cyan-600 focus:ring-cyan-500 bg-slate-700"
                   >
                 </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Date
                 </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Description
                 </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Category
                 </th>
-                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Amount
                 </th>
-                <th scope="col" class="hidden md:table-cell px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="hidden md:table-cell px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Running Total
                 </th>
-                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-100">
+            <tbody class="bg-slate-800 divide-y divide-slate-700">
               <tr v-for="transaction in paginatedTransactions" :key="transaction.id" 
                   :class="[
-                    'hover:bg-gray-50 transition-colors duration-200',
-                    isFutureTransaction(transaction.date) ? 'bg-green-50 hover:bg-green-100' : ''
+                    'hover:bg-slate-700/50 transition-colors duration-200',
+                    isFutureTransaction(transaction.date) ? 'bg-cyan-950/30 hover:bg-cyan-950/50' : ''
                   ]">
                 <td class="px-6 py-4">
                   <input
@@ -216,14 +216,14 @@
                     class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   >
                 </td>
-                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                <td class="px-6 py-4 text-sm font-medium text-slate-200">
                   {{ formatDate(transaction.date) }}
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-900">
+                <td class="px-6 py-4 text-sm text-slate-200">
                   {{ transaction.description || '-' }}
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium">
+                <td class="px-6 py-4 text-sm text-slate-200">
+                  <span class="bg-slate-700 text-slate-300 px-3 py-1 rounded-full text-xs font-medium">
                     {{ transaction.category }}
                   </span>
                 </td>
@@ -269,10 +269,10 @@
         </div>
 
         <!-- Load more -->
-        <div v-if="paginatedTransactions.length < filteredAndSortedTransactions.length" class="p-6 text-center border-t border-gray-100">
+        <div v-if="paginatedTransactions.length < filteredAndSortedTransactions.length" class="p-6 text-center border-t border-slate-700">
           <button
             @click="loadMore"
-            class="px-6 py-2.5 text-sm font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all duration-200"
+            class="px-6 py-2.5 text-sm font-semibold text-cyan-400 bg-cyan-950/30 border border-cyan-700 rounded-xl hover:bg-cyan-950/50 hover:border-cyan-600 transition-all duration-200"
           >
             Load more — {{ filteredAndSortedTransactions.length - paginatedTransactions.length }} remaining
           </button>

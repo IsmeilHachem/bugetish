@@ -1,14 +1,14 @@
 <template>
-  <div class="max-w-3xl mx-auto py-8">
-    <h2 class="text-2xl font-bold mb-6">Reflection History</h2>
-    <div v-if="reflections.length === 0" class="text-gray-500">No reflections yet. Start by writing your first monthly reflection!</div>
+  <div class="max-w-3xl mx-auto py-8 px-4">
+    <h2 class="text-2xl font-bold mb-6 text-white">Reflection History</h2>
+    <div v-if="reflections.length === 0" class="text-slate-400">No reflections yet. Start by writing your first monthly reflection!</div>
     <div v-else class="space-y-4">
-      <div v-for="reflection in sortedReflections" :key="reflection.periodStart" class="bg-white rounded shadow p-4 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+      <div v-for="reflection in sortedReflections" :key="reflection.periodStart" class="bg-slate-800 rounded-xl shadow border border-slate-700 border-l-4 border-l-violet-500 p-4 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div class="flex-1">
-          <div class="font-semibold text-lg">{{ formatPeriod(reflection.periodStart) }}</div>
-          <div class="text-sm text-gray-500 mt-1">Path To Financial Freedom: <span :class="reflection.summaryStats.pathToFreedom >= 0 ? 'text-green-700' : 'text-red-700'">{{ formatCurrency(reflection.summaryStats.pathToFreedom) }}</span></div>
-          <div class="text-sm text-gray-500">Income: <span class="text-green-700">{{ formatCurrency(reflection.summaryStats.income) }}</span></div>
-          <div class="text-sm text-gray-500">Expenses: <span class="text-red-700">{{ formatCurrency(reflection.summaryStats.expenses) }}</span></div>
+          <div class="font-semibold text-lg text-slate-100">{{ formatPeriod(reflection.periodStart) }}</div>
+          <div class="text-sm text-slate-400 mt-1">Path To Financial Freedom: <span :class="reflection.summaryStats.pathToFreedom >= 0 ? 'text-green-400' : 'text-red-400'">{{ formatCurrency(reflection.summaryStats.pathToFreedom) }}</span></div>
+          <div class="text-sm text-slate-400">Income: <span class="text-green-400">{{ formatCurrency(reflection.summaryStats.income) }}</span></div>
+          <div class="text-sm text-slate-400">Expenses: <span class="text-red-400">{{ formatCurrency(reflection.summaryStats.expenses) }}</span></div>
 
           <!-- Category rating badges -->
           <div
@@ -16,32 +16,32 @@
             class="mt-2 flex flex-wrap gap-2"
           >
             <div
-              v-for="([catName, data]) in Object.entries(getRatingsForMonth(reflection.periodStart)).slice(0, 5)"
+              v-for="([catName, data]) in Object.entries(getRatingsForMonth(reflection.periodStart)).filter(([n]) => n !== 'Pay Day').slice(0, 5)"
               :key="catName"
               class="flex items-center space-x-1"
             >
               <span class="w-2 h-2 rounded-full inline-block" :class="ratingDotClass(data.rating)"></span>
-              <span class="text-xs text-gray-500">{{ catName }}</span>
+              <span class="text-xs text-slate-400">{{ catName }}</span>
             </div>
           </div>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-2 md:mt-0 shrink-0">
           <router-link :to="{ name: 'ReflectionPage', query: { periodStart: reflection.periodStart } }">
-            <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm whitespace-nowrap">View / Edit</button>
+            <button class="bg-violet-600 text-white px-4 py-2 rounded-xl hover:bg-violet-700 text-sm whitespace-nowrap">View / Edit</button>
           </router-link>
           <router-link :to="{ path: '/monthly-review', query: { month: reflection.periodStart.slice(0, 7) } }">
-            <button class="border border-violet-400 text-violet-700 px-4 py-2 rounded hover:bg-violet-50 text-sm whitespace-nowrap">View Full Review →</button>
+            <button class="border border-violet-500 text-violet-300 px-4 py-2 rounded-xl hover:bg-violet-950/40 text-sm whitespace-nowrap">View Full Review →</button>
           </router-link>
         </div>
       </div>
     </div>
     <div class="mt-8">
       <router-link to="/reflection">
-        <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300">Reflect on this month</button>
+        <button class="bg-slate-700 text-slate-200 px-4 py-2 rounded-xl hover:bg-slate-600">Reflect on this month</button>
       </router-link>
       <router-link to="/" class="ml-4">
-        <button class="bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-200">Back to Dashboard</button>
+        <button class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl hover:bg-slate-700 border border-slate-600">Back to Dashboard</button>
       </router-link>
     </div>
   </div>

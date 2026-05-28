@@ -1,131 +1,131 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50 to-teal-100">
+  <div class="min-h-screen bg-slate-950">
     <div class="w-full px-4 md:px-6 lg:px-8 py-8 space-y-8">
 
       <!-- Header -->
-      <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+      <div class="bg-gradient-to-br from-green-950 to-slate-900 rounded-2xl shadow-xl p-8 border border-green-900">
         <div class="flex items-center space-x-4">
-          <div class="w-14 h-14 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg text-3xl">
+          <div class="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg text-3xl">
             🌅
           </div>
           <div>
-            <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h1 class="text-4xl font-bold text-white">
               Path to Freedom
             </h1>
-            <p class="text-gray-500 mt-1">Your journey to financial independence</p>
+            <p class="text-slate-300 mt-1">Your journey to financial independence</p>
           </div>
         </div>
       </div>
 
       <!-- Section 4: Key Numbers (displayed above chart) -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded-2xl shadow p-5 border border-gray-100">
-          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Avg Monthly Expenses</div>
-          <div class="text-xl font-bold text-red-500">{{ fmt(avgMonthlyExpenses) }}</div>
-          <div class="text-xs text-gray-400 mt-1">3-month average</div>
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-5 border border-slate-700 border-l-4 border-l-green-500">
+          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Avg Monthly Expenses</div>
+          <div class="text-xl font-bold text-red-400">{{ fmt(avgMonthlyExpenses) }}</div>
+          <div class="text-xs text-slate-400 mt-1">3-month average</div>
         </div>
-        <div class="bg-white rounded-2xl shadow p-5 border border-gray-100">
-          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Investment Income/mo</div>
-          <div class="text-xl font-bold text-green-600">{{ fmt(currentInvestmentIncome) }}</div>
-          <div class="text-xs text-gray-400 mt-1">4% rule · {{ fmt(fiSettingsStore.total_invested) }} invested</div>
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-5 border border-slate-700 border-l-4 border-l-green-500">
+          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Investment Income/mo</div>
+          <div class="text-xl font-bold text-green-400">{{ fmt(currentInvestmentIncome) }}</div>
+          <div class="text-xs text-slate-400 mt-1">4% rule · {{ fmt(fiSettingsStore.total_invested) }} invested</div>
         </div>
-        <div class="bg-white rounded-2xl shadow p-5 border border-gray-100">
-          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Monthly Gap</div>
-          <div class="text-xl font-bold text-orange-500">{{ fmt(monthlyGap) }}</div>
-          <div class="text-xs text-gray-400 mt-1">to cover with investments</div>
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-5 border border-slate-700 border-l-4 border-l-green-500">
+          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Monthly Gap</div>
+          <div class="text-xl font-bold text-orange-400">{{ fmt(monthlyGap) }}</div>
+          <div class="text-xs text-slate-400 mt-1">to cover with investments</div>
         </div>
-        <div class="bg-white rounded-2xl shadow p-5 border border-gray-100">
-          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Projected Crossover</div>
-          <div class="text-lg font-bold text-emerald-600 leading-tight">{{ crossoverResult.date }}</div>
-          <div class="text-xs text-gray-400 mt-1">at ${{ monthlyInvestment }}/mo invested</div>
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-5 border border-slate-700 border-l-4 border-l-green-500">
+          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Projected Crossover</div>
+          <div class="text-lg font-bold text-green-400 leading-tight">{{ crossoverResult.date }}</div>
+          <div class="text-xs text-slate-400 mt-1">at ${{ monthlyInvestment }}/mo invested</div>
         </div>
       </div>
 
       <!-- Section 1: Crossover Chart -->
-      <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+      <div class="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
         <div class="flex items-center space-x-3 mb-6">
-          <div class="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+          <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
           </div>
-          <h2 class="text-xl font-bold text-gray-900">The Crossover Chart</h2>
+          <h2 class="text-xl font-bold text-slate-100">The Crossover Chart</h2>
         </div>
 
         <div class="relative" style="height: 400px;">
           <Line :data="chartData" :options="chartOptions" :plugins="chartPlugins" />
         </div>
 
-        <div v-if="crossoverResult.beyond40" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+        <div v-if="crossoverResult.beyond40" class="mt-4 p-4 bg-amber-950/40 border border-amber-500/30 rounded-xl text-sm text-amber-300">
           ⚠️ At current pace, crossover is 40+ years away. Increasing monthly investment moves this date closer.
         </div>
-        <div v-else-if="crossoverResult.alreadyThere" class="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800 font-semibold">
+        <div v-else-if="crossoverResult.alreadyThere" class="mt-4 p-4 bg-green-950/40 border border-green-500/30 rounded-xl text-sm text-green-300 font-semibold">
           🎉 Your investment income already covers your expenses. You've reached the crossover point!
         </div>
-        <div v-else class="mt-4 p-3 bg-gray-50 rounded-xl text-sm text-gray-600 flex items-center gap-2">
-          <span class="text-amber-500 font-bold text-lg">✦</span>
+        <div v-else class="mt-4 p-3 bg-slate-700/40 rounded-xl text-sm text-slate-300 flex items-center gap-2">
+          <span class="text-green-400 font-bold text-lg">✦</span>
           <span>Freedom point: <strong>{{ crossoverResult.date }}</strong> · {{ crossoverResult.years }} years from today</span>
         </div>
       </div>
 
       <!-- Section 2: What If Simulator -->
-      <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+      <div class="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
         <div class="flex items-center space-x-3 mb-6">
-          <div class="w-8 h-8 bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
+          <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
             </svg>
           </div>
-          <h2 class="text-xl font-bold text-gray-900">What If Simulator</h2>
+          <h2 class="text-xl font-bold text-slate-100">What If Simulator</h2>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-3">
-              If I invest <span class="text-violet-600 font-bold text-base">${{ monthlyInvestment }}</span>/month…
+            <label class="block text-sm font-semibold text-slate-300 mb-3">
+              If I invest <span class="text-green-400 font-bold text-base">${{ monthlyInvestment }}</span>/month…
             </label>
             <input
               type="range"
               v-model.number="monthlyInvestment"
               min="0" max="2000" step="50"
-              class="w-full h-2 rounded-full appearance-none cursor-pointer accent-violet-600 bg-violet-100"
+              class="w-full h-2 rounded-full appearance-none cursor-pointer accent-green-500 bg-slate-700"
             />
-            <div class="flex justify-between text-xs text-gray-400 mt-1"><span>$0</span><span>$2,000</span></div>
+            <div class="flex justify-between text-xs text-slate-400 mt-1"><span>$0</span><span>$2,000</span></div>
           </div>
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-3">
-              …and reduce expenses by <span class="text-red-500 font-bold text-base">${{ expenseReduction }}</span>/month
+            <label class="block text-sm font-semibold text-slate-300 mb-3">
+              …and reduce expenses by <span class="text-red-400 font-bold text-base">${{ expenseReduction }}</span>/month
             </label>
             <input
               type="range"
               v-model.number="expenseReduction"
               min="0" max="2000" step="50"
-              class="w-full h-2 rounded-full appearance-none cursor-pointer accent-red-500 bg-red-100"
+              class="w-full h-2 rounded-full appearance-none cursor-pointer accent-red-500 bg-slate-700"
             />
-            <div class="flex justify-between text-xs text-gray-400 mt-1"><span>$0</span><span>$2,000</span></div>
+            <div class="flex justify-between text-xs text-slate-400 mt-1"><span>$0</span><span>$2,000</span></div>
           </div>
         </div>
 
-        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
+        <div class="bg-green-950/30 border border-green-800 rounded-xl p-5">
           <div v-if="crossoverResult.alreadyThere">
-            <div class="text-emerald-700 font-bold text-lg">🎉 Investment income already covers your expenses!</div>
-            <div class="text-emerald-600 text-sm mt-1">You've reached the crossover point.</div>
+            <div class="text-green-400 font-bold text-lg">🎉 Investment income already covers your expenses!</div>
+            <div class="text-green-500 text-sm mt-1">You've reached the crossover point.</div>
           </div>
           <div v-else>
-            <div class="text-sm text-gray-500 mb-1">Your crossover point moves to:</div>
-            <div class="text-2xl font-bold text-emerald-700 mb-4">{{ crossoverResult.date }}</div>
+            <div class="text-sm text-slate-400 mb-1">Your crossover point moves to:</div>
+            <div class="text-2xl font-bold text-green-400 mb-4">{{ crossoverResult.date }}</div>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
               <div>
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Time away</div>
-                <div class="font-bold text-gray-800 mt-0.5">{{ crossoverResult.years }} years</div>
+                <div class="text-slate-400 text-xs uppercase tracking-wide">Time away</div>
+                <div class="font-bold text-slate-200 mt-0.5">{{ crossoverResult.years }} years</div>
               </div>
               <div v-if="crossoverResult.investedNeeded">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Need invested</div>
-                <div class="font-bold text-gray-800 mt-0.5">{{ fmt(crossoverResult.investedNeeded) }}</div>
+                <div class="text-slate-400 text-xs uppercase tracking-wide">Need invested</div>
+                <div class="font-bold text-slate-200 mt-0.5">{{ fmt(crossoverResult.investedNeeded) }}</div>
               </div>
               <div v-if="crossoverResult.months">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Months</div>
-                <div class="font-bold text-emerald-700 mt-0.5">{{ crossoverResult.months }}</div>
+                <div class="text-slate-400 text-xs uppercase tracking-wide">Months</div>
+                <div class="font-bold text-green-400 mt-0.5">{{ crossoverResult.months }}</div>
               </div>
             </div>
           </div>
@@ -133,14 +133,14 @@
       </div>
 
       <!-- Section 3: Milestones -->
-      <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+      <div class="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
         <div class="flex items-center space-x-3 mb-6">
-          <div class="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+          <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
             </svg>
           </div>
-          <h2 class="text-xl font-bold text-gray-900">Milestones</h2>
+          <h2 class="text-xl font-bold text-slate-100">Milestones</h2>
         </div>
 
         <div class="space-y-4">
@@ -149,30 +149,30 @@
             :key="ms.title"
             class="p-4 rounded-xl border border-l-4 transition-all"
             :class="ms.pct >= 100
-              ? 'bg-green-50 border-green-200 border-l-green-500'
-              : 'bg-gray-50 border-gray-100 border-l-gray-200'"
+              ? 'bg-green-950/40 border-green-900 border-l-green-500'
+              : 'bg-slate-700/30 border-slate-700 border-l-slate-600'"
           >
             <div class="flex items-start justify-between mb-3">
               <div>
-                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                  <span :class="ms.pct >= 100 ? 'text-green-500' : 'text-gray-300'">
+                <div class="font-semibold text-slate-200 flex items-center gap-2">
+                  <span :class="ms.pct >= 100 ? 'text-green-400' : 'text-slate-600'">
                     {{ ms.pct >= 100 ? '✓' : '○' }}
                   </span>
                   {{ ms.title }}
                 </div>
-                <div class="text-xs text-gray-400 mt-0.5 ml-5">{{ ms.sub }}</div>
-                <div v-if="ms.pct >= 100 && achievedDates[ms.key]" class="text-xs text-green-600 font-semibold mt-0.5 ml-5">
+                <div class="text-xs text-slate-400 mt-0.5 ml-5">{{ ms.sub }}</div>
+                <div v-if="ms.pct >= 100 && achievedDates[ms.key]" class="text-xs text-green-400 font-semibold mt-0.5 ml-5">
                   Achieved {{ achievedDates[ms.key] }}
                 </div>
               </div>
               <div class="text-right shrink-0 ml-4">
-                <div class="font-bold text-sm" :class="ms.pct >= 100 ? 'text-green-600' : 'text-gray-600'">
+                <div class="font-bold text-sm" :class="ms.pct >= 100 ? 'text-green-400' : 'text-slate-400'">
                   {{ Math.min(100, Math.round(ms.pct)) }}%
                 </div>
-                <div class="text-xs text-gray-400 mt-0.5">{{ ms.status }}</div>
+                <div class="text-xs text-slate-500 mt-0.5">{{ ms.status }}</div>
               </div>
             </div>
-            <div class="h-2 bg-gray-200 rounded-full overflow-hidden ml-5">
+            <div class="h-2 bg-slate-700 rounded-full overflow-hidden ml-5">
               <div
                 class="h-full rounded-full transition-all duration-500"
                 :class="ms.pct >= 100 ? 'bg-green-500' : ms.color"

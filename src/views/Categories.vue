@@ -1,22 +1,22 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+  <div class="min-h-screen bg-slate-950">
     <div class="container mx-auto px-4 py-8">
       <!-- Header Section -->
-      <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+      <div class="bg-gradient-to-br from-amber-950 to-slate-900 rounded-2xl shadow-xl p-8 mb-8 border border-amber-900">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 flex-wrap">
           <div>
-            <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h1 class="text-4xl font-bold text-white">
               Category Spending
             </h1>
-            <p class="text-gray-600 mt-2 text-lg">Track and reflect on your spending by category</p>
+            <p class="text-slate-300 mt-2 text-lg">Track and reflect on your spending by category</p>
           </div>
           <div class="flex flex-col sm:flex-row flex-wrap gap-3 items-start sm:items-center w-full md:w-auto">
             <div class="relative">
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Select Month</label>
+              <label class="block text-sm font-semibold text-slate-300 mb-2">Select Month</label>
               <input
                 type="month"
                 v-model="selectedMonth"
-                class="px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200 hover:shadow-md"
+                class="px-4 py-3 border border-slate-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-slate-800 text-slate-100 transition-all duration-200 hover:shadow-md"
               />
             </div>
             <div class="flex gap-2">
@@ -48,14 +48,14 @@
       <!-- Income Section -->
       <div v-if="incomeCategories.length > 0" class="mb-8">
         <div class="flex items-center gap-2 mb-4">
-          <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-          <h2 class="text-sm font-bold text-green-700 uppercase tracking-widest">Income</h2>
+          <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+          <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-widest">Income</h2>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           <div
             v-for="mainCategory in incomeCategories"
             :key="mainCategory"
-            class="bg-green-50 rounded-2xl shadow-xl p-6 border border-green-100 border-l-4 border-l-green-400 flex flex-col h-full hover:shadow-2xl transition-all duration-300"
+            class="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700 border-l-4 border-l-emerald-500 flex flex-col h-full hover:shadow-2xl transition-all duration-300"
           >
             <!-- Header -->
             <div class="flex justify-between items-center mb-6">
@@ -65,15 +65,15 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
                 </div>
-                <h2 class="text-xl font-bold text-gray-900">{{ mainCategory }}</h2>
+                <h2 class="text-xl font-bold text-slate-100">{{ mainCategory }}</h2>
               </div>
               <div class="flex space-x-2">
-                <button @click="editMainCategory(mainCategory)" class="p-2 text-gray-400 bg-white border border-gray-200 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200" title="Edit category">
+                <button @click="editMainCategory(mainCategory)" class="p-2 text-slate-400 bg-slate-700 border border-slate-600 rounded-lg hover:text-blue-400 hover:bg-blue-950/40 hover:border-blue-600 transition-all duration-200" title="Edit category">
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </button>
-                <button @click="deleteMainCategory(mainCategory)" class="p-2 text-gray-400 bg-white border border-gray-200 rounded-lg hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all duration-200" title="Delete category">
+                <button @click="deleteMainCategory(mainCategory)" class="p-2 text-slate-400 bg-slate-700 border border-slate-600 rounded-lg hover:text-red-400 hover:bg-red-950/40 hover:border-red-600 transition-all duration-200" title="Delete category">
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
@@ -82,7 +82,7 @@
             </div>
 
             <!-- Subheaders -->
-            <div class="grid grid-cols-2 font-semibold mb-4 text-gray-600 text-sm">
+            <div class="grid grid-cols-2 font-semibold mb-4 text-slate-400 text-sm">
               <div class="text-left">Subcategory</div>
               <div class="text-right">Amount</div>
             </div>
@@ -93,10 +93,10 @@
                 <div
                   v-for="subcategory in categoriesStore.getSubcategories(mainCategory)"
                   :key="subcategory"
-                  class="flex justify-between items-start p-3 bg-white rounded-xl transition-colors duration-200"
+                  class="flex justify-between items-start p-3 bg-slate-700/50 rounded-xl transition-colors duration-200"
                 >
                   <div class="flex items-center space-x-2">
-                    <span class="text-gray-700 font-medium">{{ subcategory }}</span>
+                    <span class="text-slate-200 font-medium">{{ subcategory }}</span>
                     <button @click="editSubcategory(mainCategory, subcategory)" class="p-1 text-gray-400 hover:text-blue-600 transition-colors duration-200" title="Edit subcategory">
                       <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -118,7 +118,7 @@
                   </div>
                 </div>
               </div>
-              <button @click="addSubcategory(mainCategory)" class="w-full mt-4 px-4 py-2 text-sm text-green-600 bg-white border border-green-200 rounded-xl hover:bg-green-50 hover:border-green-300 transition-all duration-200 font-medium">
+              <button @click="addSubcategory(mainCategory)" class="w-full mt-4 px-4 py-2 text-sm text-emerald-400 bg-emerald-950/30 border border-emerald-700 rounded-xl hover:bg-emerald-950/50 hover:border-emerald-600 transition-all duration-200 font-medium">
                 <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
@@ -127,9 +127,9 @@
             </div>
 
             <!-- Total -->
-            <div class="border-t border-green-200 pt-4 mt-4">
+            <div class="border-t border-slate-600 pt-4 mt-4">
               <div class="flex justify-between items-start">
-                <span class="font-bold text-gray-900">Total</span>
+                <span class="font-bold text-slate-100">Total</span>
                 <div class="text-right">
                   <div class="font-bold text-green-600 text-lg">{{ formatCurrency(Math.abs(getCategoryTotal(mainCategory))) }}</div>
                   <div v-if="lifeEnergyStore.lifeEnergyRate > 0" class="text-xs text-gray-400">
@@ -145,19 +145,19 @@
       <!-- Spending Section -->
       <div v-if="spendingCategories.length > 0" class="mb-8">
         <div class="flex items-center gap-2 mb-4">
-          <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-          <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Spending</h2>
+          <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+          <h2 class="text-sm font-bold text-amber-400 uppercase tracking-widest">Spending</h2>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           <div
             v-for="mainCategory in spendingCategories"
             :key="mainCategory"
-            class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 border-l-4 flex flex-col h-full hover:shadow-2xl transition-all duration-300"
+            class="rounded-2xl shadow-xl p-6 border border-l-4 flex flex-col h-full hover:shadow-2xl transition-all duration-300"
             :class="{
-              'border-l-amber-400': reflectionsStore.getRating(mainCategory)?.rating === 3,
-              'border-l-green-400': reflectionsStore.getRating(mainCategory)?.rating === 2,
-              'border-l-blue-400':  reflectionsStore.getRating(mainCategory)?.rating === 1,
-              'border-l-gray-200':  !reflectionsStore.getRating(mainCategory)
+              'bg-amber-950/30 border-amber-700 border-l-amber-500': reflectionsStore.getRating(mainCategory)?.rating === 3,
+              'bg-green-950/20 border-green-900 border-l-green-500': reflectionsStore.getRating(mainCategory)?.rating === 2,
+              'bg-blue-950/20 border-blue-900 border-l-blue-500':  reflectionsStore.getRating(mainCategory)?.rating === 1,
+              'bg-slate-800 border-slate-700 border-l-slate-600':  !reflectionsStore.getRating(mainCategory)
             }"
           >
             <!-- Header -->
@@ -169,15 +169,15 @@
                   </svg>
                 </div>
                 <div class="min-w-0">
-                  <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2 flex-wrap">
+                  <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2 flex-wrap">
                     {{ mainCategory }}
                     <span
                       v-if="reflectionsStore.getRating(mainCategory)"
                       :class="[
                         'inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold',
-                        reflectionsStore.getRating(mainCategory).rating === 1 ? 'bg-blue-100 text-blue-600' :
-                        reflectionsStore.getRating(mainCategory).rating === 2 ? 'bg-green-100 text-green-600' :
-                        'bg-amber-100 text-amber-600'
+                        reflectionsStore.getRating(mainCategory).rating === 1 ? 'bg-blue-900/50 text-blue-400' :
+                        reflectionsStore.getRating(mainCategory).rating === 2 ? 'bg-green-900/50 text-green-400' :
+                        'bg-amber-900/50 text-amber-400'
                       ]"
                       :title="reflectionsStore.getRating(mainCategory).rating === 1 ? 'Too little' : reflectionsStore.getRating(mainCategory).rating === 2 ? 'Just right' : 'Too much'"
                     >
@@ -193,12 +193,12 @@
                 </div>
               </div>
               <div class="flex space-x-2 shrink-0">
-                <button @click="editMainCategory(mainCategory)" class="p-2 text-gray-400 bg-gray-50 border border-gray-200 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200" title="Edit category">
+                <button @click="editMainCategory(mainCategory)" class="p-2 text-slate-400 bg-slate-700/50 border border-slate-600 rounded-lg hover:text-blue-400 hover:bg-blue-950/40 hover:border-blue-600 transition-all duration-200" title="Edit category">
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </button>
-                <button @click="deleteMainCategory(mainCategory)" class="p-2 text-gray-400 bg-gray-50 border border-gray-200 rounded-lg hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all duration-200" title="Delete category">
+                <button @click="deleteMainCategory(mainCategory)" class="p-2 text-slate-400 bg-slate-700/50 border border-slate-600 rounded-lg hover:text-red-400 hover:bg-red-950/40 hover:border-red-600 transition-all duration-200" title="Delete category">
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
@@ -207,7 +207,7 @@
             </div>
 
             <!-- Subheaders -->
-            <div class="grid grid-cols-2 font-semibold mb-4 text-gray-600 text-sm">
+            <div class="grid grid-cols-2 font-semibold mb-4 text-slate-400 text-sm">
               <div class="text-left">Subcategory</div>
               <div class="text-right">Amount</div>
             </div>
@@ -218,10 +218,10 @@
                 <div
                   v-for="subcategory in categoriesStore.getSubcategories(mainCategory)"
                   :key="subcategory"
-                  class="flex justify-between items-start p-3 bg-gray-50 rounded-xl transition-colors duration-200"
+                  class="flex justify-between items-start p-3 bg-slate-700/40 rounded-xl transition-colors duration-200"
                 >
                   <div class="flex items-center space-x-2">
-                    <span class="text-gray-700 font-medium">{{ subcategory }}</span>
+                    <span class="text-slate-200 font-medium">{{ subcategory }}</span>
                     <button @click="editSubcategory(mainCategory, subcategory)" class="p-1 text-gray-400 hover:text-blue-600 transition-colors duration-200" title="Edit subcategory">
                       <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -243,7 +243,7 @@
                   </div>
                 </div>
               </div>
-              <button @click="addSubcategory(mainCategory)" class="w-full mt-4 px-4 py-2 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 font-medium">
+              <button @click="addSubcategory(mainCategory)" class="w-full mt-4 px-4 py-2 text-sm text-amber-400 bg-amber-950/30 border border-amber-700 rounded-xl hover:bg-amber-950/50 hover:border-amber-600 transition-all duration-200 font-medium">
                 <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
@@ -252,9 +252,9 @@
             </div>
 
             <!-- Total -->
-            <div :class="[categoriesStore.getSubcategories(mainCategory).length > 1 ? 'pt-6 mt-6' : 'pt-2 mt-2', 'border-t border-gray-200']">
+            <div :class="[categoriesStore.getSubcategories(mainCategory).length > 1 ? 'pt-6 mt-6' : 'pt-2 mt-2', 'border-t border-slate-600']">
               <div class="flex justify-between items-start">
-                <span class="font-bold text-gray-900">Total</span>
+                <span class="font-bold text-slate-100">Total</span>
                 <div class="text-right">
                   <div class="font-bold text-blue-600 text-lg">{{ formatCurrency(Math.abs(getCategoryTotal(mainCategory))) }}</div>
                   <div v-if="lifeEnergyStore.lifeEnergyRate > 0" class="text-xs text-gray-400">
@@ -276,25 +276,25 @@
       </div>
 
       <!-- Manage Categories (collapsible, bottom) -->
-      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 mb-8 overflow-hidden">
+      <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 mb-8 overflow-hidden">
         <button
           @click="manageOpen = !manageOpen"
-          class="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors duration-200"
+          class="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-slate-700/50 transition-colors duration-200"
         >
           <div class="flex items-center gap-3">
-            <div class="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center">
-              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-7 h-7 bg-slate-700 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <span class="text-sm font-semibold text-gray-600">Manage Categories</span>
+            <span class="text-sm font-semibold text-slate-300">Manage Categories</span>
           </div>
-          <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="manageOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="manageOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        <div v-if="manageOpen" class="px-6 pb-6 border-t border-gray-100 pt-4">
+        <div v-if="manageOpen" class="px-6 pb-6 border-t border-slate-700 pt-4">
           <CategoryActions />
         </div>
       </div>

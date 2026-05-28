@@ -1,14 +1,14 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100" :key="selectedMonth + '-' + refreshKey">
+  <div class="min-h-screen bg-slate-950" :key="selectedMonth + '-' + refreshKey">
     <div class="w-full px-4 md:px-6 lg:px-8 py-8">
       <!-- Header Section -->
-      <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+      <div class="bg-gradient-to-br from-indigo-950 to-slate-900 rounded-2xl shadow-xl p-8 mb-8 border border-indigo-900">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
-            <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h1 class="text-4xl font-bold text-white">
               Financial Dashboard
             </h1>
-            <p class="text-gray-600 mt-2 text-lg">Your comprehensive financial overview</p>
+            <p class="text-slate-300 mt-2 text-lg">Your comprehensive financial overview</p>
           </div>
           <!-- Month Picker -->
           <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -54,10 +54,10 @@
         </div>
       </Transition>
 
-      <!-- Quick Stats Cards -->
+      <!-- Quick Stats Cards (4 stat cards follow) -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <!-- Current Balance -->
-        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-6 border border-slate-700 border-l-4 border-l-indigo-500 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
           <div class="flex items-center space-x-3 mb-4">
             <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,12 +65,12 @@
               </svg>
             </div>
             <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Money Left This Month</h3>
+              <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wide">Money Left This Month</h3>
             </div>
           </div>
-          <p class="text-3xl font-bold text-gray-900 mb-2">{{ formatCurrency(currentBalance) }}</p>
-          <p class="text-sm text-gray-500">
-            <span :class="balanceChange >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">
+          <p class="text-3xl font-bold text-slate-100 mb-2">{{ formatCurrency(currentBalance) }}</p>
+          <p class="text-sm text-slate-400">
+            <span :class="balanceChange >= 0 ? 'text-green-400 font-semibold' : 'text-red-400 font-semibold'">
               {{ balanceChange >= 0 ? '↗' : '↘' }} {{ formatCurrency(Math.abs(balanceChange)) }}
             </span>
             <span class="ml-1">this month</span>
@@ -78,7 +78,7 @@
         </div>
 
         <!-- Monthly Income -->
-        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-6 border border-slate-700 border-l-4 border-l-indigo-500 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
           <div class="flex items-center space-x-3 mb-4">
             <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +86,7 @@
               </svg>
             </div>
             <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Monthly Income</h3>
+              <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wide">Monthly Income</h3>
             </div>
           </div>
           <p class="text-3xl font-bold text-green-600 mb-2">{{ formatCurrency(monthlyIncome) }}</p>
@@ -100,7 +100,7 @@
         </div>
 
         <!-- Monthly Expenses -->
-        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-6 border border-slate-700 border-l-4 border-l-indigo-500 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
           <div class="flex items-center space-x-3 mb-4">
             <div class="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +108,7 @@
               </svg>
             </div>
             <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Monthly Expenses</h3>
+              <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wide">Monthly Expenses</h3>
             </div>
           </div>
           <p class="text-3xl font-bold text-red-600 mb-2">{{ formatCurrency(monthlyExpenses) }}</p>
@@ -122,7 +122,7 @@
         </div>
 
         <!-- Upcoming Bills -->
-        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-6 border border-slate-700 border-l-4 border-l-indigo-500 h-full hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
           <div class="flex items-center space-x-3 mb-4">
             <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +130,7 @@
               </svg>
             </div>
             <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Upcoming Bills</h3>
+              <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wide">Upcoming Bills</h3>
             </div>
           </div>
           <p class="text-3xl font-bold text-orange-600 mb-2">{{ formatCurrency(upcomingBillsTotal) }}</p>
@@ -146,9 +146,9 @@
       <!-- Savings Rate + FI Progress (side by side on lg) -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <!-- Savings Rate: 1/3 width on lg -->
-        <div class="lg:col-span-1 rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="lg:col-span-1 rounded-2xl shadow-xl border border-rose-500/30">
           <div class="flex flex-col justify-between gap-4 px-8 py-6 h-full"
-               :class="savingsRate >= 0 ? 'bg-gradient-to-br from-green-50 to-emerald-100' : 'bg-gradient-to-br from-red-50 to-rose-100'">
+               :class="savingsRate >= 0 ? 'bg-gradient-to-br from-emerald-950/60 to-slate-800' : 'bg-gradient-to-br from-red-950/60 to-slate-800'">
 
             <!-- Header: icon + label + rate -->
             <div class="flex items-center gap-4">
@@ -169,11 +169,11 @@
             </div>
 
             <!-- Sparkline: SVG line graph, last 3 months -->
-            <div v-if="savingsRateLast3.some(p => p.rate !== null)" class="w-full">
-              <svg viewBox="0 0 220 120" width="100%" height="120" xmlns="http://www.w3.org/2000/svg">
+            <div v-if="savingsRateLast3.some(p => p.rate !== null)" class="w-full my-2 flex-1 min-h-[140px]">
+              <svg viewBox="0 0 220 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                 <!-- Zero baseline -->
                 <line x1="20" :y1="getSparkY(0)" x2="200" :y2="getSparkY(0)"
-                      stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 3" />
+                      stroke="#475569" stroke-width="1" stroke-dasharray="4 3" />
                 <!-- Connecting line -->
                 <polyline
                   v-if="sparklinePoints"
@@ -191,7 +191,7 @@
                     <circle :cx="[40,110,180][i]" :cy="getSparkY(p.rate)" r="3.5" :fill="sparklineColor" />
                     <text :x="[40,110,180][i]" :y="getSparkY(p.rate) - 7"
                           text-anchor="middle" font-size="10" font-weight="600"
-                          :fill="p.rate >= 0 ? '#16a34a' : '#dc2626'">
+                          :fill="p.rate >= 0 ? '#4ade80' : '#f87171'">
                       {{ (p.rate >= 0 ? '' : '–') + Math.abs(p.rate).toFixed(1) + '%' }}
                     </text>
                     <text :x="[40,110,180][i]" y="114"
@@ -201,7 +201,7 @@
                   </template>
                   <template v-else>
                     <text :x="[40,110,180][i]" y="114"
-                          text-anchor="middle" font-size="10" fill="#d1d5db">
+                          text-anchor="middle" font-size="10" fill="#64748b">
                       {{ p.month }}
                     </text>
                   </template>
@@ -225,21 +225,21 @@
         </div>
 
         <!-- FI Progress: 2/3 width on lg -->
-        <div class="lg:col-span-2 bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+        <div class="lg:col-span-2 bg-indigo-950/40 rounded-2xl shadow-xl p-6 border border-indigo-500/30">
           <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-5">
             <div>
-              <h3 class="text-xl font-bold text-gray-900">Financial Independence Progress</h3>
-              <p class="text-sm text-gray-400 mt-0.5">Based on 4% safe withdrawal rate</p>
+              <h3 class="text-xl font-bold text-slate-100">Financial Independence Progress</h3>
+              <p class="text-sm text-slate-400 mt-0.5">Based on 4% safe withdrawal rate</p>
             </div>
-            <p class="text-sm text-gray-400 whitespace-nowrap">
+            <p class="text-sm text-slate-400 whitespace-nowrap">
               Based on {{ formatCurrency(fiStore.monthlyExpenses) }}/mo avg expenses
             </p>
           </div>
           <div class="flex flex-col sm:flex-row sm:items-end gap-6 mb-5">
             <div>
-              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Invested</p>
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Invested</p>
               <div v-if="!editingFI" class="flex items-center gap-2">
-                <span class="text-3xl font-bold text-gray-900">{{ formatCurrency(fiStore.total_invested) }}</span>
+                <span class="text-3xl font-bold text-slate-100">{{ formatCurrency(fiStore.total_invested) }}</span>
                 <button @click="startEditFI" class="p-1 text-gray-300 hover:text-blue-500 transition-colors" title="Edit">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -261,14 +261,14 @@
               </div>
             </div>
             <div class="sm:ml-auto text-left sm:text-right">
-              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">FI Target</p>
-              <p class="text-2xl font-bold text-gray-500">{{ formatCurrency(fiStore.fiNumber) }}</p>
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">FI Target</p>
+              <p class="text-2xl font-bold text-slate-400">{{ formatCurrency(fiStore.fiNumber) }}</p>
             </div>
           </div>
           <div class="flex justify-between items-center mb-1.5">
             <span class="text-sm font-bold text-green-600">{{ fiStore.progressPercent.toFixed(2) }}% of the way there</span>
           </div>
-          <div class="w-full bg-gray-100 rounded-full h-2.5">
+          <div class="w-full bg-slate-700 rounded-full h-2.5">
             <div
               class="bg-gradient-to-r from-green-400 to-emerald-500 h-2.5 rounded-full transition-all duration-700"
               :style="{ width: Math.max(fiStore.progressPercent, 0.15) + '%' }"
@@ -278,8 +278,8 @@
       </div>
 
       <!-- Income Goal & Break-Even -->
-      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 mb-6 overflow-hidden">
-        <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
+      <div class="bg-slate-800 rounded-2xl shadow-xl border border-indigo-400/30 mb-6 overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-700">
 
           <!-- LEFT: Income Progress -->
           <div class="p-6">
@@ -289,7 +289,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
-              <h3 class="text-lg font-bold text-gray-900">Income Goal</h3>
+              <h3 class="text-lg font-bold text-slate-100">Income Goal</h3>
             </div>
 
             <div class="mb-4">
@@ -301,7 +301,7 @@
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Target</p>
                 <div v-if="!editingGoal" class="flex items-center gap-2">
-                  <span class="text-2xl font-bold text-gray-700">{{ formatCurrency(incomeGoalsStore.target_monthly_income) }}</span>
+                  <span class="text-2xl font-bold text-slate-200">{{ formatCurrency(incomeGoalsStore.target_monthly_income) }}</span>
                   <button @click="startEditGoal" class="p-1 text-gray-300 hover:text-blue-500 transition-colors" title="Edit">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -347,7 +347,7 @@
               <span v-if="incomeGoalGap >= 0" class="text-sm font-semibold text-green-600">Goal reached! ✓</span>
               <span v-else class="text-sm font-semibold text-red-500">{{ formatCurrency(Math.abs(incomeGoalGap)) }} to go</span>
             </div>
-            <div class="w-full bg-gray-100 rounded-full h-2.5 mb-3">
+            <div class="w-full bg-slate-700 rounded-full h-2.5 mb-3">
               <div
                 class="h-2.5 rounded-full transition-all duration-700"
                 :class="incomeGoalProgress >= 100 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-blue-400 to-indigo-500'"
@@ -387,16 +387,16 @@
               </div>
             </div>
 
-            <div v-if="breakEvenGap < 0" class="bg-red-50 border border-red-100 rounded-xl px-4 py-3 space-y-1">
-              <p class="text-sm font-semibold text-red-700">
+            <div v-if="breakEvenGap < 0" class="bg-red-950/40 border border-red-500/30 rounded-xl px-4 py-3 space-y-1">
+              <p class="text-sm font-semibold text-red-400">
                 You need {{ formatCurrency(Math.abs(breakEvenGap)) }} more per month to break even
               </p>
               <p v-if="lifeEnergyHoursOfGap !== null" class="text-xs text-red-400">
                 That's ≈ {{ lifeEnergyHoursOfGap }} hrs of additional work at your life energy rate
               </p>
             </div>
-            <div v-else class="bg-green-50 border border-green-100 rounded-xl px-4 py-3 space-y-1">
-              <p class="text-sm font-semibold text-green-700">
+            <div v-else class="bg-green-950/40 border border-green-500/30 rounded-xl px-4 py-3 space-y-1">
+              <p class="text-sm font-semibold text-green-400">
                 You're {{ formatCurrency(breakEvenGap) }} above break-even this month ✓
               </p>
               <p class="text-xs text-green-500">
@@ -409,8 +409,8 @@
       </div>
 
       <!-- Debt Payoff Milestone -->
-      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 mb-6 overflow-hidden">
-        <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
+      <div class="bg-slate-800 rounded-2xl shadow-xl border border-rose-500/30 mb-6 overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-700">
 
           <!-- LEFT: Countdown + Progress -->
           <div class="p-6">
@@ -421,27 +421,27 @@
                 </svg>
               </div>
               <div>
-                <h3 class="text-lg font-bold text-gray-900">Debt Payoff Milestone</h3>
-                <p class="text-xs text-gray-400">Your biggest fixed debt clears automatically</p>
+                <h3 class="text-lg font-bold text-slate-100">Debt Payoff Milestone</h3>
+                <p class="text-xs text-slate-400">Your biggest fixed debt clears automatically</p>
               </div>
             </div>
 
             <div class="mt-5 mb-4 flex flex-wrap items-end gap-6">
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Loan</p>
-                <p class="text-xl font-bold text-gray-800">Personal Loan <span class="text-purple-600">($900/mo)</span></p>
+                <p class="text-xl font-bold text-slate-200">Personal Loan <span class="text-purple-400">($900/mo)</span></p>
               </div>
               <div>
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Payoff date</p>
-                <p class="text-xl font-bold text-gray-800">December 2030</p>
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Payoff date</p>
+                <p class="text-xl font-bold text-slate-200">December 2030</p>
               </div>
             </div>
 
             <div class="flex justify-between items-center mb-1.5">
-              <span class="text-sm font-bold text-purple-600">{{ debtPayoffProgress.toFixed(1) }}% paid off</span>
-              <span class="text-sm font-semibold text-gray-500">{{ debtPayoffMonthsLeft }} months to go — Dec 2030</span>
+              <span class="text-sm font-bold text-purple-400">{{ debtPayoffProgress.toFixed(1) }}% paid off</span>
+              <span class="text-sm font-semibold text-slate-400">{{ debtPayoffMonthsLeft }} months to go — Dec 2030</span>
             </div>
-            <div class="w-full bg-gray-100 rounded-full h-2.5">
+            <div class="w-full bg-slate-700 rounded-full h-2.5">
               <div
                 class="bg-gradient-to-r from-purple-400 to-indigo-500 h-2.5 rounded-full transition-all duration-700"
                 :style="{ width: Math.max(debtPayoffProgress, 0.15) + '%' }"
@@ -451,16 +451,16 @@
 
           <!-- RIGHT: Impact message -->
           <div class="p-6 flex flex-col justify-center">
-            <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-5 py-4 space-y-3">
+            <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl px-5 py-4 space-y-3">
               <div class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-indigo-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div>
-                  <p class="text-sm font-semibold text-indigo-800">
+                  <p class="text-sm font-semibold text-indigo-300">
                     When this clears, your monthly obligations drop by $900
                   </p>
-                  <p class="text-xs text-indigo-600 mt-1">
+                  <p class="text-xs text-indigo-400 mt-1">
                     Your break-even income target becomes <span class="font-bold">$6,028/mo</span> instead of $6,928/mo
                   </p>
                 </div>
@@ -469,7 +469,7 @@
                 <svg class="w-5 h-5 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p class="text-xs text-indigo-500">
+                <p class="text-xs text-indigo-400">
                   {{ debtPayoffMonthsLeft }} months until this automatic relief kicks in — no action needed
                 </p>
               </div>
@@ -486,14 +486,14 @@
           <!-- Category Watch + Spending Chart (side by side on lg) -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <!-- Category Watch -->
-            <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 h-full">
+            <div class="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700 h-full">
               <div class="flex items-center space-x-3 mb-4">
                 <div class="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
                   <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900">Category Watch</h3>
+                <h3 class="text-lg font-bold text-slate-100">Category Watch</h3>
               </div>
               <div v-if="categoryOverspend.length === 0" class="flex items-center gap-2 text-green-600 text-sm font-medium">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -505,16 +505,16 @@
                 <div
                   v-for="alert in categoryOverspend"
                   :key="alert.name"
-                  class="px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl"
+                  class="px-4 py-3 bg-amber-950/40 border border-amber-500/30 rounded-xl"
                 >
                   <div class="flex flex-wrap items-start justify-between gap-2">
-                    <span class="text-sm font-semibold text-amber-800">{{ alert.name }}</span>
-                    <span class="text-sm font-bold text-amber-700 text-right">
+                    <span class="text-sm font-semibold text-amber-300">{{ alert.name }}</span>
+                    <span class="text-sm font-bold text-amber-400 text-right">
                       ↑ {{ formatCurrency(alert.diff) }} vs 3-month avg
-                      <span class="text-amber-500 font-medium">(+{{ alert.pct.toFixed(0) }}%)</span>
+                      <span class="text-amber-400 font-medium">(+{{ alert.pct.toFixed(0) }}%)</span>
                     </span>
                   </div>
-                  <p class="text-xs text-amber-500 mt-1">
+                  <p class="text-xs text-amber-400 mt-1">
                     3-month avg: {{ formatCurrency(alert.threeMonthAvg) }} · This month: {{ formatCurrency(alert.thisMonth) }}
                   </p>
                 </div>
@@ -522,14 +522,14 @@
             </div>
 
             <!-- Spending by Category Chart -->
-            <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+            <div class="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
               <div class="flex items-center space-x-3 mb-4">
                 <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
                   <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900">Spending by Category</h3>
+                <h3 class="text-lg font-bold text-slate-100">Spending by Category</h3>
               </div>
               <DateRangeSelector
                 v-model:dateRange="selectedDateRange"
@@ -542,14 +542,14 @@
           </div>
 
           <!-- Income vs Expenses Chart (full width within left col) -->
-          <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+          <div class="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
             <div class="flex items-center space-x-3 mb-6">
               <div class="w-10 h-10 bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl flex items-center justify-center">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                 </svg>
               </div>
-              <h3 class="text-xl font-bold text-gray-900">Income vs Expenses</h3>
+              <h3 class="text-xl font-bold text-slate-100">Income vs Expenses</h3>
             </div>
             <div class="h-[400px] p-4">
               <IncomeExpensesChart :monthly-data="monthlyIncomeExpenses" />
@@ -560,8 +560,8 @@
         <!-- Right sidebar -->
         <div class="lg:col-span-1 space-y-6">
           <!-- Recent Transactions -->
-          <div class="bg-white rounded-2xl shadow-xl border border-gray-100">
-            <div class="p-6 border-b border-gray-100">
+          <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700">
+            <div class="p-6 border-b border-slate-700">
               <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
@@ -569,7 +569,7 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   </div>
-                  <h3 class="text-lg font-bold text-gray-900">Recent Transactions</h3>
+                  <h3 class="text-lg font-bold text-slate-100">Recent Transactions</h3>
                 </div>
                 <router-link
                   to="/transactions"
@@ -579,16 +579,16 @@
                 </router-link>
               </div>
             </div>
-            <div class="divide-y divide-gray-100">
+            <div class="divide-y divide-slate-700">
               <div
                 v-for="transaction in recentTransactions"
                 :key="transaction.id"
-                class="p-4 hover:bg-gray-50 transition-colors duration-200"
+                class="p-4 hover:bg-slate-700/50 transition-colors duration-200"
               >
                 <div class="flex justify-between items-center gap-2">
                   <div class="min-w-0">
-                    <p class="text-sm font-semibold text-gray-900 truncate">{{ transaction.description }}</p>
-                    <p class="text-xs text-gray-500 mt-1">{{ formatDate(transaction.date) }}</p>
+                    <p class="text-sm font-semibold text-slate-100 truncate">{{ transaction.description }}</p>
+                    <p class="text-xs text-slate-400 mt-1">{{ formatDate(transaction.date) }}</p>
                   </div>
                   <span class="shrink-0" :class="{
                     'text-green-600 font-bold': transaction.amount > 0,
@@ -602,8 +602,8 @@
           </div>
 
           <!-- Upcoming Bills -->
-          <div class="bg-white rounded-2xl shadow-xl border border-gray-100">
-            <div class="p-6 border-b border-gray-100">
+          <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700">
+            <div class="p-6 border-b border-slate-700">
               <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
@@ -611,7 +611,7 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h3 class="text-lg font-bold text-gray-900">Upcoming Bills</h3>
+                  <h3 class="text-lg font-bold text-slate-100">Upcoming Bills</h3>
                 </div>
                 <router-link
                   to="/bills"
@@ -621,18 +621,18 @@
                 </router-link>
               </div>
             </div>
-            <div class="divide-y divide-gray-100">
+            <div class="divide-y divide-slate-700">
               <div
                 v-for="bill in upcomingBills"
                 :key="bill.id"
-                class="p-4 hover:bg-gray-50 transition-colors duration-200"
+                class="p-4 hover:bg-slate-700/50 transition-colors duration-200"
               >
                 <div class="flex justify-between items-center gap-2">
                   <div class="min-w-0">
-                    <p class="text-sm font-semibold text-gray-900 truncate">{{ bill.name }}</p>
-                    <p class="text-xs text-gray-500 mt-1">Due {{ formatDate(bill.dueDate) }}</p>
+                    <p class="text-sm font-semibold text-slate-100 truncate">{{ bill.name }}</p>
+                    <p class="text-xs text-slate-400 mt-1">Due {{ formatDate(bill.dueDate) }}</p>
                   </div>
-                  <span class="text-gray-900 font-bold shrink-0">{{ formatCurrency(bill.amount) }}</span>
+                  <span class="text-slate-100 font-bold shrink-0">{{ formatCurrency(bill.amount) }}</span>
                 </div>
               </div>
             </div>

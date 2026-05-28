@@ -1,27 +1,27 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+  <div class="min-h-screen bg-slate-950">
     <div class="container mx-auto px-4 py-8 max-w-3xl">
 
       <!-- Header -->
-      <div class="bg-white rounded-2xl shadow-xl p-8 mb-6 border border-gray-100">
+      <div class="bg-gradient-to-br from-teal-950 to-slate-900 rounded-2xl shadow-xl p-8 mb-6 border border-teal-900">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div class="w-12 h-12 bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
               <span class="text-2xl">🔍</span>
             </div>
             <div>
-              <h1 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              <h1 class="text-3xl font-bold text-white">
                 Monthly Review
               </h1>
-              <p class="text-gray-500 text-sm mt-0.5">Rate how each spending category felt</p>
+              <p class="text-slate-300 text-sm mt-0.5">Rate how each spending category felt</p>
             </div>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Month</label>
+            <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wide">Month</label>
             <input
               type="month"
               v-model="selectedMonth"
-              class="px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white transition-all"
+              class="px-4 py-2.5 border border-slate-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-slate-800 text-slate-100 transition-all"
             />
           </div>
         </div>
@@ -34,10 +34,10 @@
       </div>
 
       <!-- No spending categories -->
-      <div v-else-if="activeCategories.length === 0" class="bg-white rounded-2xl shadow-xl p-12 text-center border border-gray-100">
+      <div v-else-if="activeCategories.length === 0" class="bg-slate-800 rounded-2xl shadow-xl p-12 text-center border border-slate-700">
         <p class="text-4xl mb-3">🤷</p>
-        <p class="text-gray-600 font-medium">No spending found for this month.</p>
-        <p class="text-gray-400 text-sm mt-1">Add transactions to see categories here.</p>
+        <p class="text-slate-300 font-medium">No spending found for this month.</p>
+        <p class="text-slate-500 text-sm mt-1">Add transactions to see categories here.</p>
       </div>
 
       <!-- Category cards -->
@@ -45,7 +45,7 @@
         <div
           v-for="cat in activeCategories"
           :key="cat.name"
-          class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 transition-all duration-200"
+          class="bg-teal-950/20 rounded-2xl shadow-xl border border-teal-900/50 p-6 transition-all duration-200"
           :class="ratingBorderClass(cat.name)"
         >
           <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -58,11 +58,11 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900">{{ cat.name }}</h3>
+                <h3 class="text-lg font-bold text-slate-100">{{ cat.name }}</h3>
                 <span v-if="getRating(cat.name)" class="text-lg">{{ ratingEmoji(getRating(cat.name).rating) }}</span>
               </div>
-              <p class="text-sm text-gray-500 ml-11">
-                Spent: <span class="font-semibold text-gray-700">{{ formatCurrency(Math.abs(cat.total)) }}</span>
+              <p class="text-sm text-slate-400 ml-11">
+                Spent: <span class="font-semibold text-slate-200">{{ formatCurrency(Math.abs(cat.total)) }}</span>
               </p>
             </div>
 
@@ -131,7 +131,7 @@
                 @blur="saveNotes(cat.name)"
                 placeholder="Any notes about this category this month…"
                 rows="2"
-                class="mt-2 w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 resize-none text-gray-700 placeholder-gray-300"
+                class="mt-2 w-full px-3 py-2 text-sm border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 resize-none bg-slate-800 text-slate-200 placeholder-slate-500"
               />
             </transition>
           </div>
@@ -139,7 +139,7 @@
       </div>
 
       <!-- Footer summary -->
-      <div v-if="ratedCount > 0" class="mt-6 bg-white rounded-2xl shadow p-5 border border-gray-100 flex items-center justify-between text-sm text-gray-600">
+      <div v-if="ratedCount > 0" class="mt-6 bg-slate-800 rounded-2xl shadow p-5 border border-slate-700 flex items-center justify-between text-sm text-slate-400">
         <span>{{ ratedCount }} of {{ activeCategories.length }} categories rated</span>
         <div class="flex space-x-3">
           <span class="text-blue-600 font-medium">↓ {{ countByRating(1) }}</span>

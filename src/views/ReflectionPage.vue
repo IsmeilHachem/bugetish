@@ -1,31 +1,36 @@
 <template>
-  <div class="max-w-2xl mx-auto py-8">
-    <h2 class="text-2xl font-bold mb-4">Monthly Reflection: {{ monthLabel }}</h2>
-    <div class="mb-4">
-      <label class="block font-medium mb-1">Select Month</label>
-      <input type="month" v-model="selectedMonth" @change="onMonthChange" class="border rounded p-2" />
+  <div class="max-w-2xl mx-auto py-8 px-4">
+    <!-- Hero header -->
+    <div class="bg-gradient-to-br from-violet-950 to-slate-900 rounded-2xl shadow-xl p-8 mb-6 border border-violet-900">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h2 class="text-3xl font-bold text-white">Monthly Reflection: {{ monthLabel }}</h2>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wide">Month</label>
+          <input type="month" v-model="selectedMonth" @change="onMonthChange" class="px-4 py-2.5 border border-slate-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-slate-800 text-slate-100 transition-all" />
+        </div>
+      </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <div class="bg-white rounded shadow p-4">
-        <div class="text-gray-500 text-sm">Income</div>
-        <div class="text-2xl font-bold text-green-700">{{ formatCurrency(stats.income) }}</div>
+      <div class="bg-slate-800 rounded-xl shadow border border-slate-700 border-l-4 border-l-violet-500 p-4">
+        <div class="text-slate-400 text-sm">Income</div>
+        <div class="text-2xl font-bold text-green-400">{{ formatCurrency(stats.income) }}</div>
       </div>
-      <div class="bg-white rounded shadow p-4">
-        <div class="text-gray-500 text-sm">Expenses</div>
-        <div class="text-2xl font-bold text-red-700">{{ formatCurrency(stats.expenses) }}</div>
+      <div class="bg-slate-800 rounded-xl shadow border border-slate-700 border-l-4 border-l-violet-500 p-4">
+        <div class="text-slate-400 text-sm">Expenses</div>
+        <div class="text-2xl font-bold text-red-400">{{ formatCurrency(stats.expenses) }}</div>
       </div>
-      <div class="bg-white rounded shadow p-4">
-        <div class="text-gray-500 text-sm flex items-center">Path To Financial Freedom
+      <div class="bg-slate-800 rounded-xl shadow border border-slate-700 border-l-4 border-l-violet-500 p-4">
+        <div class="text-slate-400 text-sm flex items-center">Path To Financial Freedom
           <span class="ml-1" title="Income minus Expenses for the month">🛈</span>
         </div>
-        <div class="text-2xl font-bold text-blue-700">{{ formatCurrency(stats.pathToFreedom) }}</div>
-        <div class="text-xs text-gray-500 mt-1">Income minus Expenses for the month</div>
+        <div class="text-2xl font-bold text-violet-400">{{ formatCurrency(stats.pathToFreedom) }}</div>
+        <div class="text-xs text-slate-500 mt-1">Income minus Expenses for the month</div>
       </div>
-      <div class="bg-white rounded shadow p-4">
-        <div class="text-gray-500 text-sm">Top Categories</div>
+      <div class="bg-slate-800 rounded-xl shadow border border-slate-700 border-l-4 border-l-violet-500 p-4">
+        <div class="text-slate-400 text-sm">Top Categories</div>
         <ul class="list-disc list-inside mt-2">
-          <li v-for="cat in stats.topCategories" :key="cat" class="text-base font-medium text-gray-800">{{ cat }}</li>
-          <li v-if="stats.topCategories.length === 0" class="text-gray-400">-</li>
+          <li v-for="cat in stats.topCategories" :key="cat" class="text-base font-medium text-slate-200">{{ cat }}</li>
+          <li v-if="stats.topCategories.length === 0" class="text-slate-500">-</li>
         </ul>
       </div>
     </div>
@@ -34,14 +39,14 @@
       <div
         v-for="ms in milestonesThisMonth"
         :key="ms.key"
-        class="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4"
+        class="flex items-start gap-3 bg-amber-950/40 border border-amber-500/30 rounded-xl px-5 py-4"
       >
         <span class="text-2xl shrink-0">🏆</span>
         <div>
-          <p class="font-semibold text-amber-800 text-sm">
+          <p class="font-semibold text-amber-300 text-sm">
             You reached a milestone this month: <strong>{{ ms.name }}</strong>
           </p>
-          <p class="text-amber-600 text-xs mt-1">
+          <p class="text-amber-400 text-xs mt-1">
             Consider noting this achievement in your reflection below.
           </p>
         </div>
@@ -49,41 +54,41 @@
     </div>
 
     <!-- YMOYL Insights header (Change 1) -->
-    <div v-if="totalLifeHours !== null || bestWorstCategory || fiSettingsStore.loaded" class="mb-6 bg-gray-50 rounded-xl p-5 border border-gray-200">
-      <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Your Month in Life Energy</h3>
+    <div v-if="totalLifeHours !== null || bestWorstCategory || fiSettingsStore.loaded" class="mb-6 bg-violet-950/20 rounded-xl p-5 border border-violet-900/50">
+      <h3 class="text-xs font-bold text-violet-400 uppercase tracking-widest mb-4">Your Month in Life Energy</h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
         <!-- Insight 1: Life hours traded -->
-        <div v-if="totalLifeHours !== null" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+        <div v-if="totalLifeHours !== null" class="bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-sm">
           <div class="flex items-center space-x-2 mb-2">
             <span class="text-xl">⏳</span>
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Life Energy Traded</span>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Life Energy Traded</span>
           </div>
-          <div class="text-2xl font-bold text-gray-800">{{ Math.round(totalLifeHours) }} hrs</div>
-          <div class="text-xs text-gray-400 mt-1">at your real wage of {{ formatCurrency(lifeEnergyStore.lifeEnergyRate) }}/hr</div>
+          <div class="text-2xl font-bold text-slate-100">{{ Math.round(totalLifeHours) }} hrs</div>
+          <div class="text-xs text-slate-400 mt-1">at your real wage of {{ formatCurrency(lifeEnergyStore.lifeEnergyRate) }}/hr</div>
         </div>
 
         <!-- Insight 2: Best / worst category -->
-        <div v-if="bestWorstCategory" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+        <div v-if="bestWorstCategory" class="bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-sm">
           <div class="flex items-center space-x-2 mb-2">
             <span class="text-xl">⚖️</span>
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Category Value</span>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Category Value</span>
           </div>
           <div class="text-sm space-y-1">
-            <div><span class="text-green-600 font-semibold">Best:</span> <span class="font-medium text-gray-800">{{ bestWorstCategory.best }}</span></div>
-            <div><span class="text-red-500 font-semibold">Worst:</span> <span class="font-medium text-gray-800">{{ bestWorstCategory.worst }}</span></div>
+            <div><span class="text-green-400 font-semibold">Best:</span> <span class="font-medium text-slate-200">{{ bestWorstCategory.best }}</span></div>
+            <div><span class="text-red-400 font-semibold">Worst:</span> <span class="font-medium text-slate-200">{{ bestWorstCategory.worst }}</span></div>
           </div>
         </div>
 
         <!-- Insight 3: FI Progress -->
-        <div v-if="fiSettingsStore.loaded" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+        <div v-if="fiSettingsStore.loaded" class="bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-sm">
           <div class="flex items-center space-x-2 mb-2">
             <span class="text-xl">🎯</span>
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">FI Progress</span>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">FI Progress</span>
           </div>
-          <div class="text-2xl font-bold text-gray-800">{{ fiSettingsStore.progressPercent }}%</div>
-          <div class="text-xs text-gray-500 mt-1">{{ formatCurrency(fiSettingsStore.total_invested) }} invested</div>
-          <div class="text-xs text-gray-400">Target: {{ formatCurrency(fiSettingsStore.fiNumber) }}</div>
+          <div class="text-2xl font-bold text-slate-100">{{ fiSettingsStore.progressPercent }}%</div>
+          <div class="text-xs text-slate-400 mt-1">{{ formatCurrency(fiSettingsStore.total_invested) }} invested</div>
+          <div class="text-xs text-slate-500">Target: {{ formatCurrency(fiSettingsStore.fiNumber) }}</div>
         </div>
       </div>
     </div>
@@ -92,7 +97,7 @@
     <div class="mb-6">
       <router-link
         :to="{ path: '/monthly-review', query: { month: selectedMonth } }"
-        class="inline-flex items-center px-4 py-2.5 border-2 border-violet-400 text-violet-700 rounded-xl font-semibold text-sm hover:bg-violet-50 transition-colors duration-200"
+        class="inline-flex items-center px-4 py-2.5 border-2 border-violet-500 text-violet-300 rounded-xl font-semibold text-sm hover:bg-violet-950/40 transition-colors duration-200"
       >
         Rate your categories for this month
         <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,46 +107,48 @@
     </div>
 
     <!-- Reflection form with YMOYL questions (Change 2) -->
+    <div class="bg-violet-950/20 rounded-2xl shadow-xl p-6 border border-violet-900/50 mb-6">
     <form @submit.prevent="saveReflection">
       <div class="mb-4">
-        <label class="block font-medium mb-1">Which spending brought real fulfillment this month?</label>
+        <label class="block font-medium text-slate-200 mb-1">Which spending brought real fulfillment this month?</label>
         <textarea
           v-model="reflection.notes"
-          class="w-full border rounded p-2"
+          class="w-full border border-slate-600 rounded-xl bg-slate-800 text-slate-100 placeholder-slate-500 p-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
           rows="2"
           placeholder="Think about purchases that felt genuinely worth the hours of life you traded for them..."
         />
       </div>
       <div class="mb-4">
-        <label class="block font-medium mb-1">Which spending felt like wasted life energy?</label>
+        <label class="block font-medium text-slate-200 mb-1">Which spending felt like wasted life energy?</label>
         <textarea
           v-model="reflection.challenges"
-          class="w-full border rounded p-2"
+          class="w-full border border-slate-600 rounded-xl bg-slate-800 text-slate-100 placeholder-slate-500 p-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
           rows="2"
           placeholder="Spending that didn't match your values or brought less satisfaction than expected..."
         />
       </div>
       <div class="mb-4">
-        <label class="block font-medium mb-1">One change to better align spending with your values next month</label>
+        <label class="block font-medium text-slate-200 mb-1">One change to better align spending with your values next month</label>
         <textarea
           v-model="reflection.goals"
-          class="w-full border rounded p-2"
+          class="w-full border border-slate-600 rounded-xl bg-slate-800 text-slate-100 placeholder-slate-500 p-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
           rows="2"
           placeholder="Be specific — what one thing would make the biggest difference toward financial independence?"
         />
       </div>
-      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Reflection</button>
+      <button type="submit" class="bg-gradient-to-r from-violet-600 to-purple-600 text-white px-6 py-2.5 rounded-xl hover:from-violet-700 hover:to-purple-700 font-semibold shadow-lg transition-all">Save Reflection</button>
     </form>
-    <div v-if="lastSaved" class="text-green-600 mt-4">Reflection saved!</div>
-    <div class="mt-8">
-      <h3 class="text-xl font-bold mb-2">Weekly Reflections</h3>
+    <div v-if="lastSaved" class="text-green-400 mt-4 font-medium">Reflection saved!</div>
+    </div>
+    <div class="mt-8 bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
+      <h3 class="text-xl font-bold text-slate-100 mb-4">Weekly Reflections</h3>
       <div v-for="week in getWeekRanges(selectedMonth)" :key="week.week" class="mb-4">
-        <label class="block font-medium mb-1">
+        <label class="block font-medium text-slate-300 mb-1">
           Week {{ week.week }} ({{ week.start }} - {{ week.end }})
         </label>
         <textarea
           v-model="reflection.weeklyReflections[week.week]"
-          class="w-full border rounded p-2"
+          class="w-full border border-slate-600 rounded-xl bg-slate-700 text-slate-100 placeholder-slate-500 p-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
           rows="2"
           :placeholder="`Reflection for week ${week.week}`"
         />
