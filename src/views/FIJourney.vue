@@ -463,18 +463,6 @@ const chartOptions = {
   animation: { duration: 250 }
 }
 
-// Achievement date tracking (localStorage, read-only reactive copy)
-const achievedDates = ref(getAchievedDates())
-
-// Record achieved dates when milestones are first completed
-watch(milestones, (list) => {
-  let changed = false
-  for (const ms of list) {
-    if (ms.pct >= 100 && recordAchievedDate(ms.key)) changed = true
-  }
-  if (changed) achievedDates.value = getAchievedDates()
-}, { immediate: true })
-
 // --- Savings balance (milestone 1 & 2) ---
 const savingsBalance = computed(() =>
   Math.max(
@@ -554,4 +542,15 @@ const milestones = computed(() => {
     }
   ]
 })
+
+// Achievement date tracking — must come AFTER milestones computed
+const achievedDates = ref(getAchievedDates())
+
+watch(milestones, (list) => {
+  let changed = false
+  for (const ms of list) {
+    if (ms.pct >= 100 && recordAchievedDate(ms.key)) changed = true
+  }
+  if (changed) achievedDates.value = getAchievedDates()
+}, { immediate: true })
 </script>
