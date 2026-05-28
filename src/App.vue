@@ -7,7 +7,7 @@
           <div class="flex">
             <!-- Logo -->
             <div class="flex-shrink-0 flex items-center">
-              <h1 class="text-xl font-bold text-white">BudgetIsh</h1>
+              <h1 class="text-xl font-bold text-white">BudgetYoish</h1>
             </div>
             <!-- Desktop Navigation Links -->
             <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
