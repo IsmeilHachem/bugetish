@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-slate-950">
-    <!-- Navigation Header -->
-    <header class="bg-slate-900 border-b border-slate-700">
+    <!-- Navigation Header (only shown when authenticated) -->
+    <header v-if="authStore.isLoggedIn" class="bg-slate-900 border-b border-slate-700">
       <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex">
@@ -41,7 +41,8 @@
 
     <!-- Main Content -->
     <main class="pb-20 sm:pb-0">
-      <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div :class="$route.path !== '/' ? 'max-w-7xl mx-auto py-6 sm:px-6 lg:px-8' : ''"
+>
         <router-view v-slot="{ Component }">
           <transition
             name="fade"
@@ -89,7 +90,7 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const routes = [
-  { path: '/', name: 'Dashboard', icon: '📊' },
+  { path: '/dashboard', name: 'Dashboard', icon: '📊' },
   { path: '/categories', name: 'Categories', icon: '🏷️' },
   { path: '/transactions', name: 'Transactions', icon: '💳' },
   { path: '/bills', name: 'Bills', icon: '📋' },

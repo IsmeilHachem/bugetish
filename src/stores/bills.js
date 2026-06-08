@@ -228,6 +228,7 @@ export const useBillsStore = defineStore('bills', {
         name: bill.name.toLowerCase(),
         amount: bill.amount || null,
         category: bill.category || 'Other',
+        automatic: bill.automatic ?? false,
         status: UNPAID_STATUS,
         paymentCount: 0,
         notes: bill.notes || '',

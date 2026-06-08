@@ -4,7 +4,8 @@ import { supabase } from '@/utils/supabase'
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
-    loading: true
+    loading: true,
+    initialized: false
   }),
 
   getters: {
@@ -15,11 +16,12 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async init() {
       // Already initialized — don't re-run
-      if (!this.loading) return
+      if (this.initialized) return
 
       const { data: { session } } = await supabase.auth.getSession()
       this.user = session?.user ?? null
       this.loading = false
+      this.initialized = true
 
       supabase.auth.onAuthStateChange((_event, session) => {
         this.user = session?.user ?? null

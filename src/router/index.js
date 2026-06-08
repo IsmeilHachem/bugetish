@@ -5,6 +5,12 @@ import { useAuthStore } from '@/stores/auth'
 
 const routes = [
   {
+    path: '/',
+    name: 'Landing',
+    component: () => import('../views/LandingPage.vue'),
+    meta: { public: true }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('../views/Login.vue'),
@@ -16,7 +22,7 @@ const routes = [
     component: () => import('../views/Migrate.vue')
   },
   {
-    path: '/',
+    path: '/dashboard',
     name: 'Dashboard',
     component: () => import('../views/Dashboard.vue')
   },
@@ -70,15 +76,22 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
-  // Wait for auth to be initialized
-  if (authStore.loading) {
+  // Always ensure auth is initialized before checking
+  if (!authStore.initialized) {
     await authStore.init()
   }
 
-  if (!to.meta.public && !authStore.isLoggedIn) {
-    return { name: 'Login' }
+  // Authenticated users hitting the landing page go straight to dashboard
+  if (to.name === 'Landing' && authStore.isLoggedIn) {
+    return { name: 'Dashboard' }
   }
 
+  // Unauthenticated users hitting protected routes go to landing page
+  if (!to.meta.public && !authStore.isLoggedIn) {
+    return { name: 'Landing' }
+  }
+
+  // Authenticated users hitting login go to dashboard
   if (to.name === 'Login' && authStore.isLoggedIn) {
     return { name: 'Dashboard' }
   }

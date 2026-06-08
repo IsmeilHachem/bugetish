@@ -73,9 +73,38 @@
           </p>
           <p v-else class="text-xs text-gray-400 mt-1">unpaid</p>
         </div>
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-5 border border-slate-700 border-l-4" style="border-left-color: #10b981">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">AUTO-PAY</p>
+          <p class="text-3xl font-bold" style="color: #34d399">{{ formatCurrency(autoPayTotal) }}</p>
+          <p class="text-xs text-slate-400 mt-1">≈ {{ toLifeEnergyHours(autoPayTotal) }} hrs · hands-off</p>
+        </div>
+        <div class="bg-slate-800 rounded-2xl shadow-lg p-5 border border-slate-700 border-l-4" style="border-left-color: #f43f5e">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">MANUAL</p>
+          <p class="text-3xl font-bold" style="color: #fb7185">{{ formatCurrency(manualTotal) }}</p>
+          <p class="text-xs text-slate-400 mt-1">≈ {{ toLifeEnergyHours(manualTotal) }} hrs · needs attention</p>
+        </div>
       </div>
 
-      <div class="space-y-5">
+      <!-- View Toggle -->
+      <div class="flex rounded-xl overflow-hidden mb-6 w-fit">
+        <button
+          @click="viewMode = 'date'"
+          class="px-5 py-2 text-sm font-medium transition-colors duration-200"
+          :class="viewMode === 'date' ? 'bg-rose-500 text-white' : 'bg-slate-700 text-slate-300'"
+        >
+          By Due Date
+        </button>
+        <button
+          @click="viewMode = 'category'"
+          class="px-5 py-2 text-sm font-medium transition-colors duration-200"
+          :class="viewMode === 'category' ? 'bg-rose-500 text-white' : 'bg-slate-700 text-slate-300'"
+        >
+          By Category
+        </button>
+      </div>
+
+      <!-- By Due Date View -->
+      <div v-if="viewMode === 'date'" class="space-y-5">
 
         <!-- Section 1: Due This Week -->
         <div class="bg-rose-950/30 rounded-2xl shadow-xl border border-rose-900/50 overflow-hidden">
@@ -108,6 +137,16 @@
                   <div class="flex items-center gap-2 flex-wrap">
                     <span class="font-semibold text-slate-100 capitalize">{{ bill.name }}</span>
                     <span class="text-xs px-2 py-0.5 bg-slate-700 border border-slate-600 text-slate-400 rounded-full">{{ bill.category }}</span>
+                    <button
+                      type="button"
+                      @click="toggleAutomatic(bill)"
+                      class="text-xs px-1.5 py-0.5 rounded font-medium cursor-pointer border transition-colors"
+                      :class="bill.automatic
+                        ? 'bg-green-900/40 text-emerald-400 border-emerald-500/50 hover:bg-green-900/60'
+                        : 'bg-slate-700 text-slate-400 border-slate-500 hover:bg-slate-600'"
+                    >
+                      {{ bill.automatic ? 'AUTO' : 'MANUAL' }}
+                    </button>
                     <span v-if="isOverdueBill(bill)" class="text-xs px-2 py-0.5 bg-slate-700 border border-rose-500/40 text-rose-400 rounded-full font-medium">Overdue</span>
                   </div>
                   <p class="text-xs text-slate-400 mt-0.5">Due {{ formatDate(bill.dueDate) }}</p>
@@ -168,6 +207,16 @@
                   <div class="flex items-center gap-2 flex-wrap">
                     <span class="font-semibold text-slate-100 capitalize">{{ bill.name }}</span>
                     <span class="text-xs px-2 py-0.5 bg-slate-700 border border-slate-600 text-slate-400 rounded-full">{{ bill.category }}</span>
+                    <button
+                      type="button"
+                      @click="toggleAutomatic(bill)"
+                      class="text-xs px-1.5 py-0.5 rounded font-medium cursor-pointer border transition-colors"
+                      :class="bill.automatic
+                        ? 'bg-green-900/40 text-emerald-400 border-emerald-500/50 hover:bg-green-900/60'
+                        : 'bg-slate-700 text-slate-400 border-slate-500 hover:bg-slate-600'"
+                    >
+                      {{ bill.automatic ? 'AUTO' : 'MANUAL' }}
+                    </button>
                     <span v-if="isOverdueBill(bill)" class="text-xs px-2 py-0.5 bg-slate-700 border border-rose-500/40 text-rose-400 rounded-full font-medium">Overdue</span>
                   </div>
                   <p class="text-xs text-slate-400 mt-0.5">Due {{ formatDate(bill.dueDate) }}</p>
@@ -236,6 +285,16 @@
                     <div class="flex items-center gap-2 flex-wrap">
                       <span class="font-semibold text-slate-200 capitalize">{{ bill.name }}</span>
                       <span class="text-xs px-2 py-0.5 bg-slate-700 border border-slate-600 text-slate-400 rounded-full">{{ bill.category }}</span>
+                      <button
+                        type="button"
+                        @click="toggleAutomatic(bill)"
+                        class="text-xs px-1.5 py-0.5 rounded font-medium cursor-pointer border transition-colors"
+                        :class="bill.automatic
+                          ? 'bg-green-900/40 text-emerald-400 border-emerald-500/50 hover:bg-green-900/60'
+                          : 'bg-slate-700 text-slate-400 border-slate-500 hover:bg-slate-600'"
+                      >
+                        {{ bill.automatic ? 'AUTO' : 'MANUAL' }}
+                      </button>
                     </div>
                     <p class="text-xs text-slate-400 mt-0.5">Due {{ formatDate(bill.dueDate) }}</p>
                   </div>
@@ -300,7 +359,103 @@
           </div>
         </div>
 
-      </div><!-- end space-y-5 -->
+      </div><!-- end date view -->
+
+      <!-- By Category View -->
+      <div v-if="viewMode === 'category'" class="space-y-5">
+
+        <!-- Grand total bar -->
+        <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+          <p class="text-slate-100 font-semibold">
+            Total monthly bills: {{ formatCurrency(categoryGrandTotal.total) }}
+            <span v-if="categoryGrandTotal.hours"> · ≈ {{ categoryGrandTotal.hours }}/mo of life energy</span>
+          </p>
+          <p v-if="categoryGrandTotal.takeHomePct !== null" class="text-sm text-slate-400 mt-1">
+            {{ categoryGrandTotal.takeHomePct }}% of take-home going to bills
+            <span v-if="lifeEnergyStore.monthly_take_home > 0">
+              ({{ formatCurrency(lifeEnergyStore.monthly_take_home) }}/mo)
+            </span>
+          </p>
+        </div>
+
+        <!-- Category sections -->
+        <div
+          v-for="cat in billsByCategory"
+          :key="cat.name"
+          class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 border-l-4 overflow-hidden"
+          :class="cat.borderClass"
+        >
+          <!-- Category header -->
+          <div class="px-6 py-4 border-b border-slate-700">
+            <h2 class="text-lg font-bold text-slate-100">{{ cat.name }}</h2>
+            <p class="text-sm text-slate-400 mt-0.5">
+              Total: {{ formatCurrency(cat.total) }}
+              <span v-if="cat.hours"> · ≈ {{ cat.hours }}/mo</span>
+            </p>
+          </div>
+
+          <div class="p-4 space-y-5">
+            <!-- Subcategory sections -->
+            <div v-for="sub in cat.subcategories" :key="sub.name">
+              <div class="flex items-baseline justify-between mb-2">
+                <h3 class="text-sm font-semibold text-slate-300">{{ sub.name }}</h3>
+                <p class="text-xs text-slate-500">
+                  {{ formatCurrency(sub.total) }}
+                  <span v-if="sub.hours"> · ≈ {{ sub.hours }}</span>
+                </p>
+              </div>
+
+              <p
+                v-if="cat.name === 'Debt' && sub.takeHomePct !== null && sub.total > 0"
+                class="text-xs text-rose-400 mb-2"
+              >
+                This is {{ sub.takeHomePct }}% of your monthly take-home ({{ formatCurrency(lifeEnergyStore.monthly_take_home) }})
+              </p>
+
+              <div class="space-y-2">
+                <div
+                  v-for="bill in sub.bills"
+                  :key="bill.id"
+                  class="flex items-start justify-between p-4 rounded-xl bg-slate-700/50 border border-slate-600"
+                >
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-semibold text-slate-100 capitalize">{{ bill.name }}</span>
+                      <button
+                        type="button"
+                        @click="toggleAutomatic(bill)"
+                        class="text-xs px-1.5 py-0.5 rounded font-medium cursor-pointer border transition-colors"
+                        :class="bill.automatic
+                          ? 'bg-green-900/40 text-emerald-400 border-emerald-500/50 hover:bg-green-900/60'
+                          : 'bg-slate-700 text-slate-400 border-slate-500 hover:bg-slate-600'"
+                      >
+                        {{ bill.automatic ? 'AUTO' : 'MANUAL' }}
+                      </button>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                      {{ formatDueDay(bill.dueDate) }}
+                      <span v-if="getBillEndLabel(bill.name)" class="text-slate-500"> · {{ getBillEndLabel(bill.name) }}</span>
+                    </p>
+                  </div>
+                  <div class="text-right shrink-0 ml-4">
+                    <p class="font-bold text-slate-100">{{ formatCurrency(bill.amount) }}</p>
+                    <p v-if="lifeEnergyStore.lifeEnergyRate > 0 && bill.amount" class="text-xs text-slate-400">
+                      ≈ {{ lifeEnergyStore.toCost(bill.amount) }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category summary -->
+            <p class="text-sm text-slate-500 italic pt-2 border-t border-slate-700">
+              {{ cat.name }} costs you {{ formatCurrency(cat.total) }}/mo
+              <span v-if="cat.hours"> · ≈ {{ cat.hours }} of life energy per month</span>
+            </p>
+          </div>
+        </div>
+
+      </div><!-- end category view -->
 
       <!-- Bill Add/Edit Modal -->
       <BillModal
@@ -379,6 +534,7 @@ const showArchiveModal = ref(false)
 const archivingBill = ref(null)
 const paidSectionOpen = ref(false)
 const archivedSectionOpen = ref(false)
+const viewMode = ref('date')
 
 watch(billsStore.billMonthStatus, (val) => {
   localStorage.setItem('billMonthStatus', JSON.stringify(val))
@@ -425,6 +581,35 @@ const formatDate = (dateStr) => {
   if (!dateStr) return ''
   const [y, m, d] = dateStr.split('-').map(Number)
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(y, m - 1, d))
+}
+
+const CATEGORY_BORDER = {
+  Debt: 'border-l-rose-500',
+  Housing: 'border-l-indigo-500',
+  Transportation: 'border-l-amber-500',
+  Personal: 'border-l-violet-500',
+  Savings: 'border-l-green-500'
+}
+
+function getCategoryBorderClass(mainCat) {
+  return CATEGORY_BORDER[mainCat] || 'border-l-slate-500'
+}
+
+function getOrdinalSuffix(n) {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return s[(v - 20) % 10] || s[v] || s[0]
+}
+
+function formatDueDay(dateStr) {
+  const day = parseInt(dateStr.split('-')[2], 10)
+  return `Due ${day}${getOrdinalSuffix(day)}`
+}
+
+function getBillEndLabel(billName) {
+  const name = (billName || '').toLowerCase()
+  if (name.includes('personal loan')) return 'Ends Dec 2030'
+  return null
 }
 
 // Bills visible for selected month (excludes soft-deleted and archived)
@@ -483,7 +668,84 @@ const totalRemaining = computed(() =>
   [...dueThisWeekBills.value, ...dueThisMonthBills.value].reduce((s, b) => s + (b.amount || 0), 0)
 )
 
+const LIFE_ENERGY_RATE = 12.30
+
+const autoPayTotal = computed(() =>
+  billsForMonth.value
+    .filter(b => b.automatic)
+    .reduce((s, b) => s + (b.amount || 0), 0)
+)
+
+const manualTotal = computed(() =>
+  billsForMonth.value
+    .filter(b => !b.automatic)
+    .reduce((s, b) => s + (b.amount || 0), 0)
+)
+
+function toLifeEnergyHours(amount) {
+  return (amount / LIFE_ENERGY_RATE).toFixed(1)
+}
+
+// Category view data
+const categoryBills = computed(() => billsForMonth.value)
+
+const categoryGrandTotal = computed(() => {
+  const total = categoryBills.value.reduce((s, b) => s + (b.amount || 0), 0)
+  const takeHome = lifeEnergyStore.monthly_take_home
+  const takeHomePct = takeHome > 0 ? Math.round((total / takeHome) * 100) : null
+  return {
+    total,
+    hours: lifeEnergyStore.toCost(total),
+    takeHomePct
+  }
+})
+
+const billsByCategory = computed(() => {
+  const groups = {}
+
+  for (const bill of categoryBills.value) {
+    const parts = (bill.category || 'Other').split(' - ')
+    const mainCat = parts[0] || 'Other'
+    const subCat = parts[1] || 'Uncategorized'
+
+    if (!groups[mainCat]) {
+      groups[mainCat] = { subcategories: {}, total: 0 }
+    }
+    if (!groups[mainCat].subcategories[subCat]) {
+      groups[mainCat].subcategories[subCat] = { bills: [], total: 0 }
+    }
+
+    groups[mainCat].subcategories[subCat].bills.push(bill)
+    const amt = bill.amount || 0
+    groups[mainCat].subcategories[subCat].total += amt
+    groups[mainCat].total += amt
+  }
+
+  const takeHome = lifeEnergyStore.monthly_take_home
+
+  return Object.entries(groups)
+    .map(([name, data]) => ({
+      name,
+      total: data.total,
+      hours: lifeEnergyStore.toCost(data.total),
+      borderClass: getCategoryBorderClass(name),
+      subcategories: Object.entries(data.subcategories)
+        .map(([subName, subData]) => ({
+          name: subName,
+          total: subData.total,
+          hours: lifeEnergyStore.toCost(subData.total),
+          bills: subData.bills.sort((a, b) => (b.amount || 0) - (a.amount || 0)),
+          takeHomePct: takeHome > 0 ? Math.round((subData.total / takeHome) * 100) : null
+        }))
+        .sort((a, b) => b.total - a.total)
+    }))
+    .sort((a, b) => b.total - a.total)
+})
+
 // Actions
+function toggleAutomatic(bill) {
+  billsStore.editBill(bill.id, { automatic: !bill.automatic })
+}
 function markBillAsPaid(bill) {
   billsStore.markAsPaid(bill.id, bill.amount, selectedMonth.value)
 }

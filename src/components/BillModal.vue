@@ -120,6 +120,21 @@
             ></textarea>
           </div>
 
+          <!-- Autopay toggle -->
+          <div>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input
+                v-model="form.automatic"
+                type="checkbox"
+                class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <div>
+                <span class="block text-sm font-semibold text-gray-700">Autopay / Automatic</span>
+                <span class="block text-xs text-gray-500">This bill pays automatically</span>
+              </div>
+            </label>
+          </div>
+
           <!-- Action Buttons -->
           <div class="flex justify-end space-x-4 pt-4">
             <button
@@ -171,7 +186,8 @@ const form = ref({
   amount: null,
   mainCategory: '',
   subcategory: '',
-  notes: ''
+  notes: '',
+  automatic: false
 })
 
 // Update computed properties
@@ -197,7 +213,8 @@ onMounted(() => {
     amount: null,
     mainCategory: '',
     subcategory: '',
-    notes: ''
+    notes: '',
+    automatic: false
   }
   
   if (props.bill) {
@@ -216,7 +233,8 @@ onMounted(() => {
       amount: (props.bill.amount !== null && props.bill.amount !== undefined && props.bill.amount !== '') ? props.bill.amount : 0,
       mainCategory,
       subcategory,
-      notes: props.bill.notes || ''
+      notes: props.bill.notes || '',
+      automatic: props.bill.automatic ?? false
     }
   }
 })
@@ -247,7 +265,8 @@ const handleSubmit = () => {
     dueDate: form.value.dueDate,
     amount: form.value.amount !== null && form.value.amount !== '' ? parseFloat(form.value.amount) : null,
     category: `${form.value.mainCategory.trim()} - ${form.value.subcategory.trim()}`,
-    notes: form.value.notes ? form.value.notes.trim() : ''
+    notes: form.value.notes ? form.value.notes.trim() : '',
+    automatic: form.value.automatic
   }
 
   let success
