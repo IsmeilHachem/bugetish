@@ -478,6 +478,42 @@
 
         </div>
       </div>
+      <!-- Gemini Spending Insights Card -->
+      <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 p-6 mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-slate-700 rounded-xl flex items-center justify-center">
+              <span class="text-xl">✨</span>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-100">Gemini AI Spending Insights</h3>
+              <p class="text-xs text-slate-400">Personalized spending patterns and Life Energy analysis (last 90 days)</p>
+            </div>
+          </div>
+          <button 
+            @click="generateInsights(true)" 
+            :disabled="loading"
+            class="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-100 text-sm font-semibold rounded-xl transition-all duration-200"
+          >
+            {{ loading ? 'Analyzing...' : (insights ? 'Regenerate' : 'Generate Insights') }}
+          </button>
+        </div>
+
+        <div v-if="loading" class="text-slate-300 text-sm py-4">
+          Generating fresh insights using Gemini 3.5 Flash... Please wait.
+        </div>
+
+        <div v-else-if="error" class="bg-red-950/40 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm">
+          {{ error }}
+        </div>
+
+        <div v-else-if="insights" class="text-slate-300 text-sm border-t border-slate-700 pt-4" v-html="renderedInsights">
+        </div>
+
+        <div v-else class="text-slate-400 text-sm py-4 border-t border-slate-700/50">
+          Click the "Generate Insights" button to analyze your transactions.
+        </div>
+      </div>
 
       <!-- Main Content Grid: 2-col charts + 1-col sidebar -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -657,6 +693,45 @@ import SpendingCategoryChart from '@/components/SpendingCategoryChart.vue'
 import IncomeExpensesChart from '@/components/IncomeExpensesChart.vue'
 import DateRangeSelector from '../components/DateRangeSelector.vue'
 import { MILESTONE_DEFS, isCelebrated, markCelebrated, recordAchievedDate } from '@/utils/milestones'
+import { useGeminiInsights } from '@/composables/useGeminiInsights'
+
+const { insights, loading, error, generateInsights } = useGeminiInsights()
+
+const renderedInsights = computed(() => {
+  if (!insights.value) return ''
+  
+  let html = insights.value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+
+  // Bold
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+
+  // Italic
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
+
+  // Headers
+  html = html.replace(/^### (.*?)$/gm, '<h4 class="text-md font-bold text-indigo-300 mt-4 mb-2">$1</h4>')
+  html = html.replace(/^## (.*?)$/gm, '<h3 class="text-lg font-bold text-white mt-5 mb-2">$1</h3>')
+  html = html.replace(/^# (.*?)$/gm, '<h2 class="text-xl font-bold text-white mt-6 mb-3">$1</h2>')
+
+  // Bullet points
+  html = html.replace(/^[-\*] (.*?)$/gm, '<li class="ml-4 list-disc text-slate-300">$1</li>')
+
+  // Blockquotes
+  html = html.replace(/^&gt; (.*?)$/gm, '<blockquote class="border-l-4 border-slate-600 pl-4 py-1 my-2 text-slate-400 bg-slate-900 italic">$1</blockquote>')
+
+  // Paragraphs
+  html = html.split('\n\n').map(p => {
+    if (p.trim().startsWith('<li') || p.trim().startsWith('<h') || p.trim().startsWith('<blockquote')) {
+      return p
+    }
+    return `<p class="mb-3 text-slate-300 leading-relaxed">${p}</p>`
+  }).join('')
+
+  return html
+})
 
 const transactionsStore = useTransactionsStore()
 const billsStore = useBillsStore()

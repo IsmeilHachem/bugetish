@@ -12,6 +12,7 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "@google-cloud/vertexai": "^1.12.0",
     "@supabase/supabase-js": "^2.103.0",
     "chat.js": "^1.0.2",
     "lz-string": "^1.5.0",
