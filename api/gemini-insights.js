@@ -117,6 +117,7 @@ export default async function handler(req, res) {
       .join('\n');
 
     // Build the analysis prompt
+    // Build the highly concise analysis prompt
     const prompt = `You are an expert personal finance coach specializing in the 'Your Money or Your Life' (YMYL) financial independence philosophy.
 Analyze the user's spending patterns for the last 90 days.
 
@@ -134,18 +135,10 @@ ${transactionListStr || 'No transactions found.'}
 
 ---
 
-Please provide personalized, high-value financial insights in clean, readable Markdown format. Use friendly emojis to structure the content. Focus on these four key areas:
-
-1. **📊 Spending Summary & Flow**: Highlight the overall health of their cash flow. Specifically mention their top expense areas and how they impact their financial health.
-2. **⏱️ Life Energy Cost Analysis**: 
-   ${hasLifeEnergy 
-     ? `Convert their top expenditures into 'hours of life energy' (hours of work needed to pay for them). Help them reflect on whether these expenses were truly worth the hours of their life they traded for them.`
-     : `Since they haven't configured their Life Energy Rate, encourage them to do so in the settings. Explain how calculating their net hourly wage can transform how they view their transactions as a trade of their life energy.`
-   }
-3. **🔍 Hidden Patterns & Savings Potential**: Point out any recurring patterns, subscription costs, or potential impulse spends.
-4. **🚀 Smart Action Plan**: Provide 2-3 highly actionable, compassionate, and specific suggestions based on their transaction list to optimize their spending.
-
-Keep your tone compassionate, coaching-focused, non-judgmental, and highly empowering. Use bullet points and clean headers to make it easily scannable.`;
+Please provide exactly 3 to 5 bullet point insights maximum, each no longer than 2 sentences. 
+Keep the YMYL life energy framing (converting top expenditures into 'hours of life energy' worked if the Life Energy Rate is set, or encouraging them to set it if not).
+Make the output extremely scannable, direct, and action-oriented. 
+Do NOT include any long section headers, lengthy explanations, intro/outro remarks, or markdown headers. Just return a plain list of 3-5 bullet points with appropriate emojis.`;
 
     // Attempt generation with a prioritized list of candidate models for fallback robustness
     const candidateModels = [
