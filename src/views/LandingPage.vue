@@ -68,7 +68,7 @@
 
         <!-- Social proof -->
         <p class="text-slate-500 text-sm mt-8">
-          Free to use · No credit card · Built by someone who wanted to take control of their budget instead of their budget taking control of their life
+          Free to use · No credit card · Built by someone who wanted to run their budget instead of running out of life
         </p>
       </div>
 
