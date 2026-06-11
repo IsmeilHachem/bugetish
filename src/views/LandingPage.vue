@@ -68,7 +68,7 @@
 
         <!-- Social proof -->
         <p class="text-slate-500 text-sm mt-8">
-          Free to use · No credit card · Built by someone who was $2,600/month in the hole
+          Free to use · No credit card · Built by someone who wanted to take control of their budget instead of their budget taking control of their life
         </p>
       </div>
 
