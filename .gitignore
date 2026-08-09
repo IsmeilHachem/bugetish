@@ -22,3 +22,4 @@ Thumbs.db
 gcp-service-account.json
 .vercel
 .env*.local
+.env.production
