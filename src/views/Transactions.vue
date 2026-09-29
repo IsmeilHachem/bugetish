@@ -174,7 +174,7 @@
           <table class="min-w-full divide-y divide-slate-700">
             <thead class="bg-slate-900">
               <tr>
-                <th scope="col" class="w-12 px-6 py-4">
+                <th scope="col" class="w-12 px-3 md:px-6 py-4">
                   <input
                     type="checkbox"
                     v-model="allSelected"
@@ -182,23 +182,23 @@
                     class="rounded border-slate-600 text-cyan-600 focus:ring-cyan-500 bg-slate-700"
                   >
                 </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th scope="col" class="px-3 md:px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Date
                 </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th scope="col" class="px-3 md:px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Description
                 </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th scope="col" class="px-3 md:px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Category
                 </th>
-                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th scope="col" class="px-3 md:px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Amount
                 </th>
-                <th scope="col" class="hidden md:table-cell px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th scope="col" class="hidden md:table-cell px-3 md:px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Running Total
                 </th>
-                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Actions
+                <th scope="col" class="px-3 md:px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <span class="sr-only">Actions</span>
                 </th>
               </tr>
             </thead>
@@ -208,7 +208,7 @@
                     'hover:bg-slate-700/50 transition-colors duration-200',
                     isFutureTransaction(transaction.date) ? 'bg-cyan-950/30 hover:bg-cyan-950/50' : ''
                   ]">
-                <td class="px-6 py-4">
+                <td class="px-3 md:px-6 py-4">
                   <input
                     type="checkbox"
                     v-model="selectedTransactions"
@@ -216,18 +216,18 @@
                     class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   >
                 </td>
-                <td class="px-6 py-4 text-sm font-medium text-slate-200">
+                <td class="px-3 md:px-6 py-4 text-sm font-medium text-slate-200">
                   {{ formatDate(transaction.date) }}
                 </td>
-                <td class="px-6 py-4 text-sm text-slate-200">
+                <td class="px-3 md:px-6 py-4 text-sm text-slate-200">
                   {{ transaction.description || '-' }}
                 </td>
-                <td class="px-6 py-4 text-sm text-slate-200">
+                <td class="px-3 md:px-6 py-4 text-sm text-slate-200">
                   <span class="bg-slate-700 text-slate-300 px-3 py-1 rounded-full text-xs font-medium">
                     {{ transaction.category }}
                   </span>
                 </td>
-                <td class="px-6 py-4 text-sm text-right tabular-nums font-semibold"
+                <td class="px-3 md:px-6 py-4 text-sm text-right tabular-nums font-semibold"
                   :class="{
                     'text-green-600': transaction.amount > 0,
                     'text-red-600': transaction.amount < 0
@@ -238,8 +238,17 @@
                        class="text-xs text-gray-400 font-normal mt-0.5">
                     ≈ {{ lifeEnergyStore.toCost(transaction.amount) }}
                   </div>
+                  <div
+                    class="md:hidden text-xs font-bold mt-0.5"
+                    :class="{
+                      'text-blue-600': transaction.runningTotal >= 0,
+                      'text-red-600': transaction.runningTotal < 0
+                    }"
+                  >
+                    Bal: {{ formatCurrency(transaction.runningTotal) }}
+                  </div>
                 </td>
-                <td class="hidden md:table-cell px-6 py-4 text-sm text-right tabular-nums font-bold"
+                <td class="hidden md:table-cell px-3 md:px-6 py-4 text-sm text-right tabular-nums font-bold"
                   :class="{
                     'text-blue-600': transaction.runningTotal >= 0,
                     'text-red-600': transaction.runningTotal < 0
@@ -247,20 +256,37 @@
                 >
                   {{ formatCurrency(transaction.runningTotal) }}
                 </td>
-                <td class="px-6 py-4 text-right text-sm">
-                  <div class="flex justify-end gap-2">
+                <td class="relative px-3 md:px-6 py-4 text-right text-sm">
+                  <div class="relative inline-flex items-center justify-end">
                     <button
-                      @click="editTransaction(transaction)"
-                      class="px-3 py-1 text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all duration-200"
+                      type="button"
+                      @click.stop="toggleMenu(transaction.id)"
+                      class="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded-lg transition-colors duration-200"
+                      aria-label="Transaction actions"
+                      :aria-expanded="openMenuId === transaction.id"
                     >
-                      Edit
+                      <span class="text-lg leading-none font-bold">⋮</span>
                     </button>
-                    <button
-                      @click="deleteTransaction(transaction.id)"
-                      class="px-3 py-1 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-all duration-200"
+                    <div
+                      v-if="openMenuId === transaction.id"
+                      @click.stop
+                      class="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl flex items-center gap-1 p-1 z-20 whitespace-nowrap"
                     >
-                      Delete
-                    </button>
+                      <button
+                        type="button"
+                        @click="handleEdit(transaction)"
+                        class="px-3 py-1 text-blue-400 hover:bg-slate-700/60 rounded-lg text-xs font-semibold transition-colors duration-150"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        @click="handleDelete(transaction.id)"
+                        class="px-3 py-1 text-red-400 hover:bg-slate-700/60 rounded-lg text-xs font-semibold transition-colors duration-150"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -294,7 +320,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useTransactionsStore } from '@/stores/transactions'
 import { useAuthStore } from '@/stores/auth'
 import { useLifeEnergyStore } from '@/stores/lifeEnergy'
@@ -609,6 +635,42 @@ const handleTransactionUpdated = () => {
   showEditModal.value = false
   selectedTransaction.value = null
 }
+
+const openMenuId = ref(null)
+
+const toggleMenu = (id) => {
+  openMenuId.value = openMenuId.value === id ? null : id
+}
+
+const closeMenu = () => {
+  openMenuId.value = null
+}
+
+const handleEdit = (transaction) => {
+  closeMenu()
+  editTransaction(transaction)
+}
+
+const handleDelete = (id) => {
+  closeMenu()
+  deleteTransaction(id)
+}
+
+const handleKeydown = (e) => {
+  if (e.key === 'Escape') {
+    closeMenu()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeMenu)
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeMenu)
+  document.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <style scoped>
