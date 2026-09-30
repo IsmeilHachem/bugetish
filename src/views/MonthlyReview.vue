@@ -2,6 +2,24 @@
   <div class="min-h-screen bg-slate-950">
     <div class="container mx-auto px-4 py-8 max-w-3xl">
 
+      <!-- Sub-tabs switcher -->
+      <div class="flex space-x-1 bg-slate-800 p-1 rounded-xl w-fit mb-6 border border-slate-700">
+        <router-link
+          to="/reflections"
+          class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+          :class="$route.path === '/reflections' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'"
+        >
+          Reflections
+        </router-link>
+        <router-link
+          to="/monthly-review"
+          class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+          :class="$route.path === '/monthly-review' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'"
+        >
+          Review
+        </router-link>
+      </div>
+
       <!-- Header -->
       <div class="bg-gradient-to-br from-teal-950 to-slate-900 rounded-2xl shadow-xl p-8 mb-6 border border-teal-900">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

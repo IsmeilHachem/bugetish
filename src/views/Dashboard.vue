@@ -231,9 +231,17 @@
               <h3 class="text-xl font-bold text-slate-100">Financial Independence Progress</h3>
               <p class="text-sm text-slate-400 mt-0.5">Based on 4% safe withdrawal rate</p>
             </div>
-            <p class="text-sm text-slate-400 whitespace-nowrap">
-              Based on {{ formatCurrency(fiStore.monthlyExpenses) }}/mo avg expenses
-            </p>
+            <div class="flex flex-col sm:items-end gap-1">
+              <p class="text-sm text-slate-400 whitespace-nowrap">
+                Based on {{ formatCurrency(fiStore.monthlyExpenses) }}/mo avg expenses
+              </p>
+              <router-link
+                to="/fi-journey"
+                class="text-sm text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors duration-200"
+              >
+                View FI Journey →
+              </router-link>
+            </div>
           </div>
           <div class="flex flex-col sm:flex-row sm:items-end gap-6 mb-5">
             <div>

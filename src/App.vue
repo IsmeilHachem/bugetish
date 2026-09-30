@@ -17,7 +17,7 @@
                 :to="route.path"
                 class="inline-flex items-center px-1 pt-1 text-sm font-medium"
                 :class="[
-                  $route.path === route.path
+                  isRouteActive(route.path)
                     ? 'border-b-2 border-indigo-400 text-white'
                     : 'border-b-2 border-transparent text-slate-300 hover:border-slate-500 hover:text-white'
                 ]"
@@ -26,8 +26,16 @@
               </router-link>
             </div>
           </div>
-          <!-- Sign out -->
-          <div v-if="authStore.isLoggedIn" class="flex items-center">
+          <!-- Settings & Sign out -->
+          <div v-if="authStore.isLoggedIn" class="flex items-center space-x-4">
+            <router-link
+              to="/life-energy"
+              aria-label="Settings"
+              class="text-slate-400 hover:text-white text-lg transition-colors p-1"
+              title="Settings"
+            >
+              ⚙️
+            </router-link>
             <button
               @click="signOut"
               class="text-sm text-slate-400 hover:text-white font-medium transition-colors"
@@ -69,7 +77,7 @@
           :to="route.path"
           class="flex flex-col items-center py-2 px-1 text-xs font-medium flex-1"
           :class="[
-            $route.path === route.path
+            isRouteActive(route.path)
               ? 'text-indigo-400'
               : 'text-slate-400'
           ]"
@@ -84,21 +92,26 @@
 
 <script setup>
 import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const currentRoute = useRoute()
 
 const routes = [
   { path: '/dashboard', name: 'Dashboard', icon: '📊' },
-  { path: '/categories', name: 'Categories', icon: '🏷️' },
   { path: '/transactions', name: 'Transactions', icon: '💳' },
   { path: '/bills', name: 'Bills', icon: '📋' },
-  { path: '/reflections', name: 'Reflections', icon: '💭' },
-  { path: '/monthly-review', name: 'Review', icon: '🔍' },
-  { path: '/life-energy', name: 'Life Energy', icon: '⏱️' },
-  { path: '/fi-journey', name: 'FI Journey', icon: '🌅' }
+  { path: '/categories', name: 'Categories', icon: '🏷️' },
+  { path: '/reflections', name: 'Reflect', icon: '💭' }
 ]
+
+function isRouteActive(path) {
+  if (path === '/reflections') {
+    return ['/reflections', '/monthly-review', '/reflection'].includes(currentRoute.path)
+  }
+  return currentRoute.path === path
+}
 
 async function signOut() {
   await authStore.signOut()

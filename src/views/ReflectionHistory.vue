@@ -1,5 +1,23 @@
 <template>
   <div class="max-w-3xl mx-auto py-8 px-4">
+    <!-- Sub-tabs switcher -->
+    <div class="flex space-x-1 bg-slate-800 p-1 rounded-xl w-fit mb-6 border border-slate-700">
+      <router-link
+        to="/reflections"
+        class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+        :class="$route.path === '/reflections' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'"
+      >
+        Reflections
+      </router-link>
+      <router-link
+        to="/monthly-review"
+        class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+        :class="$route.path === '/monthly-review' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'"
+      >
+        Review
+      </router-link>
+    </div>
+
     <h2 class="text-2xl font-bold mb-6 text-white">Reflection History</h2>
     <div v-if="reflections.length === 0" class="text-slate-400">No reflections yet. Start by writing your first monthly reflection!</div>
     <div v-else class="space-y-4">
