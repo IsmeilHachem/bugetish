@@ -65,6 +65,11 @@ const routes = [
     path: '/fi-journey',
     name: 'FIJourney',
     component: () => import('../views/FIJourney.vue')
+  },
+  {
+    path: '/debt-plan',
+    name: 'DebtPlan',
+    component: () => import('../views/DebtPlan.vue')
   }
 ]
 

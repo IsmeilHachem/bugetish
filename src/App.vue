@@ -102,6 +102,7 @@ const routes = [
   { path: '/dashboard', name: 'Dashboard', icon: '📊' },
   { path: '/transactions', name: 'Transactions', icon: '💳' },
   { path: '/bills', name: 'Bills', icon: '📋' },
+  { path: '/debt-plan', name: 'Debt', icon: '🎯' },
   { path: '/categories', name: 'Categories', icon: '🏷️' },
   { path: '/reflections', name: 'Reflect', icon: '💭' }
 ]
