@@ -159,9 +159,10 @@ export const useDebtPlanStore = defineStore('debtPlan', {
       const newDebt = {
         id: debt.id || generateTimestamp(),
         name: debt.name || 'New Debt',
-        balance: Number(debt.balance) || 0,
-        apr: Number(debt.apr) || 0,
-        minPayment: Number(debt.minPayment) || 0
+        type: debt.type || 'Credit Card',
+        balance: debt.balance === '' ? '' : (debt.balance !== undefined ? Number(debt.balance) : 1000),
+        apr: debt.apr === '' ? '' : (debt.apr !== undefined ? Number(debt.apr) : 19.99),
+        minPayment: debt.minPayment === '' ? '' : (debt.minPayment !== undefined ? Number(debt.minPayment) : 50)
       }
       this.debts.push(newDebt)
       if (!this.shortfallDebtId) {
@@ -176,6 +177,7 @@ export const useDebtPlanStore = defineStore('debtPlan', {
       const item = this.debts.find(d => d.id === id)
       if (!item) return false
       if (updates.name !== undefined) item.name = updates.name
+      if (updates.type !== undefined) item.type = updates.type
       if (updates.balance !== undefined) item.balance = updates.balance === '' ? '' : Number(updates.balance)
       if (updates.apr !== undefined) item.apr = updates.apr === '' ? '' : Number(updates.apr)
       if (updates.minPayment !== undefined) item.minPayment = updates.minPayment === '' ? '' : Number(updates.minPayment)

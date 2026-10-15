@@ -187,11 +187,12 @@
           @focusin="onTableFocusIn"
           @focusout="onTableFocusOut"
         >
-          <table class="w-full text-left text-sm border-collapse min-w-[700px]">
+          <table class="w-full text-left text-sm border-collapse min-w-[760px]">
             <thead>
               <tr class="border-b border-slate-700 text-xs text-slate-400 uppercase tracking-wider">
                 <th class="py-3 px-2 w-10 text-center">#</th>
                 <th class="py-3 px-3">Name</th>
+                <th class="py-3 px-3 w-36">Type</th>
                 <th class="py-3 px-3 w-32">Balance</th>
                 <th class="py-3 px-3 w-28">APR %</th>
                 <th class="py-3 px-3 w-28">Min Payment</th>
@@ -228,6 +229,22 @@
                       :style="getDebtProgressStyle(debt)"
                     ></div>
                   </div>
+                </td>
+
+                <!-- Type Selector -->
+                <td class="py-3 px-3">
+                  <select
+                    :value="debt.type || getInferredDebtType(debt)"
+                    @change="debtPlanStore.updateDebt(debt.id, { type: $event.target.value })"
+                    class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-lg px-2 py-1 text-slate-200 text-xs focus:outline-none cursor-pointer"
+                  >
+                    <option value="Credit Card">💳 Credit Card</option>
+                    <option value="Personal Loan">🏦 Personal Loan</option>
+                    <option value="Student Loan">🎓 Student Loan</option>
+                    <option value="Auto Loan">🚗 Auto Loan</option>
+                    <option value="Medical">🏥 Medical</option>
+                    <option value="Other">📋 Other</option>
+                  </select>
                 </td>
 
                 <!-- Balance -->
@@ -378,8 +395,8 @@
                       type="text"
                       :value="item.label"
                       @input="debtPlanStore.updateIncome(item.id, { label: $event.target.value })"
-                      class="bg-transparent border-b border-transparent focus:border-slate-500 text-sm font-semibold text-slate-200 px-1 py-0.5 focus:outline-none w-full"
-                      placeholder="Income label"
+                      class="w-full bg-slate-800 border border-slate-700 focus:border-green-500 rounded-lg px-2.5 py-1 text-slate-200 text-sm focus:outline-none placeholder-slate-500"
+                      placeholder="Income source name"
                     />
                   </div>
                   <div class="flex items-center gap-2">
@@ -486,8 +503,8 @@
                       type="text"
                       :value="item.label"
                       @input="debtPlanStore.updateExpense(item.id, { label: $event.target.value })"
-                      class="bg-transparent border-b border-transparent focus:border-slate-500 text-sm font-semibold text-slate-200 px-1 py-0.5 focus:outline-none w-full"
-                      placeholder="Expense label"
+                      class="w-full bg-slate-800 border border-slate-700 focus:border-red-500 rounded-lg px-2.5 py-1 text-slate-200 text-sm focus:outline-none placeholder-slate-500"
+                      placeholder="Expense category / name"
                     />
                   </div>
                   <div class="flex items-center gap-2">
@@ -708,6 +725,19 @@ function formatMonth(ym) {
   const [y, m] = ym.split('-').map(Number)
   const d = new Date(y, m - 1, 1)
   return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+}
+
+// Inferred debt type helper
+function getInferredDebtType(debt) {
+  if (debt.type) return debt.type
+  const name = (debt.name || '').toLowerCase()
+  if (name.includes('sofi') || name.includes('upstart') || name.includes('loan')) {
+    return 'Personal Loan'
+  }
+  if (name.includes('student')) return 'Student Loan'
+  if (name.includes('auto') || name.includes('car')) return 'Auto Loan'
+  if (name.includes('medical')) return 'Medical'
+  return 'Credit Card'
 }
 
 // Table ordering & focus state
