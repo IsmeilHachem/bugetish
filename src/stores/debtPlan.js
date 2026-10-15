@@ -70,22 +70,26 @@ export const useDebtPlanStore = defineStore('debtPlan', {
       if (!authStore.isLoggedIn) return
       // Never overwrite Supabase before debt plan has been loaded — would wipe real data with []
       if (!this.initialized) return
-      supabase.from('user_data').upsert({
-        user_id: authStore.userId,
-        data_type: 'debt_plan',
-        data: {
-          debts: this.debts,
-          income: this.income,
-          expenses: this.expenses,
-          strategy: this.strategy,
-          shortfallDebtId: this.shortfallDebtId,
-          goalMonth: this.goalMonth,
-          goalLabel: this.goalLabel
-        },
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id,data_type' }).then(({ error }) => {
-        if (error) console.error('Error saving debt plan to Supabase:', error)
-      })
+
+      if (this._saveTimer) clearTimeout(this._saveTimer)
+      this._saveTimer = setTimeout(() => {
+        supabase.from('user_data').upsert({
+          user_id: authStore.userId,
+          data_type: 'debt_plan',
+          data: {
+            debts: this.debts,
+            income: this.income,
+            expenses: this.expenses,
+            strategy: this.strategy,
+            shortfallDebtId: this.shortfallDebtId,
+            goalMonth: this.goalMonth,
+            goalLabel: this.goalLabel
+          },
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id,data_type' }).then(({ error }) => {
+          if (error) console.error('Error saving debt plan to Supabase:', error)
+        })
+      }, 400)
     },
 
     async initialize() {

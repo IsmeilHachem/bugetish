@@ -86,7 +86,7 @@
         </p>
         <button
           type="button"
-          @click="debtPlanStore.addDebt({ name: 'Credit Card', balance: 5000, apr: 22.99, minPayment: 120 })"
+          @click="handleAddDebt"
           class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-colors shadow-lg shadow-indigo-600/30 text-sm"
         >
           + Add your first debt
@@ -148,7 +148,7 @@
             <div class="flex items-center p-1 bg-slate-900 rounded-xl border border-slate-700 text-xs">
               <button
                 type="button"
-                @click="debtPlanStore.setStrategy(STRATEGIES.avalanche)"
+                @click="handleSetStrategy(STRATEGIES.avalanche)"
                 class="px-3 py-1.5 rounded-lg font-medium transition-all"
                 :class="debtPlanStore.strategy === STRATEGIES.avalanche ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'"
               >
@@ -156,7 +156,7 @@
               </button>
               <button
                 type="button"
-                @click="debtPlanStore.setStrategy(STRATEGIES.snowball)"
+                @click="handleSetStrategy(STRATEGIES.snowball)"
                 class="px-3 py-1.5 rounded-lg font-medium transition-all"
                 :class="debtPlanStore.strategy === STRATEGIES.snowball ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'"
               >
@@ -166,7 +166,7 @@
 
             <button
               type="button"
-              @click="debtPlanStore.addDebt({ name: 'New Debt', balance: 1000, apr: 19.99, minPayment: 50 })"
+              @click="handleAddDebt"
               class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-colors flex items-center gap-1 shadow-md shadow-indigo-600/20"
             >
               <span>+</span>
@@ -180,7 +180,13 @@
         </div>
 
         <!-- Debts table with horizontal scrolling container for small screens -->
-        <div v-else class="overflow-x-auto">
+        <div
+          v-else
+          ref="tableContainerRef"
+          class="overflow-x-auto"
+          @focusin="onTableFocusIn"
+          @focusout="onTableFocusOut"
+        >
           <table class="w-full text-left text-sm border-collapse min-w-[700px]">
             <thead>
               <tr class="border-b border-slate-700 text-xs text-slate-400 uppercase tracking-wider">
@@ -211,6 +217,7 @@
                     type="text"
                     :value="debt.name"
                     @input="debtPlanStore.updateDebt(debt.id, { name: $event.target.value })"
+                    @keydown.enter="handleEnter"
                     class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-lg px-2.5 py-1 text-slate-200 text-sm focus:outline-none"
                     placeholder="Debt name"
                   />
@@ -233,6 +240,7 @@
                       min="0"
                       :value="debt.balance"
                       @input="debtPlanStore.updateDebt(debt.id, { balance: $event.target.value })"
+                      @keydown.enter="handleEnter"
                       class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-lg pl-6 pr-2 py-1 text-slate-200 text-sm focus:outline-none"
                     />
                   </div>
@@ -248,6 +256,7 @@
                       max="100"
                       :value="debt.apr"
                       @input="debtPlanStore.updateDebt(debt.id, { apr: $event.target.value })"
+                      @keydown.enter="handleEnter"
                       class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-lg px-2.5 pr-6 py-1 text-slate-200 text-sm focus:outline-none"
                     />
                     <span class="absolute inset-y-0 right-0 pr-2 flex items-center text-slate-400 text-xs">%</span>
@@ -264,6 +273,7 @@
                       min="0"
                       :value="debt.minPayment"
                       @input="debtPlanStore.updateDebt(debt.id, { minPayment: $event.target.value })"
+                      @keydown.enter="handleEnter"
                       class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-lg pl-6 pr-2 py-1 text-slate-200 text-sm focus:outline-none"
                     />
                   </div>
@@ -298,7 +308,7 @@
                 <td class="py-3 px-2 text-center">
                   <button
                     type="button"
-                    @click="debtPlanStore.removeDebt(debt.id)"
+                    @click="handleRemoveDebt(debt.id)"
                     class="text-slate-500 hover:text-red-400 p-1 transition-colors rounded"
                     title="Remove debt"
                   >
@@ -700,16 +710,98 @@ function formatMonth(ym) {
   return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
-// Sorted debts by payoff order
-const sortedDebts = computed(() => {
+// Table ordering & focus state
+const tableContainerRef = ref(null)
+const isTableFocused = ref(false)
+const displayedDebtIds = ref([])
+
+function updateSortOrder() {
   const order = debtPlanStore.result.payoffOrder || []
   const orderMap = new Map(order.map((item, idx) => [item.id, idx]))
-  return [...debtPlanStore.debts].sort((a, b) => {
+  const sorted = [...debtPlanStore.debts].sort((a, b) => {
     const idxA = orderMap.has(a.id) ? orderMap.get(a.id) : 999
     const idxB = orderMap.has(b.id) ? orderMap.get(b.id) : 999
     return idxA - idxB
   })
+  displayedDebtIds.value = sorted.map(d => d.id)
+}
+
+// Keep displayed order stable while typing; re-sort on Enter, click-out (blur), strategy change, or load
+const sortedDebts = computed(() => {
+  const debtMap = new Map(debtPlanStore.debts.map(d => [d.id, d]))
+  const result = []
+
+  for (const id of displayedDebtIds.value) {
+    if (debtMap.has(id)) {
+      result.push(debtMap.get(id))
+      debtMap.delete(id)
+    }
+  }
+
+  for (const remaining of debtMap.values()) {
+    result.push(remaining)
+  }
+
+  return result
 })
+
+function onTableFocusIn() {
+  isTableFocused.value = true
+}
+
+function onTableFocusOut(event) {
+  if (event.currentTarget && event.currentTarget.contains(event.relatedTarget)) {
+    return
+  }
+  isTableFocused.value = false
+  updateSortOrder()
+}
+
+function handleEnter(event) {
+  event.target.blur()
+}
+
+function handleSetStrategy(strat) {
+  debtPlanStore.setStrategy(strat)
+  updateSortOrder()
+}
+
+function handleAddDebt() {
+  isTableFocused.value = true
+  const newDebt = debtPlanStore.addDebt({
+    name: 'New Debt',
+    balance: 1000,
+    apr: 19.99,
+    minPayment: 50
+  })
+  if (newDebt && newDebt.id && !displayedDebtIds.value.includes(newDebt.id)) {
+    displayedDebtIds.value = [...displayedDebtIds.value, newDebt.id]
+  }
+}
+
+function handleRemoveDebt(id) {
+  debtPlanStore.removeDebt(id)
+  displayedDebtIds.value = displayedDebtIds.value.filter(item => item !== id)
+}
+
+watch(
+  () => debtPlanStore.result.payoffOrder,
+  () => {
+    if (!isTableFocused.value) {
+      updateSortOrder()
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  () => debtPlanStore.debts.length,
+  (newLen, oldLen) => {
+    if (!isTableFocused.value || oldLen === 0) {
+      updateSortOrder()
+    }
+  }
+)
 
 // Progress bar styling for debts
 function getDebtProgressStyle(debt) {
