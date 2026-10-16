@@ -75,15 +75,15 @@
           v-for="route in routes"
           :key="route.path"
           :to="route.path"
-          class="flex flex-col items-center py-2 px-1 text-xs font-medium flex-1"
+          class="flex flex-col items-center py-2 px-0.5 text-[10px] font-medium flex-1 truncate"
           :class="[
             isRouteActive(route.path)
               ? 'text-indigo-400'
               : 'text-slate-400'
           ]"
         >
-          <span class="text-lg mb-0.5">{{ route.icon }}</span>
-          <span>{{ route.name }}</span>
+          <span class="text-base mb-0.5">{{ route.icon }}</span>
+          <span class="truncate max-w-full">{{ route.name }}</span>
         </router-link>
       </div>
     </nav>
@@ -103,6 +103,7 @@ const routes = [
   { path: '/transactions', name: 'Transactions', icon: '💳' },
   { path: '/bills', name: 'Bills', icon: '📋' },
   { path: '/debt-plan', name: 'Debt', icon: '🎯' },
+  { path: '/plan', name: 'Plan', icon: '🗺️' },
   { path: '/categories', name: 'Categories', icon: '🏷️' },
   { path: '/reflections', name: 'Reflect', icon: '💭' }
 ]
